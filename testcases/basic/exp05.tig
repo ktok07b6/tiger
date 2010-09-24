@@ -1,0 +1,19 @@
+let
+	var x := 1
+	var y:int := 2
+	var s1 := "hello"
+	var s2:string := "tiger"
+	var s3:string := ""
+in
+	x := 1 + 2;
+	x := x + 1;
+	x := 1 + x;
+	x := x + y;
+	x := y - 1;
+	x := x * 2;
+	x := x / 2;
+	x := x / 0;
+	x := (x + 2) * 4;
+	x := -x;
+	s3 := s1
+end

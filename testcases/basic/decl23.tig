@@ -1,0 +1,6 @@
+let
+    function pow2(x:int):int = (x*x)
+	function pow4(x:int):int = (pow2(x)*pow2(x))
+in
+    pow4(2)
+end

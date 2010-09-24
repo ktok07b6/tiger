@@ -1,0 +1,7 @@
+let
+    function f():int = 10
+    var a := 1
+in
+    a := f()
+end
+

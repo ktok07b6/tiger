@@ -1,0 +1,7 @@
+let
+    function f(x:int):int = x * x
+    function g(y:int):int = f(y * y)
+    var a := 1
+in
+    a := g(10)
+end

@@ -1,0 +1,9 @@
+let
+	var a := 1
+in
+    let
+		var b := 2
+	in
+		b := a
+	end
+end

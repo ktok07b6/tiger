@@ -1,0 +1,5 @@
+let
+    function myfunc():int = (1)
+	function myfunc2():int = 1
+in
+end

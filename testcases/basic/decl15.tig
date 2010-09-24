@@ -1,0 +1,5 @@
+let
+	type rec = {x:int}
+	type arr_of_ref = array of rec
+in
+end

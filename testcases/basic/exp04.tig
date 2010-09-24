@@ -1,0 +1,6 @@
+let
+	var x:int := 0
+in
+	(x := x + 1; x:=x+2);
+	(x := x + 1; x:=x+2)
+end

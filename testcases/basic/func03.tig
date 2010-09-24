@@ -1,0 +1,6 @@
+let
+    function f(x:int):int = x * x
+    var a := 1
+in
+    a := f(10)
+end

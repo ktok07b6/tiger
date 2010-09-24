@@ -1,0 +1,7 @@
+let
+	type point = {x:int, y:int}
+	var p1:point := point{x=10, y=20}
+in
+	p1.x := 100;
+	p1.y := 200
+end

@@ -1,0 +1,6 @@
+let
+	type any = {any:int}
+	function f(any:any):int = any.any
+	var any := any{any = 10}
+in
+end

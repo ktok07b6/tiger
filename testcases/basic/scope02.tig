@@ -1,0 +1,11 @@
+let
+	var x:int := 0 
+	function f():int = g()
+		let
+			function g():int = x * x
+		in
+			g()
+		end
+in
+	f()
+end

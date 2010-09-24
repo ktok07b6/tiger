@@ -1,0 +1,5 @@
+let
+	type rec = {x:int}
+	type rec_rec = {r:rec}
+in
+end

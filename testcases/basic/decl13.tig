@@ -1,0 +1,4 @@
+let
+	type myarray = array of int
+in 
+end

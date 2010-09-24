@@ -1,0 +1,10 @@
+let
+	type rec = {a:int, b:int}
+	type arr = array of rec
+	var a:arr := arr[10] of rec{a=1, b=2}
+in
+	a[0].a := 101;
+	a[0].b := 102;
+	a[1].a := 201;
+	a[1].b := 202
+end

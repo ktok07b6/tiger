@@ -1,0 +1,4 @@
+let
+    function myfunc():string = "hello"
+in
+end
