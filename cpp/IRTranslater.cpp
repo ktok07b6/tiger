@@ -61,9 +61,9 @@ IRTranslater::visit(FieldVar *var)
 	}
 	tree::Exp *head = texp->unEx();
 	//var->sym->name;
-	tree::CONST *offset = gcnew(tree::CONST, (i*currentLevel->getFrame()->wordSize()));
+	tree::CONST *offset = _CONST(i*currentLevel->getFrame()->wordSize());
 	tree::BINOP *memberAddr = _(head) + _(offset);
-	tree::MEM *member = gcnew(tree::MEM, (memberAddr));
+	tree::MEM *member = _MEM(memberAddr);
 	texp = gcnew(translate::Ex, (member));
 }
 
@@ -80,12 +80,12 @@ IRTranslater::visit(SubscriptVar *var)
 	tree::Exp *index = texp->unEx();
 
 	int wordSize = currentLevel->getFrame()->wordSize();
-	tree::CONST *ws = gcnew(tree::CONST, (wordSize));
+	tree::CONST *ws = _CONST(wordSize);
 	//tree::BINOP *offset = gcnew(tree::BINOP, (tree::BINOP::oMUL, index, ws));
 	//tree::BINOP *addr = gcnew(tree::BINOP, (tree::BINOP::oPLUS, head, offset));
 	tree::BINOP *offset = _(index) * _(ws);
 	tree::BINOP *addr = _(head) + _(offset);
-	tree::MEM *mem = gcnew(tree::MEM, (addr));
+	tree::MEM *mem = _MEM(addr);
 	texp = gcnew(translate::Ex, (mem));
 }
 
@@ -101,7 +101,7 @@ IRTranslater::visit(NilExp *exp)
 {
 	FUNCLOG;
 	//TODO:
-	tree::CONST *i = gcnew(tree::CONST, (0));
+	tree::CONST *i = _CONST(0);
 	texp = gcnew(translate::Ex, (i));
 }
 
@@ -109,7 +109,7 @@ void
 IRTranslater::visit(IntExp *exp)
 {
 	FUNCLOG;
-	tree::CONST *i = gcnew(tree::CONST, (exp->n));
+	tree::CONST *i = _CONST(exp->n);
 	texp = gcnew(translate::Ex, (i));
 }
 
@@ -119,7 +119,7 @@ IRTranslater::visit(StringExp *exp)
 	FUNCLOG;
 	//exp->str;
 	//TODO
-	tree::CONST *i = gcnew(tree::CONST, (0));
+	tree::CONST *i = _CONST(0);
 	texp = gcnew(translate::Ex, (i));
 }
 
@@ -136,7 +136,7 @@ IRTranslater::visit(CallExp *exp)
 	*/
 	tree::ExpList args;
 	//TODO:自分自身を呼び出す場合はstatiChainを渡す
-	tree::TEMP *fp = gcnew(tree::TEMP, (currentLevel->getFrame()->fp()));
+	tree::TEMP *fp = _TEMP(currentLevel->getFrame()->fp());
 	args.push_back(fp);
 
 	ExpList::iterator it;
@@ -149,8 +149,8 @@ IRTranslater::visit(CallExp *exp)
 	}
 
 	Label *namedLabel = gcnew(Label, (exp->func->name));
-	tree::Exp *func = gcnew(tree::NAME, (namedLabel));
-	tree::CALL *call = gcnew(tree::CALL, (func, args));
+	tree::Exp *func = _NAME(namedLabel);
+	tree::CALL *call = _CALL(func, args);
 	texp = gcnew(translate::Ex, (call));
 }
 
@@ -179,7 +179,7 @@ IRTranslater::visit(OpExp *exp)
 		default:
 			assert(0);
 		}
-		tree::BINOP *binop = gcnew(tree::BINOP, (op, el, er));
+		tree::BINOP *binop = _BINOP(op, el, er);
 		texp = gcnew(translate::Ex, (binop));
 		return;
 	} else if (EqOp <= exp->op && exp->op <= GeOp) {
@@ -231,21 +231,21 @@ IRTranslater::convertAndOp(tree::Exp *el, tree::Exp *er)
 	*/			
 	tree::SEQMaker sm;
 	Temp *tmp = gcnew(Temp, ());
-	tree::TEMP *ret = gcnew(tree::TEMP, (tmp));
-	tree::CONST *const0 = gcnew(tree::CONST, (0));
-	tree::CONST *const1 = gcnew(tree::CONST, (1));
-	tree::MOVE *ret_init = gcnew(tree::MOVE, (ret, const0));
+	tree::TEMP *ret = _TEMP(tmp);
+	tree::CONST *const0 = _CONST(0);
+	tree::CONST *const1 = _CONST(1);
+	tree::MOVE *ret_init = _MOVE(ret, const0);
 	
 	Label *l1 = gcnew(Label, ());
 	Label *l2 = gcnew(Label, ());
 	Label *done = gcnew(Label, ());
-	tree::LABEL *L1 = gcnew(tree::LABEL, (l1));
-	tree::LABEL *L2 = gcnew(tree::LABEL, (l2));
-	tree::LABEL *DONE = gcnew(tree::LABEL, (done));
+	tree::LABEL *L1 = _LABEL(l1);
+	tree::LABEL *L2 = _LABEL(l2);
+	tree::LABEL *DONE = _LABEL(done);
 
-	tree::CJUMP *cj1 = gcnew(tree::CJUMP, (tree::CJUMP::oNE, el, const0, l1, done));
-	tree::CJUMP *cj2 = gcnew(tree::CJUMP, (tree::CJUMP::oNE, er, const0, l2, done));
-	tree::MOVE *ret_update = gcnew(tree::MOVE, (ret, const1));
+	tree::CJUMP *cj1 = _CJUMP(tree::CJUMP::oNE, el, const0, l1, done);
+	tree::CJUMP *cj2 = _CJUMP(tree::CJUMP::oNE, er, const0, l2, done);
+	tree::MOVE *ret_update = _MOVE(ret, const1);
 
 	sm.add(ret_init);
 	sm.add(cj1);
@@ -256,7 +256,7 @@ IRTranslater::convertAndOp(tree::Exp *el, tree::Exp *er)
 	sm.add(DONE);
 
 	tree::SEQ *seq = sm.make();
-	return gcnew(tree::ESEQ, (seq, ret));
+	return _ESEQ(seq, ret);
 }
 
 
@@ -275,21 +275,21 @@ IRTranslater::convertOrOp(tree::Exp *el, tree::Exp *er)
 	*/			
 	tree::SEQMaker sm;
 	Temp *tmp = gcnew(Temp, ());
-	tree::TEMP *ret = gcnew(tree::TEMP, (tmp));
-	tree::CONST *const0 = gcnew(tree::CONST, (0));
-	tree::CONST *const1 = gcnew(tree::CONST, (1));
-	tree::MOVE *ret_init = gcnew(tree::MOVE, (ret, const1));
+	tree::TEMP *ret = _TEMP(tmp);
+	tree::CONST *const0 = _CONST(0);
+	tree::CONST *const1 = _CONST(1);
+	tree::MOVE *ret_init = _MOVE(ret, const1);
 	
 	Label *l1 = gcnew(Label, ());
 	Label *l2 = gcnew(Label, ());
 	Label *done = gcnew(Label, ());
-	tree::LABEL *L1 = gcnew(tree::LABEL, (l1));
-	tree::LABEL *L2 = gcnew(tree::LABEL, (l2));
-	tree::LABEL *DONE = gcnew(tree::LABEL, (done));
+	tree::LABEL *L1 = _LABEL(l1);
+	tree::LABEL *L2 = _LABEL(l2);
+	tree::LABEL *DONE = _LABEL(done);
 
-	tree::CJUMP *cj1 = gcnew(tree::CJUMP, (tree::CJUMP::oEQ, el, const0, l1, done));
-	tree::CJUMP *cj2 = gcnew(tree::CJUMP, (tree::CJUMP::oEQ, er, const0, l2, done));
-	tree::MOVE *ret_update = gcnew(tree::MOVE, (ret, const0));
+	tree::CJUMP *cj1 = _CJUMP(tree::CJUMP::oEQ, el, const0, l1, done);
+	tree::CJUMP *cj2 = _CJUMP(tree::CJUMP::oEQ, er, const0, l2, done);
+	tree::MOVE *ret_update = _MOVE(ret, const0);
 
 	sm.add(ret_init);
 	sm.add(cj1);
@@ -300,7 +300,7 @@ IRTranslater::convertOrOp(tree::Exp *el, tree::Exp *er)
 	sm.add(DONE);
 
 	tree::SEQ *seq = sm.make();
-	return gcnew(tree::ESEQ, (seq, ret));
+	return _ESEQ(seq, ret);
 }
 
 void
@@ -319,10 +319,10 @@ IRTranslater::visit(RecordExp *exp)
 	tree::SEQMaker seq;
 	//base = malloc fieldsize * wordsize
 	Temp *t = gcnew(Temp, ());
-	tree::TEMP *base = gcnew(tree::TEMP, (t));
+	tree::TEMP *base = _TEMP(t);
 	int ws = currentLevel->getFrame()->wordSize();
 	tree::Exp *addr = callMalloc(exp->fields->size() * ws);
-	tree::MOVE *mv = gcnew(tree::MOVE, (base, addr));
+	tree::MOVE *mv = _MOVE(base, addr);
 
 	seq.add(mv);
 
@@ -334,16 +334,16 @@ IRTranslater::visit(RecordExp *exp)
 		f->accept(this);
 		if (texp) {
 			tree::Exp *e = texp->unEx();
-			tree::CONST *offset = gcnew(tree::CONST, (i*ws));
+			tree::CONST *offset = _CONST(i*ws);
 			tree::BINOP *p = _(base) + _(offset);
-			tree::MEM *m = gcnew(tree::MEM, (p));
-			tree::MOVE *mv = gcnew(tree::MOVE, (m, e));
+			tree::MEM *m = _MEM(p);
+			tree::MOVE *mv = _MOVE(m, e);
 			seq.add(mv);
 		}
 		++i;
 		++it;
 	}
-	tree::ESEQ *eseq = gcnew(tree::ESEQ, (seq.make(), base));
+	tree::ESEQ *eseq = _ESEQ(seq.make(), base);
 	texp = gcnew(translate::Ex, (eseq));
 }
 
@@ -370,7 +370,7 @@ IRTranslater::visit(SeqExp *exp)
 		}
    } while (true);
    tree::SEQ *seq = sm.make();
-   tree::ESEQ *eseq = gcnew(tree::ESEQ, (seq, ret));
+   tree::ESEQ *eseq = _ESEQ(seq, ret);
    texp = gcnew(translate::Ex, (eseq));
 }
 
@@ -385,7 +385,7 @@ IRTranslater::visit(AssignExp *exp)
 	exp->exp->accept(this);
 	tree::Exp *e = texp ? texp->unEx() : NULL;
 
-	tree::MOVE *move = gcnew(tree::MOVE, (v, e));
+	tree::MOVE *move = _MOVE(v, e);
 	texp = gcnew(translate::Nx, (move));
 }
 
@@ -396,26 +396,26 @@ IRTranslater::visit(IfExp *exp)
 
 	Label *labelT = gcnew(Label, ());
 	Label *labelF = gcnew(Label, ());
-	tree::LABEL *l_T = gcnew(tree::LABEL, (labelT));
-	tree::LABEL *l_F = gcnew(tree::LABEL, (labelF));
+	tree::LABEL *l_T = _LABEL(labelT);
+	tree::LABEL *l_F = _LABEL(labelF);
 
 	exp->test->accept(this);
 	tree::Exp *boolean = texp->unEx();
-	tree::CONST *const_0 = gcnew(tree::CONST, (0));
-	tree::CJUMP *cjump = gcnew(tree::CJUMP, (tree::CJUMP::oNE, boolean, const_0, labelT, labelF));
+	tree::CONST *const_0 = _CONST(0);
+	tree::CJUMP *cjump = _CJUMP(tree::CJUMP::oNE, boolean, const_0, labelT, labelF);
 	if (exp->elseexp) {
 		Temp *tmp = gcnew(Temp, ());
-		tree::TEMP *r = gcnew(tree::TEMP, (tmp));
+		tree::TEMP *r = _TEMP(tmp);
 
 		exp->thenexp->accept(this);
-		tree::MOVE *r_T = gcnew(tree::MOVE, (r, texp->unEx()));
+		tree::MOVE *r_T = _MOVE(r, texp->unEx());
 
 		exp->elseexp->accept(this);
-		tree::MOVE *r_F = gcnew(tree::MOVE, (r, texp->unEx()));
+		tree::MOVE *r_F = _MOVE(r, texp->unEx());
 
 		Label *labelJoin = gcnew(Label, ());
-		tree::LABEL *l_Join = gcnew(tree::LABEL, (labelJoin));
-		tree::JUMP *jmp_to_Join = gcnew(tree::JUMP, (labelJoin)); 
+		tree::LABEL *l_Join = _LABEL(labelJoin);
+		tree::JUMP *jmp_to_Join = _JUMP(labelJoin); 
 
 		tree::SEQMaker sm;
 		sm.add(cjump);
@@ -427,7 +427,7 @@ IRTranslater::visit(IfExp *exp)
 		sm.add(l_Join);
 		tree::SEQ *seq = sm.make();//makeSEQ(cjump, l_T, r_T, jmp_to_Join, l_F, r_F, l_Join);
 		//TODO
-		tree::ESEQ *eseq = gcnew(tree::ESEQ, (seq, r));
+		tree::ESEQ *eseq = _ESEQ(seq, r);
 		texp = gcnew(translate::Ex, (eseq));
 
 	} else {
@@ -467,10 +467,10 @@ end:
 	 */
 	Label *labelS = gcnew(Label, ());
 	Label *labelE = gcnew(Label, ());
-	tree::LABEL *l_S = gcnew(tree::LABEL, (labelS));
-	tree::LABEL *l_E = gcnew(tree::LABEL, (labelE));
-	tree::CONST *const0 = gcnew(tree::CONST, (0));
-	tree::CJUMP *cmp = gcnew(tree::CJUMP, (tree::CJUMP::oNE, test, const0, labelS, labelE)); 
+	tree::LABEL *l_S = _LABEL(labelS);
+	tree::LABEL *l_E = _LABEL(labelE);
+	tree::CONST *const0 = _CONST(0);
+	tree::CJUMP *cmp = _CJUMP(tree::CJUMP::oNE, test, const0, labelS, labelE); 
 	tree::SEQMaker sm;
 	sm.add(cmp);
 	sm.add(l_S);
@@ -524,14 +524,14 @@ end:
 		 */
 	Label *labelS = gcnew(Label, ());
 	Label *labelE = gcnew(Label, ());
-	tree::LABEL *l_S = gcnew(tree::LABEL, (labelS));
-	tree::LABEL *l_E = gcnew(tree::LABEL, (labelE));
+	tree::LABEL *l_S = _LABEL(labelS);
+	tree::LABEL *l_E = _LABEL(labelE);
 
-	tree::MOVE *var_init = gcnew(tree::MOVE, (var, lo));
-	tree::CONST *const_1 = gcnew(tree::CONST, (1));
-	tree::BINOP *var_inc = gcnew(tree::BINOP, (tree::BINOP::oPLUS, var, const_1));
-	tree::MOVE *var_update = gcnew(tree::MOVE, (var, var_inc));
-	tree::CJUMP *cmp = gcnew(tree::CJUMP, (tree::CJUMP::oLT, var, hi, labelS, labelE)); 
+	tree::MOVE *var_init = _MOVE(var, lo);
+	tree::CONST *const_1 = _CONST(1);
+	tree::BINOP *var_inc = _BINOP(tree::BINOP::oPLUS, var, const_1);
+	tree::MOVE *var_update = _MOVE(var, var_inc);
+	tree::CJUMP *cmp = _CJUMP(tree::CJUMP::oLT, var, hi, labelS, labelE); 
 	tree::SEQMaker sm;
 	sm.add(var_init);
 	sm.add(cmp);
@@ -585,7 +585,7 @@ IRTranslater::visit(LetExp *exp)
 		if (ebody) {
 			tree::SEQ *seq = sm.make();
 			if (seq) {
-				tree::ESEQ *eseq = gcnew(tree::ESEQ, (seq, ebody));
+				tree::ESEQ *eseq = _ESEQ(seq, ebody);
 				texp = gcnew(translate::Ex, (eseq));
 			} else {
 				texp = gcnew(translate::Ex, (ebody));
@@ -614,15 +614,15 @@ IRTranslater::visit(ArrayExp *exp)
 
 	tree::SEQMaker seq;
 	Temp *t = gcnew(Temp, ());
-	tree::TEMP *base = gcnew(tree::TEMP, (t));
+	tree::TEMP *base = _TEMP(t);
 
 	tree::ExpList arg;
 	arg.push_back(size);
 	arg.push_back(init);
 	tree::Exp *addr = currentLevel->getFrame()->externalCall("initArray", arg);
-	tree::MOVE *mv = gcnew(tree::MOVE, (base, addr));
+	tree::MOVE *mv = _MOVE(base, addr);
 	seq.add(mv);
-	tree::ESEQ *eseq = gcnew(tree::ESEQ, (seq.make(), base));
+	tree::ESEQ *eseq = _ESEQ(seq.make(), base);
 	texp = gcnew(translate::Ex, (eseq));
 }
 
@@ -696,7 +696,7 @@ IRTranslater::visit(VarDec *dec)
 	tree::Exp *init;
 	init = texp ? texp->unEx() : NULL;
 
-	tree::MOVE *move = gcnew(tree::MOVE, (var, init));
+	tree::MOVE *move = _MOVE(var, init);
 	texp = gcnew(translate::Nx, (move));
 }
 
@@ -738,7 +738,7 @@ IRTranslater::visit(ArrayTy *ty)
 tree::Exp *
 IRTranslater::callMalloc(int size)
 {
-	tree::CONST *csize = gcnew(tree::CONST, (size));
+	tree::CONST *csize = _CONST(size);
 	tree::ExpList arg;
 	arg.push_back(csize);
 	tree::Exp *cmalloc = currentLevel->getFrame()->externalCall("malloc", arg);

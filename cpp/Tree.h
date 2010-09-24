@@ -350,6 +350,23 @@ BINOP *operator *(const P2V<Exp> &l, const P2V<Exp> &r)
 }
 
 
+#define _BINOP(op, l, r) gcnew(tree::BINOP, (op, l, r))
+#define _CALL(fn, args) gcnew(tree::CALL, (fn, args))
+#define _CONST(n) gcnew(tree::CONST, (n))
+#define _ESEQ(s, e) gcnew(tree::ESEQ, (s, e))
+#define _MEM(e) gcnew(tree::MEM, (e))
+#define _NAME(l) gcnew(tree::NAME, (l))
+#define _TEMP(t) gcnew(tree::TEMP, (t))
+
+#define _EXPR(e) gcnew(tree::EXPR, (e))
+#define _CJUMP(relop, l, r, t, f) gcnew(tree::CJUMP, (relop, l, r, t, f))
+#define _JUMP(l) gcnew(tree::JUMP, (l))
+#define _JUMP2(e, t) gcnew(tree::JUMP, (e, t))
+#define _LABEL(l) gcnew(tree::LABEL, (l))
+#define _MOVE(d, s) gcnew(tree::MOVE, (d, s))
+#define _SEQ(l, r) gcnew(tree::SEQ, (l, r))
+#define _SEQ0() gcnew(tree::SEQ, ())
+
 } //namespace tree
 
 #endif //TREE_H
