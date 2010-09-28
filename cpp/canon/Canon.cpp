@@ -264,12 +264,21 @@ Canon::linear(tree::Stm *s, tree::StmList stms)
 	}
 }
 
+#include "TreePrinter.h"
 tree::StmList
 Canon::linearize(tree::Stm *s)
 {
 	FUNCLOG;
 	tree::StmList stms;
-	return linear(do_stm(s), stms);
+	tree::Stm *stm = do_stm(s);
+
+	tree::TreePrinter treePrinter;
+	if (stm) {
+		stm->accept(&treePrinter);
+	}
+	printf("%s\n", treePrinter.result.c_str());
+
+	return linear(stm, stms);
 }
 
 

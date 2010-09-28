@@ -8,12 +8,15 @@ class TreeList
 {
  public:
 	TreeList();
+	T *front();
+	T *back();
 	void push_front(T *);
 	void push_back(T *);
 	void push_all(const TreeList &other);
 	T *pop_front();
 	T *pop_back();
 	bool empty();
+	void clear();
 
 	std::list<T*> li;
 };
@@ -21,6 +24,28 @@ class TreeList
 template<class T>
 TreeList<T>::TreeList()
 {
+}
+
+template<class T>
+T *
+TreeList<T>::front()
+{
+	if (!li.empty()) {
+		return li.front();
+	} else {
+		return NULL;
+	}
+}
+
+template<class T>
+T *
+TreeList<T>::back()
+{
+	if (!li.empty()) {
+		return li.back();
+	} else {
+		return NULL;
+	}
 }
 
 template<class T>
@@ -79,6 +104,13 @@ bool
 TreeList<T>::empty()
 {
 	return li.empty();
+}
+
+template<class T>
+void
+TreeList<T>::clear()
+{
+	return li.clear();
 }
 
 #endif //TREE_LIST_H

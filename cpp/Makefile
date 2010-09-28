@@ -86,6 +86,7 @@ SOURCES_CPP= \
 	Ex.cpp Cx.cpp Nx.cpp\
 	HeapManager.cpp \
 	canon/Canon.cpp \
+	canon/BasicBlocks.cpp \
 	$(NULL)
 
 SOURCES_C= \
