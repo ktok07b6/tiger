@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 		}
 		printf("======================================\n\n");
 
-#if 0
+#if 1
 		printf("Basic Blocks=========================\n\n");
 		BasicBlocks bb(stms);
 		std::list< tree::StmList >::const_iterator i1 = bb.blocks.begin();
