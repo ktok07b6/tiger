@@ -4,7 +4,7 @@ DEFS=-DYYERROR_VERBOSE -DYYDEBUG
 endif
 DEFS+=-DDEBUG
 OPTS=-O0 -g -Wall
-INCS=-I/usr/local/include -I./ -Iast -Icanon -Iparse -Itarget/arm -Itree
+INCS=-I/usr/local/include -I./ -Iast -Icanon -Iframe -Iparse -Isymbol -Itarget/arm -Itemp -Itranslate -Itree -Itype
 
 CFLAGS=$(INCS) $(OPTS) $(DEFS)
 CXXFLAGS=$(CFLAGS)
@@ -61,7 +61,7 @@ $(patsubst %.cpp,%.dep, $(filter %.cpp,$(1))) \
 )
 endef
 
-VPATH=./ ast canon parse target/arm tree
+VPATH=./ ast canon frame parse symbol target/arm temp translate tree type
 
 SOURCES_CPP= \
 	Object.cpp \
