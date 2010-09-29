@@ -4,7 +4,7 @@ DEFS=-DYYERROR_VERBOSE -DYYDEBUG
 endif
 DEFS+=-DDEBUG
 OPTS=-O0 -g -Wall
-INCS=-I/usr/local/include -I./ -Icanon
+INCS=-I/usr/local/include -I./ -Iast -Icanon -Iparse -Itarget/arm -Itree
 
 CFLAGS=$(INCS) $(OPTS) $(DEFS)
 CXXFLAGS=$(CFLAGS)
@@ -61,7 +61,7 @@ $(patsubst %.cpp,%.dep, $(filter %.cpp,$(1))) \
 )
 endef
 
-
+VPATH=./ ast canon parse target/arm tree
 
 SOURCES_CPP= \
 	Object.cpp \
@@ -85,8 +85,8 @@ SOURCES_CPP= \
 	main.cpp \
 	Ex.cpp Cx.cpp Nx.cpp\
 	HeapManager.cpp \
-	canon/Canon.cpp \
-	canon/BasicBlocks.cpp \
+	Canon.cpp \
+	BasicBlocks.cpp \
 	$(NULL)
 
 SOURCES_C= \
@@ -105,12 +105,12 @@ all: $(TARGET)
 tiger: $(DEPS) $(OBJECTS) 
 	$(CXX) $(LDFLAGS) $(LIBS) $(OBJECTS) -o tiger
 
-parser.cpp: tiger.y
-	yacc -v -oparser.cpp -d tiger.y
+parse/parser.cpp: parse/tiger.y
+	yacc -v -oparse/parser.cpp -d parse/tiger.y
 	-@mv parser.cpp.h parser.hpp
 
-lexer.cpp: tiger.l parser.cpp
-	flex -olexer.cpp tiger.l
+parse/lexer.cpp: parse/tiger.l parse/parser.cpp
+	flex -oparse/lexer.cpp parse/tiger.l
 
 clean:
 	-@echo -@rm $(OBJECTS) $(TARGET)
