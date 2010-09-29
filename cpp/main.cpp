@@ -15,6 +15,7 @@
 #include "Exp.h"
 #include "HeapManager.h"
 #include "Canon.h"
+#include "BasicBlocks.h"
 
 extern int yylex();
 extern int yyparse();
@@ -124,6 +125,23 @@ int main(int argc, char **argv)
 			++it;
 		}
 		printf("======================================\n\n");
+
+#if 0
+		printf("Basic Blocks=========================\n\n");
+		BasicBlocks bb(stms);
+		std::list< tree::StmList >::const_iterator i1 = bb.blocks.begin();
+		while (i1 != bb.blocks.end()) {
+			DBG("-----");
+			const tree::StmList &block = (*i1);
+			std::list<tree::Stm*>::const_iterator i2 = block.li.begin();
+			while (i2 != block.li.end()) {
+				printIR(*i2);
+				++i2;
+			}
+			++i1;
+		}
+#endif
+
 	}
 	//HeapManager::instance()->dump();
 	HeapManager::instance()->clean();
