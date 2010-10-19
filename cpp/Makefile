@@ -4,7 +4,7 @@ DEFS=-DYYERROR_VERBOSE -DYYDEBUG
 endif
 DEFS+=-DDEBUG
 OPTS=-O0 -g -Wall
-INCS=-I/usr/local/include -I./ -Iast -Icanon -Icommon -Iframe -Iparse -Isymbol -Itarget/arm -Itemp -Itranslate -Itree -Itype
+INCS=-I/usr/local/include -I./ -Iasm -Iast -Icanon -Icommon -Iframe -Iparse -Isymbol -Itarget/arm -Itemp -Itranslate -Itree -Itype
 
 CFLAGS=$(INCS) $(OPTS) $(DEFS)
 CXXFLAGS=$(CFLAGS)
@@ -61,7 +61,7 @@ $(patsubst %.cpp,%.dep, $(filter %.cpp,$(1))) \
 )
 endef
 
-VPATH=./ ast canon common frame parse symbol target/arm temp translate tree type
+VPATH=./ asm ast canon common frame parse symbol target/arm temp translate tree type
 
 SOURCES_CPP= \
 	Object.cpp \
@@ -88,6 +88,11 @@ SOURCES_CPP= \
 	Canon.cpp \
 	BasicBlocks.cpp \
 	Trace.cpp \
+	Instruction.cpp \
+	OPER.cpp \
+	MOVE.cpp \
+	LABEL.cpp \
+	CodeGen.cpp \
 	$(NULL)
 
 SOURCES_C= \

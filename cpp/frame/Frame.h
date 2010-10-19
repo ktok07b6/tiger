@@ -4,6 +4,7 @@
 #include "Object.h"
 #include "Absyn.h"
 #include "Temp.h"
+#include "TempMap.h"
 #include "Tree.h"
 #include <vector>
 #include <string>
@@ -13,7 +14,7 @@ class InstrList;
 class Label;
 class Proc;
 
-class Frame : public Object
+class Frame : public Object, public TempMap
 {
  public:
 	virtual ~Frame() {}
@@ -39,7 +40,6 @@ class Frame : public Object
 	virtual Label *badSub() = 0;
 	virtual InstrList *procEntryExit2(InstrList *body) = 0;
 	virtual Proc *procEntryExit3(InstrList *body) = 0;
-	virtual std::string tempMap(Temp *temp) = 0;
 	virtual InstrList *codegen(tree::Stm *stm) = 0;
 	virtual TempList *registers() = 0;
 	Symbol *name;
