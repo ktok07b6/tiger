@@ -258,6 +258,7 @@ class CJUMP : public Stm
 	virtual Stm *build(ExpList kids);
 	TREEACCEPTOR;
 
+	static RelOp notRel(RelOp op);
 	RelOp relop;
 	Exp *l;
 	Exp *r;

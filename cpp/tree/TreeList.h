@@ -10,6 +10,9 @@ class TreeList
 	TreeList();
 	T *front();
 	T *back();
+	T *front() const;
+	T *back() const;
+
 	void push_front(T *);
 	void push_back(T *);
 	void push_all(const TreeList &other);
@@ -40,6 +43,28 @@ TreeList<T>::front()
 template<class T>
 T *
 TreeList<T>::back()
+{
+	if (!li.empty()) {
+		return li.back();
+	} else {
+		return NULL;
+	}
+}
+
+template<class T>
+T *
+TreeList<T>::front() const
+{
+	if (!li.empty()) {
+		return li.front();
+	} else {
+		return NULL;
+	}
+}
+
+template<class T>
+T *
+TreeList<T>::back() const
 {
 	if (!li.empty()) {
 		return li.back();

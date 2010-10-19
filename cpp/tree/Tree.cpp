@@ -226,6 +226,26 @@ CJUMP::build(ExpList kids)
 	return gcnew(CJUMP, (relop, ll, rr, truelab, falselab));
 }
 
+CJUMP::RelOp
+CJUMP::notRel(RelOp op)
+{
+	switch (op) {
+	case oEQ:
+		return tree::CJUMP::oNE;
+	case oNE:
+		return tree::CJUMP::oEQ;
+	case oLT:
+		return tree::CJUMP::oGE;
+	case oLE:
+		return tree::CJUMP::oGT;
+	case oGT:
+		return tree::CJUMP::oLE;
+	case oGE:
+		return tree::CJUMP::oLT;
+	default:
+		assert(0);
+	}
+}
 
 JUMP::JUMP(Exp *e, const LabelList &t)
 	: Stm(JUMP_T)

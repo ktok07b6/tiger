@@ -16,6 +16,7 @@
 #include "HeapManager.h"
 #include "Canon.h"
 #include "BasicBlocks.h"
+#include "Trace.h"
 
 extern int yylex();
 extern int yyparse();
@@ -139,6 +140,18 @@ int main(int argc, char **argv)
 				++i2;
 			}
 			++i1;
+		}
+#endif
+
+#if 1
+		{
+			printf("Traces=========================\n\n");
+			Trace trace(bb.blocks);
+			std::list<tree::Stm*>::const_iterator it = trace.traced.li.begin();
+			while (it != trace.traced.li.end()) {
+				printIR(*it);
+				++it;
+			}
 		}
 #endif
 

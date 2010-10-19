@@ -87,6 +87,7 @@ SOURCES_CPP= \
 	HeapManager.cpp \
 	Canon.cpp \
 	BasicBlocks.cpp \
+	Trace.cpp \
 	$(NULL)
 
 SOURCES_C= \
