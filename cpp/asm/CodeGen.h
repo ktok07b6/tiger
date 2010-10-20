@@ -22,6 +22,10 @@ class CodeGen
 	void munchMOVE(tree::Exp *dst, tree::Exp *src);
 	void munchLABEL(Label *lab);
 	Temp *munchExp(tree::Exp *e);
+	Temp *munchMEM(tree::MEM *m);
+	Temp *munchBINOP(tree::BINOP *b);
+	Temp *munchCONST(tree::CONST *c);
+	Temp *munchTEMP(tree::TEMP *t);
 
  private:
 	void emit(Instruction *inst);
