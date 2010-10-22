@@ -7,7 +7,16 @@ template<class T>
 class TreeList
 {
  public:
+	typedef typename std::list<T*>::iterator iterator;
+	typedef typename std::list<T*>::const_iterator const_iterator;
+
 	TreeList();
+
+	iterator begin();
+	const_iterator begin() const;
+	iterator end();
+	const_iterator end() const;
+
 	T *front();
 	T *back();
 	T *front() const;
@@ -27,6 +36,34 @@ class TreeList
 template<class T>
 TreeList<T>::TreeList()
 {
+}
+
+template<class T>
+typename TreeList<T>::iterator
+TreeList<T>::begin()
+{
+	return li.begin();
+}
+
+template<class T>
+typename TreeList<T>::const_iterator
+TreeList<T>::begin() const
+{
+	return li.begin();
+}
+
+template<class T>
+typename TreeList<T>::iterator
+TreeList<T>::end()
+{
+	return li.end();
+}
+
+template<class T>
+typename TreeList<T>::const_iterator
+TreeList<T>::end() const
+{
+	return li.end();
 }
 
 template<class T>

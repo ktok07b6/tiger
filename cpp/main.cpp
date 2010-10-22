@@ -120,11 +120,7 @@ int main(int argc, char **argv)
 		tree::StmList stms;
 		stms = canon.linearize(ir->unNx());
 		printf("Linearized IR=========================\n\n");
-		std::list<tree::Stm*>::iterator it = stms.li.begin();
-		while (it != stms.li.end()) {
-			printIR(*it);
-			++it;
-		}
+		tree::TreePrinter::printStmList(stms);
 		printf("======================================\n\n");
 
 #if 1
@@ -134,11 +130,7 @@ int main(int argc, char **argv)
 		while (i1 != bb.blocks.end()) {
 			DBG("-----");
 			const tree::StmList &block = (*i1);
-			std::list<tree::Stm*>::const_iterator i2 = block.li.begin();
-			while (i2 != block.li.end()) {
-				printIR(*i2);
-				++i2;
-			}
+			tree::TreePrinter::printStmList(block);
 			++i1;
 		}
 #endif
@@ -147,11 +139,7 @@ int main(int argc, char **argv)
 		{
 			printf("Traces=========================\n\n");
 			Trace trace(bb.blocks);
-			std::list<tree::Stm*>::const_iterator it = trace.traced.li.begin();
-			while (it != trace.traced.li.end()) {
-				printIR(*it);
-				++it;
-			}
+			tree::TreePrinter::printStmList(trace.traced);
 		}
 #endif
 

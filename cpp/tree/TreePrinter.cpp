@@ -298,6 +298,40 @@ TreePrinter::visit(SEQ *seq)
 	END;
 }
 
+void
+TreePrinter::printTree(Tree *t)
+{
+	TreePrinter treePrinter;
+	if (t) {
+		t->accept(&treePrinter);
+	}
+	DBG("%s\n", treePrinter.result.c_str());
+}
 
+void
+TreePrinter::printExpList(const ExpList &elist)
+{
+	ExpList::const_iterator it = elist.begin();
+	while (it != elist.end()) {
+		TreePrinter treePrinter;
+		(*it)->accept(&treePrinter);
+		DBG("-----\n");
+		DBG("%s\n", treePrinter.result.c_str());
+		++it;
+	}
+}
+
+void
+TreePrinter::printStmList(const StmList &slist)
+{
+	StmList::const_iterator it = slist.begin();
+	while (it != slist.end()) {
+		TreePrinter treePrinter;
+		(*it)->accept(&treePrinter);
+		DBG("-----\n");
+		DBG("%s\n", treePrinter.result.c_str());
+		++it;
+	}
+}
 
 }//namespace tree

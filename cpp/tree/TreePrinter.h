@@ -3,6 +3,7 @@
 
 #include "TreeVisitor.h"
 #include <string>
+#include "Tree.h"
 
 namespace tree {
 
@@ -24,6 +25,11 @@ class TreePrinter : public TreeVisitor
 	virtual void visit(SEQ *seq);
 
 	std::string result;
+	static void printTree(Tree *t);
+	static void printExpList(const ExpList &elist);
+	static void printStmList(const StmList &slist);
+
+ private:
 	std::string tab;
 };
 
