@@ -1,6 +1,7 @@
 #include "CodeGen.h"
 #include "Temp.h"
 #include "Instruction.h"
+#include "TreeMatcher.h"
 
 using namespace std;
 
@@ -43,6 +44,78 @@ CodeGen::munchSEQ(tree::Stm *a, tree::Stm *b)
 void
 CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 {
+#if 1
+	tree::MEM *mem1;
+	tree::MEM *mem2;
+	tree::BINOP *binop;
+	tree::CONST *konst;
+	tree::TEMP *temp;
+
+	if (_M1(mem1, _M0(binop)) == dst) {
+		if (binop->op == tree::BINOP::oPLUS) {
+			if (_M0(konst) == binop->r) {
+				//(MEM(BINOP(PLUS,e1,CONST(i))), e2)
+				char buf [32];
+				sprintf(buf, "STORE M['s0+%d] <- 's1\n", konst->value);
+				string assem = buf;
+				TempList tl;
+				tl.push_back(munchExp(binop->l));
+				tl.push_back(munchExp(src));
+				emit(gcnew(OPER, (assem, TempList(), tl)));
+				return;
+			} else if (_M0(konst) == binop->l) {
+				//MEM(BINOP(PLUS,CONST(i),e1)),e2))
+				char buf [32];
+				sprintf(buf, "STORE M['s0+%d] <- 's1\n", konst->value);
+				string assem = buf;
+				TempList tl;
+				tl.push_back(munchExp(binop->r));
+				tl.push_back(munchExp(src));
+				emit(gcnew(OPER, (assem, TempList(), tl)));
+				return;
+			}
+		} 
+	}
+	//(MEM(e1),MEM(e2))
+	if (_M0(mem1) == dst && _M0(mem2) == src) {
+		string assem = "MOVE M['s0] <- 's1\n";
+		TempList tsrc;
+		tsrc.push_back(munchExp(mem1->exp));
+		tsrc.push_back(munchExp(mem2->exp));
+		emit(gcnew(OPER, (assem, TempList(), tsrc)));
+		return;
+	}
+	//(MEM(CONST(i)),e2)
+	if (_M1(mem1, _M0(konst)) == dst) {
+		int i = konst->value;
+		char buf [32];
+		sprintf(buf, "STORE M[r0+%d] <- 's0\n", i);
+		string assem = buf;
+		TempList tsrc;
+		tsrc.push_back(munchExp(src));
+		emit(gcnew(OPER, (assem, TempList(), tsrc)));
+		return;
+	}
+	//(MEM(e1),e2)
+	if (_M0(mem1) == dst) {
+		string assem = "STORE M['s0] <- 's1\n";
+		TempList tsrc;
+		tsrc.push_back(munchExp(mem1->exp));
+		tsrc.push_back(munchExp(src));
+		emit(gcnew(OPER, (assem, TempList(), tsrc)));
+		return;
+	}
+	//(TEMP(i), e2)
+	if (_M0(temp) == dst) {
+		string assem = "ADD 'd0 <- 's0 + r0\n";
+		TempList tdst, tsrc;
+		tdst.push_back(temp->temp);
+		tsrc.push_back(munchExp(src));
+		emit(gcnew(OPER, (assem, tdst, tsrc)));
+		return;
+	}
+
+#else
 	if (dst->isMEM_T()) {
 		tree::MEM *mem = (tree::MEM*)dst;
 		if (mem->exp->isBINOP_T()) {
@@ -129,6 +202,7 @@ CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 	}
 
 	//TODO:
+#endif
 }
 
 void

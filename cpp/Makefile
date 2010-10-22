@@ -93,6 +93,7 @@ SOURCES_CPP= \
 	MOVE.cpp \
 	LABEL.cpp \
 	CodeGen.cpp \
+	TreeMatcher.cpp \
 	$(NULL)
 
 SOURCES_C= \
