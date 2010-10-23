@@ -22,7 +22,7 @@ class ARMFrame : public Frame
 	virtual Proc *procEntryExit3(InstrList *body);
 	virtual std::string tempMap(Temp *temp);
 	virtual InstrList *codegen(tree::Stm *stm);
-	virtual TempList *registers();
+	virtual coinst Registers &registers();
 
 	enum {
 		WORD_SIZE = 4,

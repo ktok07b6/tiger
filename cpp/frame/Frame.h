@@ -28,6 +28,13 @@ class Frame : public Object, public TempMap
 		virtual tree::Exp *exp(tree::Exp *fp) = 0;
 	};
 
+	struct Registers 
+	{
+		TempList specials;
+		TempList args;
+		TempList calleeSaves;
+		TempList callerSaves;
+	};
 	virtual Access *allocLocal(bool escape) = 0;
 	virtual Temp *fp() = 0;
 	virtual int wordSize() = 0;
@@ -41,9 +48,11 @@ class Frame : public Object, public TempMap
 	virtual InstrList *procEntryExit2(InstrList *body) = 0;
 	virtual Proc *procEntryExit3(InstrList *body) = 0;
 	virtual InstrList *codegen(tree::Stm *stm) = 0;
-	virtual TempList *registers() = 0;
+	virtual const Registers &registers() = 0;
 	Symbol *name;
 	std::vector<Access*> formals;	
+ protected:
+	Registers registers;
 };
 
 #endif //FRAME_H

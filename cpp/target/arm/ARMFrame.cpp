@@ -2,6 +2,44 @@
 #include "HeapManager.h"
 
 
+/*
+  ::instruction sufixes::
+  al    unconditional execution
+  eq    equal
+  ne    not equal
+  mi    negative value
+  pl    positive value or zero
+  vs    overflow
+  vc    not overflow
+  cs/hs >= (unsigned)
+  cc/lo <  (unsigned)
+  hi    >  (unsigned)
+  ls    <= (unsigned)
+  ge    >= (signed)
+  lt    <  (signed)
+  gt    >  (signed)
+  le    <= (signed)
+ */
+/*
+  ::registers::
+  r0  a1
+  r1  a2
+  r2  a3
+  r3  a4
+  r4  v1
+  r5  v2
+  r6  v3
+  r7  v4 wr
+  r8  v5
+  r9  v6 sb
+  r10 v7 sl
+  r11 v8 fp
+  r12 ip
+  r13 sp
+  r14 lr
+  r15 pc
+ */
+
 ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	: frameOffset(0)
 {
@@ -23,6 +61,7 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 		r[i] = gcnew(Temp, (buf));
 	}
 	framePtr = gcnew(Temp, ("fp"));
+
 }
 
 ARMFrame::~ARMFrame()
@@ -88,6 +127,12 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 std::string 
 ARMFrame::string(Label *label, const std::string &value)
 {
+	/* example
+    str1:    .ascii      "mov\tr1, r2\n"
+             .align 2
+    str2:    .asciz      "New Line\n"
+             .align 2
+	*/ 
 	return "";
 }
 
@@ -125,17 +170,12 @@ ARMFrame::procEntryExit3(InstrList *body)
 std::string 
 ARMFrame::tempMap(Temp *temp)
 {
-	std::string s;
-	char buf[8];
 	for (int i = 0; i < MAX_REG; ++i){
 		if (temp == r[i]) {
-			sprintf(buf, "r%d", i);
-			s = buf;
-			goto found;
+			return r[i].toString();
 		} 
 	}
- found:
-	return s;
+	return "";
 }
 
 InstrList *
@@ -144,12 +184,11 @@ ARMFrame::codegen(tree::Stm *stm)
 	return NULL;
 }
 
-TempList *
+const Registers &
 ARMFrame::registers()
 {
-	return NULL;
+	return registers;
 }
-
 
 //------------------------------------------------------
 std::string 
