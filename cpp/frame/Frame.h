@@ -52,7 +52,7 @@ class Frame : public Object, public TempMap
 	Symbol *name;
 	std::vector<Access*> formals;	
  protected:
-	Registers registers;
+	Registers regs;
 };
 
 #endif //FRAME_H

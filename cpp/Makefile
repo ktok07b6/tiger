@@ -78,6 +78,7 @@ SOURCES_CPP= \
 	Level.cpp \
 	Frame.cpp \
 	ARMFrame.cpp \
+	ARMCodeGen.cpp \
 	Tree.cpp \
 	IRTranslater.cpp \
 	TreePrinter.cpp \

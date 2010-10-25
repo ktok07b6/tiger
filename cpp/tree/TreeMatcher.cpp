@@ -4,27 +4,33 @@
 namespace tree{
 
 
-TreeMatcher::TreeMatcher(Tree **tr)
-	: tr(tr)
-{}
-
-
-TreeMatcher0::TreeMatcher0(Tree **tr)
-	: TreeMatcher(tr)
+TreeMatcher::TreeMatcher(Tree::TypeID tid, Tree **tr)
+	: tid(tid)
+	, tr(tr)
 {}
 
 bool 
-TreeMatcher0::operator==(Tree *t) const
+TreeMatcher::operator==(Tree *t) const
 {
-	if ((*tr)->id != t->id) {
+	if (tid != t->id) {
 		return false;
 	}
 	*tr = t;
 	return true;
 }
 
-TreeMatcher1::TreeMatcher1(Tree **tr, const TreeMatcher &node1)
-	: TreeMatcher(tr)
+TreeMatcher0::TreeMatcher0(Tree::TypeID tid, Tree **tr)
+	: TreeMatcher(tid, tr)
+{}
+
+bool 
+TreeMatcher0::operator==(Tree *t) const
+{
+	return TreeMatcher::operator==(t);
+}
+
+TreeMatcher1::TreeMatcher1(Tree::TypeID tid, Tree **tr, const TreeMatcher &node1)
+	: TreeMatcher(tid, tr)
 	, node1(node1)
 {}
 
@@ -32,12 +38,11 @@ TreeMatcher1::TreeMatcher1(Tree **tr, const TreeMatcher &node1)
 bool 
 TreeMatcher1::operator==(Tree *t) const
 {
-	if ((*tr)->id != t->id) {
+	if (!TreeMatcher::operator==(t)) {
 		return false;
 	}
-	*tr = t;
 
-	switch((*tr)->id) {
+	switch(tid) {
 	case Tree::MEM_T:
 		return (node1) == ((MEM*)t)->exp;
 	case Tree::CALL_T:
@@ -45,7 +50,8 @@ TreeMatcher1::operator==(Tree *t) const
 	case Tree::EXPR_T:
 		return (node1) == ((EXPR*)t)->exp;
 
-		//following tree has 2 nodes
+	//following tree has 2 nodes,
+	//but only one of them is tested here.
 	case Tree::BINOP_T:
 		return (node1) == ((BINOP*)t)->l;
 	case Tree::ESEQ_T:
@@ -63,8 +69,8 @@ TreeMatcher1::operator==(Tree *t) const
 }
 
 
-TreeMatcher2::TreeMatcher2(Tree **tr, const TreeMatcher &node1, const TreeMatcher &node2)
-	: TreeMatcher(tr)
+TreeMatcher2::TreeMatcher2(Tree::TypeID tid, Tree **tr, const TreeMatcher &node1, const TreeMatcher &node2)
+	: TreeMatcher(tid, tr)
 	, node1(node1)
 	, node2(node2)
 {}
@@ -72,13 +78,12 @@ TreeMatcher2::TreeMatcher2(Tree **tr, const TreeMatcher &node1, const TreeMatche
 bool 
 TreeMatcher2::operator==(Tree *t) const
 {
-	if ((*tr)->id != t->id) {
+	if (!TreeMatcher::operator==(t)) {
 		return false;
 	}
-	*tr = t;
 
-	switch((*tr)->id) {
-		//following tree has 2 nodes
+	switch(tid) {
+	//a tree is tested that has 2 nodes
 	case Tree::BINOP_T:
 		return (node1) == ((BINOP*)t)->l &&
 			(node2) == ((BINOP*)t)->r;

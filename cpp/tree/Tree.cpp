@@ -39,7 +39,7 @@ BINOP::build(ExpList kids)
 }
 
 
-CALL::CALL(Exp *f, const ExpList &args)
+CALL::CALL(NAME *f, const ExpList &args)
 	: Exp(CALL_T)
 	, func(f)
 	, args(args)
@@ -59,7 +59,8 @@ CALL::build(ExpList kids)
 {
 	FUNCLOG;
 	Exp *f = kids.pop_front();
-	return gcnew(CALL, (f, kids));
+	assert(f->isNAME_T());
+	return gcnew(CALL, ((NAME*)f, kids));
 }
 
 

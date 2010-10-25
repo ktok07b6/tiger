@@ -21,6 +21,10 @@ class ARMCodeGen
 	void munchSEQ(tree::Stm *l, tree::Stm *r);
 	void munchMOVE(tree::Exp *dst, tree::Exp *src);
 	void munchLABEL(Label *lab);
+	void munchJUMP(Label *lab);
+	void munchCJUMP(tree::CJUMP *cj);
+	void munchEXPR(tree::Exp *exp);
+	void munchArgs(const tree::ExpList &exp);
 	Temp *munchExp(tree::Exp *e);
 	Temp *munchMEM(tree::MEM *m);
 	Temp *munchBINOP(tree::BINOP *b);

@@ -99,8 +99,8 @@ tree::Exp *
 ARMFrame::externalCall(const std::string &func, const tree::ExpList &args)
 {
 	Label *flabel = gcnew(Label, (func));
-	tree::NAME *name = gcnew(tree::NAME, (flabel));
-	tree::CALL *call = gcnew(tree::CALL, (name, args));
+	tree::NAME *name = _NAME(flabel);
+	tree::CALL *call = _CALL(name, args);
 	return call;
 }
 
@@ -117,7 +117,7 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 	//prolog
 	//epilog
 	Label *fname = gcnew(Label, (name->name));
-	tree::LABEL *l = gcnew(tree::LABEL, (fname));
+	tree::LABEL *l = _LABEL(fname);
 	tree::SEQMaker sm;
 	sm.add(l);
 	sm.add(body);
@@ -139,7 +139,7 @@ ARMFrame::string(Label *label, const std::string &value)
 tree::Exp *
 ARMFrame::staticChain(tree::Exp *fp)
 {
-	tree::MEM *mem = gcnew(tree::MEM,(fp));
+	tree::MEM *mem = _MEM(fp);
 	return mem;
 }
 
@@ -172,7 +172,7 @@ ARMFrame::tempMap(Temp *temp)
 {
 	for (int i = 0; i < MAX_REG; ++i){
 		if (temp == r[i]) {
-			return r[i].toString();
+			return r[i]->toString();
 		} 
 	}
 	return "";
@@ -184,10 +184,10 @@ ARMFrame::codegen(tree::Stm *stm)
 	return NULL;
 }
 
-const Registers &
+const Frame::Registers &
 ARMFrame::registers()
 {
-	return registers;
+	return regs;
 }
 
 //------------------------------------------------------
@@ -200,9 +200,9 @@ InFrame::toString()
 tree::Exp *
 InFrame::exp(tree::Exp *fp)
 {
-	tree::CONST *konst = gcnew(tree::CONST, (offset));
-	tree::BINOP *bop = gcnew(tree::BINOP, (tree::BINOP::oPLUS, fp, konst));
-	tree::MEM *mem = gcnew(tree::MEM, (bop));
+	tree::CONST *konst = _CONST(offset);
+	tree::BINOP *bop = _BINOP(tree::BINOP::oPLUS, fp, konst);
+	tree::MEM *mem = _MEM(bop);
 	return mem;
 }
 
@@ -217,6 +217,6 @@ InReg::toString()
 tree::Exp *
 InReg::exp(tree::Exp *)
 {
-	return gcnew(tree::TEMP, (temp));
+	return _TEMP(temp);
 }
 

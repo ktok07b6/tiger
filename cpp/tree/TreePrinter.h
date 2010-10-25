@@ -30,11 +30,6 @@ class TreePrinter : public TreeVisitor
 
  private:
 	std::string result;
-	static void printTree(Tree *t);
-	static void printExpList(const ExpList &elist);
-	static void printStmList(const StmList &slist);
-
- private:
 	std::string tab;
 };
 

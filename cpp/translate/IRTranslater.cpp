@@ -149,7 +149,7 @@ IRTranslater::visit(CallExp *exp)
 	}
 
 	Label *namedLabel = gcnew(Label, (exp->func->name));
-	tree::Exp *func = _NAME(namedLabel);
+	tree::NAME *func = _NAME(namedLabel);
 	tree::CALL *call = _CALL(func, args);
 	texp = gcnew(translate::Ex, (call));
 }

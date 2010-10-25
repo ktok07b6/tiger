@@ -272,11 +272,7 @@ Canon::linearize(tree::Stm *s)
 	tree::StmList stms;
 	tree::Stm *stm = do_stm(s);
 
-	tree::TreePrinter treePrinter;
-	if (stm) {
-		stm->accept(&treePrinter);
-	}
-	printf("%s\n", treePrinter.result.c_str());
+	tree::TreePrinter::printTree(stm);
 
 	return linear(stm, stms);
 }

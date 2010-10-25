@@ -153,13 +153,13 @@ class BINOP : public Exp
 class CALL : public Exp
 {
  public:
-	CALL(Exp *f, const ExpList &args);
+	CALL(NAME *f, const ExpList &args);
 	~CALL() {FUNCLOG;}
 	virtual ExpList kids();
 	virtual Exp *build(ExpList kids);
 	TREEACCEPTOR;
 
-	Exp *func;
+	NAME *func;
 	ExpList args;
 };
 

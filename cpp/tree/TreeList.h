@@ -27,7 +27,8 @@ class TreeList
 	void push_all(const TreeList &other);
 	T *pop_front();
 	T *pop_back();
-	bool empty();
+	bool empty() const;
+	size_t size() const;
 	void clear();
 
 	std::list<T*> li;
@@ -163,9 +164,16 @@ TreeList<T>::pop_back()
 
 template<class T>
 bool
-TreeList<T>::empty()
+TreeList<T>::empty() const
 {
 	return li.empty();
+}
+
+template<class T>
+size_t
+TreeList<T>::size() const
+{
+	return li.size();
 }
 
 template<class T>

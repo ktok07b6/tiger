@@ -51,23 +51,21 @@ CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 	tree::CONST *konst;
 	tree::TEMP *temp;
 
-	if (_M1(mem1, _M0(binop)) == dst) {
+	if (_M1(MEM_T, mem1, _M0(BINOP_T, binop)) == dst) {
 		if (binop->op == tree::BINOP::oPLUS) {
-			if (_M0(konst) == binop->r) {
+			if (_M0(CONST_T, konst) == binop->r) {
 				//(MEM(BINOP(PLUS,e1,CONST(i))), e2)
-				char buf [32];
-				sprintf(buf, "STORE M['s0+%d] <- 's1\n", konst->value);
-				string assem = buf;
+				char assem [32];
+				sprintf(assem, "STORE M['s0+%d] <- 's1\n", konst->value);
 				TempList tl;
 				tl.push_back(munchExp(binop->l));
 				tl.push_back(munchExp(src));
 				emit(gcnew(OPER, (assem, TempList(), tl)));
 				return;
-			} else if (_M0(konst) == binop->l) {
+			} else if (_M0(CONST_T, konst) == binop->l) {
 				//MEM(BINOP(PLUS,CONST(i),e1)),e2))
-				char buf [32];
-				sprintf(buf, "STORE M['s0+%d] <- 's1\n", konst->value);
-				string assem = buf;
+				char assem [32];
+				sprintf(assem, "STORE M['s0+%d] <- 's1\n", konst->value);
 				TempList tl;
 				tl.push_back(munchExp(binop->r));
 				tl.push_back(munchExp(src));
@@ -77,7 +75,7 @@ CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		} 
 	}
 	//(MEM(e1),MEM(e2))
-	if (_M0(mem1) == dst && _M0(mem2) == src) {
+	if (_M0(MEM_T, mem1) == dst && _M0(MEM_T, mem2) == src) {
 		string assem = "MOVE M['s0] <- 's1\n";
 		TempList tsrc;
 		tsrc.push_back(munchExp(mem1->exp));
@@ -86,18 +84,17 @@ CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		return;
 	}
 	//(MEM(CONST(i)),e2)
-	if (_M1(mem1, _M0(konst)) == dst) {
+	if (_M1(MEM_T, mem1, _M0(CONST_T, konst)) == dst) {
 		int i = konst->value;
-		char buf [32];
-		sprintf(buf, "STORE M[r0+%d] <- 's0\n", i);
-		string assem = buf;
+		char assem [32];
+		sprintf(assem, "STORE M[r0+%d] <- 's0\n", i);
 		TempList tsrc;
 		tsrc.push_back(munchExp(src));
 		emit(gcnew(OPER, (assem, TempList(), tsrc)));
 		return;
 	}
 	//(MEM(e1),e2)
-	if (_M0(mem1) == dst) {
+	if (_M0(MEM_T, mem1) == dst) {
 		string assem = "STORE M['s0] <- 's1\n";
 		TempList tsrc;
 		tsrc.push_back(munchExp(mem1->exp));
@@ -106,7 +103,7 @@ CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		return;
 	}
 	//(TEMP(i), e2)
-	if (_M0(temp) == dst) {
+	if (_M0(TEMP_T, temp) == dst) {
 		string assem = "ADD 'd0 <- 's0 + r0\n";
 		TempList tdst, tsrc;
 		tdst.push_back(temp->temp);
@@ -128,9 +125,8 @@ CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 					  null, L(munchExp(e1), L(munchExp(e2), null))));
 					*/
 					int i = ((tree::CONST*)binop->r)->value;
-					char buf [32];
-					sprintf(buf, "STORE M['s0+%d] <- 's1\n", i);
-					string assem = buf;
+					char assem [32];
+					sprintf(assem, "STORE M['s0+%d] <- 's1\n", i);
 					TempList tl;
 					tl.push_back(munchExp(binop->l));
 					tl.push_back(munchExp(src));
@@ -143,8 +139,8 @@ CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 					  null, L(munchExp(e1), L(munchExp(e2), null))));
 					*/
 					int i = ((tree::CONST*)binop->l)->value;
-					char buf [32];
-					sprintf(buf, "STORE M['s0+%d] <- 's1\n", i);
+					char assem [32];
+					sprintf(assem, "STORE M['s0+%d] <- 's1\n", i);
 					string assem = buf;
 					TempList tl;
 					tl.push_back(munchExp(binop->r));
@@ -169,9 +165,8 @@ CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		if (mem->exp->isCONST_T()) {
 			//(MEM(CONST(i)),e2)
 			int i = ((tree::CONST*)mem->exp)->value;
-			char buf [32];
-			sprintf(buf, "STORE M[r0+%d] <- 's0\n", i);
-			string assem = buf;
+			char assem [32];
+			sprintf(assem, "STORE M[r0+%d] <- 's0\n", i);
 			TempList tsrc;
 			tsrc.push_back(munchExp(src));
 			emit(gcnew(OPER, (assem, TempList(), tsrc)));
@@ -233,9 +228,8 @@ CodeGen::munchMEM(tree::MEM *mem)
 		if (binop->r->isCONST_T()) {
 			//(BINOP(PLUS,e1,CONST(i)))
 			int i = ((tree::CONST*)binop->r)->value;
-			char buf [32];
-			sprintf(buf, "LOAD 'd0 <- M['s0+%d]\n", i);
-			string assem = buf;
+			char assem [32];
+			sprintf(assem, "LOAD 'd0 <- M['s0+%d]\n", i);
 			Temp *r = gcnew(Temp, ());
 			TempList tdst, tsrc;
 			tdst.push_back(r);
@@ -246,9 +240,8 @@ CodeGen::munchMEM(tree::MEM *mem)
 		if (binop->l->isCONST_T()) {
 			//(BINOP(PLUS,CONST(i),e1))
 			int i = ((tree::CONST*)binop->l)->value;
-			char buf [32];
-			sprintf(buf, "LOAD 'd0 <- M['s0+%d]\n", i);
-			string assem = buf;
+			char assem [32];
+			sprintf(assem, "LOAD 'd0 <- M['s0+%d]\n", i);
 			Temp *r = gcnew(Temp, ());
 			TempList tdst, tsrc;
 			tdst.push_back(r);
@@ -261,9 +254,8 @@ CodeGen::munchMEM(tree::MEM *mem)
 	if (mem->exp->isCONST_T()) {
 		//(CONST(i))
 		int i = ((tree::CONST*)mem->exp)->value;
-		char buf [32];
-		sprintf(buf, "LOAD 'd0 <- M[r0+%d]\n", i);
-		string assem = buf;
+		char assem [32];
+		sprintf(assem, "LOAD 'd0 <- M[r0+%d]\n", i);
 
 		Temp *r = gcnew(Temp, ());
 		TempList tdst;
@@ -291,9 +283,8 @@ CodeGen::munchBINOP(tree::BINOP *binop)
 		if (binop->r->isCONST_T()) {
 			//(PLUS,e1,CONST(i))
 			int i = ((tree::CONST*)binop->r)->value;
-			char buf [32];
-			sprintf(buf, "ADDI 'd0 <- 's0+%d\n", i);
-			string assem = buf;
+			char assem [32];
+			sprintf(assem, "ADDI 'd0 <- 's0+%d\n", i);
 
 			Temp *r = gcnew(Temp, ());
 			TempList tdst, tsrc;
@@ -305,9 +296,8 @@ CodeGen::munchBINOP(tree::BINOP *binop)
 		if (binop->l->isCONST_T()) {
 			//(PLUS,CONST(i),e1)
 			int i = ((tree::CONST*)binop->l)->value;
-			char buf [32];
-			sprintf(buf, "ADDI 'd0 <- 's0+%d\n", i);
-			string assem = buf;
+			char assem [32];
+			sprintf(assem, "ADDI 'd0 <- 's0+%d\n", i);
 
 			Temp *r = gcnew(Temp, ());
 			TempList tdst, tsrc;
@@ -339,9 +329,8 @@ CodeGen::munchCONST(tree::CONST *c)
 {
 	//(i)
 	int i = c->value;
-	char buf [32];
-	sprintf(buf, "ADDI 'd0 <- r0+%d\n", i);
-	string assem = buf;
+	char assem [32];
+	sprintf(assem, "ADDI 'd0 <- r0+%d\n", i);
 
 	Temp *r = gcnew(Temp, ());
 	TempList tdst;
