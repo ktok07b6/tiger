@@ -2,6 +2,7 @@
 #define ARM_FRAME_H
 
 #include "Frame.h"
+class ARMCodeGen;
 
 class ARMFrame : public Frame
 {
@@ -18,10 +19,10 @@ class ARMFrame : public Frame
 	virtual tree::Exp *staticChain(tree::Exp *fp);
 	virtual Label *badPtr();
 	virtual Label *badSub();
-	virtual InstrList *procEntryExit2(InstrList *body);
-	virtual Proc *procEntryExit3(InstrList *body);
+	virtual assem::InstructionList *procEntryExit2(assem::InstructionList *body);
+	virtual Proc *procEntryExit3(assem::InstructionList *body);
 	virtual std::string tempMap(Temp *temp);
-	virtual InstrList *codegen(tree::Stm *stm);
+	virtual assem::InstructionList *codegen(tree::Stm *stm);
 	virtual const Registers &registers();
 
 	enum {
@@ -32,6 +33,8 @@ class ARMFrame : public Frame
 	int frameOffset;
 	Temp *framePtr;
 	Temp *r[MAX_REG];
+	ARMCodeGen *generator;
+	assem::InstructionList instList;
 };
 
 

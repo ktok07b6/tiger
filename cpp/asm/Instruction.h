@@ -5,6 +5,7 @@
 #include "Temp.h"
 #include "Label.h"
 #include <string>
+#include <list>
 
 class TempMap;
 
@@ -32,6 +33,9 @@ class Targets
  protected:
 	std::string assem;
 };
+
+typedef std::list<Instruction*> InstructionList;
+
 
 class OPER : public Instruction
 {

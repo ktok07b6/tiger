@@ -12,24 +12,26 @@
 class Temp : public Object
 {
  public:
- Temp() : num(count++), specialName(NULL) {}
- Temp(const char *specialName) : num(count++), specialName(specialName) {
-		assert(strlen(specialName) < 64);
+ Temp() : num(count++), specialName() {}
+ Temp(const std::string &specialName) : num(count++), specialName(specialName) 
+	{
 	}
 
 	~Temp() {FUNCLOG;}
 	std::string toString() const {
-		char buf[64];
-		if (specialName) {
-			sprintf(buf, "%s", specialName);
-		} else {
+		std::string s;
+		if (specialName.empty()) {
+			char buf[32];
 			sprintf(buf, "t%d", num);
+			s = buf;
+		} else {
+			s = specialName;
 		}
-		return buf;
+		return s;
 	}
  private:
 	int num;
-	const char *specialName;
+	const std::string specialName;
 	static int count;
 };
 

@@ -1,0 +1,6 @@
+let
+    function f(x:int, y:int, z:int):int = x + y + z
+	var a := 0
+in
+    a := f(10, 20, 30)
+end

@@ -1,4 +1,4 @@
-#define ENABLE_FUNCLOG
+//#define ENABLE_FUNCLOG
 #include "Canon.h"
 
 
@@ -272,7 +272,7 @@ Canon::linearize(tree::Stm *s)
 	tree::StmList stms;
 	tree::Stm *stm = do_stm(s);
 
-	tree::TreePrinter::printTree(stm);
+	//tree::TreePrinter::printTree(stm);
 
 	return linear(stm, stms);
 }

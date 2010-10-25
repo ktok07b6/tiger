@@ -1,6 +1,7 @@
 #include "ARMFrame.h"
 #include "HeapManager.h"
-
+#include "Instruction.h"
+#include "ARMCodeGen.h"
 
 /*
   ::instruction sufixes::
@@ -57,15 +58,17 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 
 	char buf[64];
 	for (int i = 0; i < MAX_REG; ++i) {
-		sprintf(buf, "reg%d", i);
+		sprintf(buf, "r%d", i);
 		r[i] = gcnew(Temp, (buf));
 	}
 	framePtr = gcnew(Temp, ("fp"));
 
+	generator = new ARMCodeGen();
 }
 
 ARMFrame::~ARMFrame()
 {
+	delete generator;
 }
 
 Frame::Access *
@@ -155,14 +158,14 @@ ARMFrame::badSub()
 	return NULL;
 }
 
-InstrList *
-ARMFrame::procEntryExit2(InstrList *body)
+assem::InstructionList *
+ARMFrame::procEntryExit2(assem::InstructionList *body)
 {
 	return NULL;
 }
 
 Proc *
-ARMFrame::procEntryExit3(InstrList *body)
+ARMFrame::procEntryExit3(assem::InstructionList *body)
 {
 	return NULL;
 }
@@ -178,10 +181,11 @@ ARMFrame::tempMap(Temp *temp)
 	return "";
 }
 
-InstrList *
+assem::InstructionList *
 ARMFrame::codegen(tree::Stm *stm)
 {
-	return NULL;
+	generator->generate(stm, instList);
+	return &instList;
 }
 
 const Frame::Registers &

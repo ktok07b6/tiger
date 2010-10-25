@@ -647,7 +647,6 @@ IRTranslater::visit(FunDec *dec)
 	//dec->params;
 	//dec->result;
 
-
 	std::vector<int> formals;
 	//static chainのため1つ余分に引数を割り当てる
 	for (unsigned int i = 0; i < dec->params->size()+1; ++i) {
@@ -664,19 +663,29 @@ IRTranslater::visit(FunDec *dec)
 	it = dec->params->begin();
 	std::vector<Level::Access*>::iterator it2;
 	it2 = currentLevel->formals.begin();
-	it2++;//static chain
+	it2++;//skip static chain
 	while (it != dec->params->end()) {
 		TypeField *f = *it;
 		f->symInfo->access = *it2;
 		//f->accept(this);
 		//texp ? sm.add(texp->unNx()) : (void)(0);
 		++it;
+		++it2;
 	}
 	dec->body->accept(this);
-	texp ? sm.add(texp->unNx()) : (void)(0);
-
+	DBG("XXXXXXXXXXXXXXXXXXXXXX");
+	Type::TypeID result_t = dec->fnInfo->result->id;
+	if (result_t == Type::INT_T || result_t == Type::STR_T || 
+		result_t == Type::ARRAY_T || result_t == Type::RECORD_T) {
+		tree::TEMP *rv = _TEMP(currentLevel->getFrame()->rv());
+		tree::MOVE *mv_return_value = _MOVE(rv, texp->unEx()); 
+		texp ? sm.add(mv_return_value) : (void)(0);
+	} else {
+		texp ? sm.add(texp->unNx()) : (void)(0);
+	}
 	tree::Stm *body = currentLevel->getFrame()->procEntryExit1(sm.make());
 	texp = gcnew(translate::Nx, (body));
+	currentLevel = currentLevel->parent;
 }
 
 void
