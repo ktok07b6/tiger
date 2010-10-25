@@ -41,6 +41,12 @@
   r15 pc
  */
 
+Frame *
+Frame::newFrame(Symbol *name, const std::vector<int> &formals)
+{
+	return gcnew(ARMFrame, (name, formals));
+}
+
 ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	: frameOffset(0)
 {

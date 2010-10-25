@@ -76,9 +76,6 @@ SOURCES_CPP= \
 	Temp.cpp \
 	Label.cpp \
 	Level.cpp \
-	Frame.cpp \
-	ARMFrame.cpp \
-	ARMCodeGen.cpp \
 	Tree.cpp \
 	IRTranslater.cpp \
 	TreePrinter.cpp \
@@ -93,8 +90,9 @@ SOURCES_CPP= \
 	OPER.cpp \
 	MOVE.cpp \
 	LABEL.cpp \
-	CodeGen.cpp \
 	TreeMatcher.cpp \
+	ARMFrame.cpp \
+	ARMCodeGen.cpp \
 	$(NULL)
 
 SOURCES_C= \
