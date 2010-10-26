@@ -118,7 +118,11 @@ parse/parser.cpp: parse/tiger.y
 parse/lexer.cpp: parse/tiger.l parse/parser.cpp
 	flex -oparse/lexer.cpp parse/tiger.l
 
+
+ifneq ($(MAKECMDGOALS),clean)
+-include $(DEPS)
+endif
+
 clean:
-	-@echo -@rm $(OBJECTS) $(TARGET)
-	-@rm $(OBJECTS) $(TARGET) 
-	-@rm lexer.* parser.*
+	-@echo -@rm obj/* $(TARGET)
+	-@rm obj/* $(TARGET) 
