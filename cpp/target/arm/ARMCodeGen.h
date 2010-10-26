@@ -28,6 +28,7 @@ class ARMCodeGen
 	Temp *munchExp(tree::Exp *e);
 	Temp *munchMEM(tree::MEM *m);
 	Temp *munchBINOP(tree::BINOP *b);
+	Temp *munchCALL(tree::CALL *c);
 	Temp *munchCONST(tree::CONST *c);
 	Temp *munchTEMP(tree::TEMP *t);
 

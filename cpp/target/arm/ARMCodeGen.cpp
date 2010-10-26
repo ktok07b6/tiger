@@ -180,14 +180,17 @@ Temp *
 ARMCodeGen::munchExp(tree::Exp *e)
 {
 	if (e->isMEM_T()) {
-		munchMEM((tree::MEM*)e);
+		return munchMEM((tree::MEM*)e);
 	} else if (e->isBINOP_T()) {
-		munchBINOP((tree::BINOP*)e);
+		return munchBINOP((tree::BINOP*)e);
 	} else if (e->isCONST_T()) {
-		munchCONST((tree::CONST*)e);
+		return munchCONST((tree::CONST*)e);
 	} else if (e->isTEMP_T()) {
-		munchTEMP((tree::TEMP*)e);
+		return munchTEMP((tree::TEMP*)e);
+	} else if (e->isCALL_T()) {
+		return munchCALL((tree::CALL*)e);
 	}
+
 }
 
 Temp *
@@ -304,6 +307,24 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 		tsrc.push_back(munchExp(binop->r));
 		emit(gcnew(assem::OPER, (assem, tdst, tsrc)));
 		return r;
+	}
+}
+
+Temp *
+ARMCodeGen::munchCALL(tree::CALL *c)
+{
+	{
+		munchArgs(c->args);
+		char assem [32];
+		sprintf(assem, "bl %s", c->func->label->toString().c_str());
+		emit(gcnew(assem::OPER, (assem, TempList(), TempList())));
+	}
+	{
+		std::string assem = "mov 'd0, r0";
+		Temp *r = gcnew(Temp, ());
+		TempList tdst;
+		tdst.push_back(r);
+		emit(gcnew(assem::OPER, (assem, tdst, TempList())));
 	}
 }
 
