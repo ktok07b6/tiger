@@ -6,17 +6,15 @@
 #include "AbsynVisitor.h"
 #include "Tree.h"
 #include "Exp.h"
+#include "Fragment.h"
 
 class Frame;
 class Level;
+class Symbol;
 
 struct IRTranslater : AbsynVisitor
 {
 	IRTranslater(Frame *f);
-
-	translate::Exp *texp;
-	Level *currentLevel;
-	Level *topLevel;
 
 	virtual void visit(SimpleVar *exp);
 	virtual void visit(FieldVar *exp);
@@ -44,11 +42,22 @@ struct IRTranslater : AbsynVisitor
 	virtual void visit(NameTy *exp);
 	virtual void visit(RecordTy *exp);
 	virtual void visit(ArrayTy *exp);
+
+	translate::Exp *getExp();
+	const FragmentList &getFragments();
  private:
+	void procEntryExit(translate::Exp *exp);
 	tree::Exp *convertAndOp(tree::Exp *el, tree::Exp *er);
 	tree::Exp *convertOrOp(tree::Exp *el, tree::Exp *er);
 
 	tree::Exp *callMalloc(int);
+
+	translate::Exp *texp;
+	Level *currentLevel;
+	Level *topLevel;
+	Symbol *currentFuncName;
+	Label *currentLoopExit;
+	FragmentList fragments;
 };
 
 #endif //IR_TRANSLATER_H

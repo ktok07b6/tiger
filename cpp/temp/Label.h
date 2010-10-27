@@ -5,15 +5,14 @@
 #include <string>
 #include <vector>
 #include "debug.h"
+#include "tiger.h"
 
 class Label : public Object
 {
  public:
 	Label()
 		:name(){
-		char buf[16];
-		sprintf(buf, "L%d", count++);
-		name = buf;
+		name = format("L%d", count++);
 	}
  Label(const std::string &name)
 		: name(name) {

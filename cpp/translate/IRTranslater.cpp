@@ -17,6 +17,10 @@ extern Scopes<NameEntry> nameScopes;
 
 IRTranslater::IRTranslater(Frame *f)
 	: texp(NULL)
+	, currentLevel(NULL)
+	, topLevel(NULL)
+	, currentFuncName(NULL)
+	, currentLoopExit(NULL)
 {
 	FUNCLOG;
 	currentLevel = topLevel = Level::newLevel(f);
@@ -117,10 +121,14 @@ void
 IRTranslater::visit(StringExp *exp)
 {
 	FUNCLOG;
-	//exp->str;
-	//TODO
-	tree::CONST *i = _CONST(0);
-	texp = gcnew(translate::Ex, (i));
+
+	Label *lab = gcnew(Label, ());
+	tree::NAME *name = _NAME(lab);
+	Frame *f = currentLevel->getFrame();
+	std::string str_asm = f->string(lab, exp->str);
+	fragments.push_back(gcnew(DataFragment, (str_asm)));
+
+	texp = gcnew(translate::Ex, (name));
 }
 
 void
@@ -135,9 +143,16 @@ IRTranslater::visit(CallExp *exp)
 	lev->formals;
 	*/
 	tree::ExpList args;
-	//TODO:自分自身を呼び出す場合はstatiChainを渡す
-	tree::TEMP *fp = _TEMP(currentLevel->getFrame()->fp());
-	args.push_back(fp);
+	if (currentFuncName == exp->func) {
+		//In case of the recusive call, to pass the static link as first argument.
+		tree::TEMP *fp = _TEMP(currentLevel->getFrame()->fp());
+		tree::Exp *sl = currentLevel->getFrame()->staticChain(fp);
+		args.push_back(sl);
+	} else {
+		//To pass the frame pointer as first argument.
+		tree::TEMP *fp = _TEMP(currentLevel->getFrame()->fp());
+		args.push_back(fp);
+	}
 
 	ExpList::iterator it;
 	it = exp->explist->begin();
@@ -672,20 +687,29 @@ IRTranslater::visit(FunDec *dec)
 		++it;
 		++it2;
 	}
+
+	Symbol *parentFuncName = currentFuncName;
+	currentFuncName = dec->name;
+
 	dec->body->accept(this);
-	DBG("XXXXXXXXXXXXXXXXXXXXXX");
-	Type::TypeID result_t = dec->fnInfo->result->id;
-	if (result_t == Type::INT_T || result_t == Type::STR_T || 
-		result_t == Type::ARRAY_T || result_t == Type::RECORD_T) {
-		tree::TEMP *rv = _TEMP(currentLevel->getFrame()->rv());
-		tree::MOVE *mv_return_value = _MOVE(rv, texp->unEx()); 
-		texp ? sm.add(mv_return_value) : (void)(0);
-	} else {
-		texp ? sm.add(texp->unNx()) : (void)(0);
+
+	currentFuncName = parentFuncName;
+
+	if (texp) {
+		tree::Exp *e = texp->unEx();
+		if (e) {
+			//function
+			tree::TEMP *rv = _TEMP(currentLevel->getFrame()->rv());
+			tree::MOVE *mv_return_value = _MOVE(rv, e); 
+			sm.add(mv_return_value);
+		} else {
+			//procedure
+			sm.add(texp->unNx());
+		}
 	}
 	tree::Stm *body = currentLevel->getFrame()->procEntryExit1(sm.make());
 	texp = gcnew(translate::Nx, (body));
-	currentLevel = currentLevel->parent;
+	procEntryExit(texp);
 }
 
 void
@@ -753,3 +777,24 @@ IRTranslater::callMalloc(int size)
 	tree::Exp *cmalloc = currentLevel->getFrame()->externalCall("malloc", arg);
 	return cmalloc;
 }
+
+void
+IRTranslater::procEntryExit(translate::Exp *exp)
+{
+	tree::Stm *stm = exp->unNx();
+	ProcFragment *fragment = gcnew(ProcFragment, (stm, currentLevel->getFrame()));
+	fragments.push_back(fragment);
+	currentLevel = currentLevel->parent;	
+}
+
+translate::Exp *
+IRTranslater::getExp()
+{
+	return texp;
+}
+const FragmentList &
+IRTranslater::getFragments()
+{
+	return fragments;
+}
+

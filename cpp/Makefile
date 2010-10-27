@@ -93,6 +93,7 @@ SOURCES_CPP= \
 	TreeMatcher.cpp \
 	ARMFrame.cpp \
 	ARMCodeGen.cpp \
+	Fragment.cpp \
 	$(NULL)
 
 SOURCES_C= \

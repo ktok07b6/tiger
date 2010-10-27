@@ -1,0 +1,14 @@
+let
+    function f(x:int):int =
+	    let
+				var xx:int := 99
+				function inner_f(y:int):int = y + x
+		in
+			 xx := inner_f(10);
+			 xx + 1
+		end
+	
+	var a := 0
+in
+    a := f(100)
+end

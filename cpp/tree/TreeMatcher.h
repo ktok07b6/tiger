@@ -53,5 +53,7 @@ class TreeMatcher2 : public TreeMatcher
 #define _MMOVE0(tr) tree::TreeMatcher0(tree::Tree::MOVE_T, (tree::Tree**)&tr)
 #define _MMOVE(tr, n1, n2) tree::TreeMatcher2(tree::Tree::MOVE_T, (tree::Tree**)&tr, n1, n2)
 
+#define _MCALL0(tr) tree::TreeMatcher0(tree::Tree::CALL_T, (tree::Tree**)&tr)
+
 }//namespace tree
 #endif //TREE_MATCHER_H
