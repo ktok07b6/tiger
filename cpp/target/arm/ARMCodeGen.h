@@ -2,39 +2,29 @@
 #define ARM_CODE_GEN_H
 
 #include "Tree.h"
-#include <list>
+#include "CodeGen.h"
 
-class Temp;
-
-namespace assem {
-class Instruction;
-typedef std::list<Instruction*> InstructionList;
-}
-
-class ARMCodeGen
+class ARMCodeGen : public assem::CodeGen
 {
  public:
 	ARMCodeGen();
 
-	void generate(tree::Stm *s, assem::InstructionList &instList);
-	void munchStm(tree::Stm *s);
-	void munchSEQ(tree::Stm *l, tree::Stm *r);
-	void munchMOVE(tree::Exp *dst, tree::Exp *src);
-	void munchLABEL(Label *lab);
-	void munchJUMP(Label *lab);
-	void munchCJUMP(tree::CJUMP *cj);
-	void munchEXPR(tree::Exp *exp);
-	void munchArgs(const tree::ExpList &exp);
-	Temp *munchExp(tree::Exp *e);
-	Temp *munchMEM(tree::MEM *m);
-	Temp *munchBINOP(tree::BINOP *b);
-	Temp *munchCALL(tree::CALL *c);
-	Temp *munchCONST(tree::CONST *c);
-	Temp *munchTEMP(tree::TEMP *t);
+	virtual void munchMOVE(tree::Exp *dst, tree::Exp *src);
+	virtual void munchLABEL(Label *lab);
+	virtual void munchJUMP(Label *lab);
+	virtual void munchCJUMP(tree::CJUMP *cj);
+	virtual void munchEXPR(tree::Exp *exp);
+	virtual void munchArgs(const tree::ExpList &exp);
 
+	virtual Temp *munchMEM(tree::MEM *m);
+	virtual Temp *munchBINOP(tree::BINOP *b);
+	virtual Temp *munchCALL(tree::CALL *c);
+	virtual Temp *munchCONST(tree::CONST *c);
+	virtual Temp *munchTEMP(tree::TEMP *t);
+
+	virtual bool isMove(assem::Instruction *inst);
+	virtual bool isJump(assem::Instruction *inst);
  private:
-	void emit(assem::Instruction *inst);
-	assem::InstructionList ilist;
 };
 
 

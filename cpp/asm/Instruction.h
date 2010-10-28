@@ -30,6 +30,9 @@ class Targets
 	virtual TempList def() = 0;
 	virtual Targets jumps() = 0;
 	std::string format(TempMap *m);
+	std::string toString() {
+		return assem;
+	}
  protected:
 	std::string assem;
 };

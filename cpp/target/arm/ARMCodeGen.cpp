@@ -6,50 +6,18 @@
 
 using namespace std;
 
+assem::CodeGen *
+assem::CodeGen::create()
+{
+	return new ARMCodeGen();
+}
+
 
 ARMCodeGen::ARMCodeGen()
 {
 }
 
-void 
-ARMCodeGen::generate(tree::Stm *s, assem::InstructionList &instList)
-{
-	munchStm(s);
-	instList = ilist;
-	ilist.clear();
-}
 
-void 
-ARMCodeGen::munchStm(tree::Stm *s)
-{
-	if (s->isSEQ_T()) {
-		tree::SEQ *seq = (tree::SEQ*)s;
-		munchSEQ(seq->l, seq->r);
-	} else if (s->isMOVE_T()) {
-		tree::MOVE *mv = (tree::MOVE*)s;
-		munchMOVE(mv->dst, mv->src);
-	} else if (s->isLABEL_T()) {
-		tree::LABEL *l = (tree::LABEL*)s;
-		munchLABEL(l->label);
-	} else if (s->isJUMP_T()) {
-		tree::JUMP *j = (tree::JUMP*)j;
-		assert(j->targets.size() == 1);
-		munchJUMP(j->targets.front());
-	} else if (s->isCJUMP_T()) {
-		tree::CJUMP *cj = (tree::CJUMP*)s;
-		munchCJUMP(cj);
-	} else if (s->isEXPR_T()) {
-		tree::EXPR *expr = (tree::EXPR*)s;
-		munchEXPR(expr->exp);
-	}
-}
-
-void
-ARMCodeGen::munchSEQ(tree::Stm *a, tree::Stm *b)
-{
-	munchStm(a); 
-	munchStm(b);
-}
 void
 ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 {
@@ -176,22 +144,6 @@ ARMCodeGen::munchArgs(const tree::ExpList &exp)
 	}
 }
 
-Temp *
-ARMCodeGen::munchExp(tree::Exp *e)
-{
-	if (e->isMEM_T()) {
-		return munchMEM((tree::MEM*)e);
-	} else if (e->isBINOP_T()) {
-		return munchBINOP((tree::BINOP*)e);
-	} else if (e->isCONST_T()) {
-		return munchCONST((tree::CONST*)e);
-	} else if (e->isTEMP_T()) {
-		return munchTEMP((tree::TEMP*)e);
-	} else if (e->isCALL_T()) {
-		return munchCALL((tree::CALL*)e);
-	}
-
-}
 
 Temp *
 ARMCodeGen::munchMEM(tree::MEM *mem)
@@ -321,6 +273,7 @@ ARMCodeGen::munchCALL(tree::CALL *c)
 		TempList tdst;
 		tdst.push_back(r);
 		emit(gcnew(assem::OPER, (assem, tdst, TempList())));
+		return r;
 	}
 }
 
@@ -343,10 +296,17 @@ ARMCodeGen::munchTEMP(tree::TEMP *t)
 	return t->temp;
 }
 
-void 
-ARMCodeGen::emit(assem::Instruction *inst)
+bool 
+ARMCodeGen::isMove(assem::Instruction *inst)
 {
-	ilist.push_back(inst);
+	std::string assem = inst->toString();
+	return strncmp("mov", assem.c_str(), 3) == 0;
 }
 
+bool 
+ARMCodeGen::isJump(assem::Instruction *inst)
+{
+	std::string assem = inst->toString();
+	return strncmp("b ", assem.c_str(), 2) == 0;
+}
 
