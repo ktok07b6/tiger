@@ -10,6 +10,7 @@
 #include "Nx.h"
 #include "Cx.h"
 #include "HeapManager.h"
+#include "TreePrinter.h"
 
 extern Scopes<Type> typeScopes;
 extern Scopes<NameEntry> nameScopes;
@@ -378,15 +379,23 @@ IRTranslater::visit(SeqExp *exp)
 		++it;
 		
 		if (it == exp->seq->end()) {
-			ret = texp ? texp->unEx() : NULL; 
+			ret = texp ? texp->unEx() : NULL;
 			break;
+			
 		} else {
 			texp ? sm.add(texp->unNx()) : (void)(0);
 		}
    } while (true);
-   tree::SEQ *seq = sm.make();
-   tree::ESEQ *eseq = _ESEQ(seq, ret);
-   texp = gcnew(translate::Ex, (eseq));
+
+	if (ret) {
+		tree::SEQ *seq = sm.make();
+		tree::ESEQ *eseq = _ESEQ(seq, ret);
+		texp = gcnew(translate::Ex, (eseq));
+	} else {
+		sm.add(texp->unNx());
+		tree::SEQ *seq = sm.make();
+		texp = gcnew(translate::Nx, (seq));
+	}
 }
 
 void
@@ -606,6 +615,7 @@ IRTranslater::visit(LetExp *exp)
 			} else {
 				texp = gcnew(translate::Ex, (ebody));
 			}
+
 			return;
 		} else {
 			sm.add(texp->unNx());

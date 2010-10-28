@@ -110,10 +110,10 @@ void translatePhase(FragmentList &fragments)
 	absyn->accept(&translater);
 	fragments = translater.getFragments();
 #if 0
-	//ir = translater.getExp();
+	ir = translater.getExp();
 	printf("Intermediate Representation===========\n\n");
-	//tree::TreePrinter::printTree(ir->unNx());
-	
+	tree::TreePrinter::printTree(ir->unNx());
+	/*
 	FragmentList::iterator it;
 	it = fragments.begin();
 	while (it != fragments.end()) {
@@ -121,7 +121,7 @@ void translatePhase(FragmentList &fragments)
 		DBG("%s", frag->toString().c_str());
 		++it;
 	}
-
+	*/
 	printf("======================================\n\n");
 #endif
 }
@@ -168,6 +168,7 @@ void codegenPhase(const FragmentList &frags)
 			printf("======================================\n\n");
 #endif
 
+			printSource();
 			printf("CodeGen=========================\n\n");
 			Frame *frame = proc->getFrame();
 			stms = trace.traced;

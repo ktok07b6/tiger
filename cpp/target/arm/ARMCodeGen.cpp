@@ -62,7 +62,7 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 	}
 	//(MEM(e1),e2)
 	if (_M0(MEM_T, mem) == dst) {
-		string assem = "str $s0, [$s1]";
+		string assem = "str $s1, [$s0]";
 		TempList tsrc;
 		tsrc.push_back(munchExp(mem->exp));
 		tsrc.push_back(munchExp(src));
@@ -123,7 +123,7 @@ ARMCodeGen::munchEXPR(tree::Exp *exp)
 		TempList tsrc = munchArgs(call->args);
 		LabelList targets;
 		targets.push_back(call->func->label);
-		std::string assem = format("bl $j0", targets);
+		std::string assem = format("bl $j0");
 		emit(gcnew(assem::OPER, (assem, TempList(), tsrc, targets)));
 	}
 }
@@ -283,6 +283,7 @@ ARMCodeGen::munchCALL(tree::CALL *c)
 	targets.push_back(c->func->label);
 	std::string assem = "bl $j0";
 	emit(gcnew(assem::OPER, (assem, tdst, tsrc, targets)));
+	return rv;
 }
 
 Temp *
