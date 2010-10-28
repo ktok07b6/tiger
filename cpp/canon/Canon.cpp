@@ -137,7 +137,7 @@ Canon::do_stm(tree::Stm *stm)
 {
 	FUNCLOG;
 	if (!stm) {
-		DBG("stm is nil");
+		VDBG("stm is nil");
 		return NULL;
 	}
 
@@ -159,7 +159,7 @@ Canon::reorder_stm(tree::Stm *stm)
 {
 	FUNCLOG;
 	if (!stm) {
-		DBG("stm is nil");
+		VDBG("stm is nil");
 		return NULL;
 	}
 	StmExpList x = reorder(stm->kids());
@@ -185,7 +185,7 @@ Canon::do_exp(tree::Exp *exp)
 {
 	FUNCLOG;
 	if (!exp) {
-		DBG("exp is nil");
+		VDBG("exp is nil");
 		return NULL;
 	}
 
@@ -209,7 +209,7 @@ Canon::reorder(tree::ExpList kids)
 {
 	FUNCLOG;
 	if (kids.empty()) {
-		DBG("kids is expty");
+		VDBG("kids is expty");
 		return nopNull;
 	}
 

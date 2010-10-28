@@ -31,7 +31,7 @@ CodeGen::munchStm(tree::Stm *s)
 		tree::LABEL *l = (tree::LABEL*)s;
 		munchLABEL(l->label);
 	} else if (s->isJUMP_T()) {
-		tree::JUMP *j = (tree::JUMP*)j;
+		tree::JUMP *j = (tree::JUMP*)s;
 		assert(j->targets.size() == 1);
 		munchJUMP(j->targets.front());
 	} else if (s->isCJUMP_T()) {

@@ -184,7 +184,7 @@ ARMFrame::tempMap(Temp *temp)
 			return r[i]->toString();
 		} 
 	}
-	return "";
+	return temp->toString();
 }
 
 assem::InstructionList *

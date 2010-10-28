@@ -28,6 +28,9 @@ class TreePrinter : public TreeVisitor
 	static void printExpList(const ExpList &elist);
 	static void printStmList(const StmList &slist);
 
+	std::string getResult() {
+		return result;
+	}
  private:
 	std::string result;
 	std::string tab;

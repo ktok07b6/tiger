@@ -23,6 +23,8 @@ Level::Level(Level *p, Symbol *name, std::vector<int> escapes)
 }
 
 Level::Level(Frame *f)
+	: parent(NULL)
+	, name(NULL)
 {
 	frame = f;
 }

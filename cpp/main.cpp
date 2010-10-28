@@ -17,6 +17,7 @@
 #include "Canon.h"
 #include "BasicBlocks.h"
 #include "Trace.h"
+#include "Instruction.h"
 
 extern int yylex();
 extern int yyparse();
@@ -37,37 +38,36 @@ void makeDot();
 bool typeCheck();
 void printSource();
 
-int main(int argc, char **argv)
+bool parsePhase()
 {
 #ifdef YYDEBUG
 	yydebug = 1;
 #endif
-	if (argc==2) {
-		yyin = fopen(argv[1], "rb");
-	} else {
-		yyin = stdin;
-	}
-	
-	initialize();
 	yyparse();
 	absyn = result_syntax_tree;
 	if (!absyn) {
-		return -1;
+		return false;
 	}
 	printAbsyn();
-	//makeDot();
-	//printSource();
-    //return 0;
-	//-----------------------
-	//put default symbols
-	nameTable.beginScope(0);
-	typeTable.beginScope(0);
+	return true;
+}
 
+void addPreInstallFuncs()
+{
 	Symbol *print = Symbol::symbol("print");
 	TypeList print_args;
 	print_args.push_back(StrT);
 	FuncEntry *fe = new FuncEntry(VoidT, print_args);
 	nameTable.put(print, fe);
+}
+
+bool typeCheckPhase()
+{
+	//put default symbols
+	nameTable.beginScope(0);
+	typeTable.beginScope(0);
+
+	addPreInstallFuncs();
 
 	Symbol *ints = Symbol::symbol("int");
 	Symbol *strs = Symbol::symbol("string");
@@ -76,14 +76,15 @@ int main(int argc, char **argv)
 
 	//-----------------------
 	bool ok = typeCheck();
-	printSource();
+	//printSource();
 
-	if (!ok) {
-		return -1;
-	}
 	nameTable.endScope();
 	typeTable.endScope();
-#if 1
+	return ok;
+}
+
+void printSymbols()
+{
 	Scopes<NameEntry>::ScopeMap::iterator it = nameScopes.dict.begin();
 	while (it != nameScopes.dict.end()){
 		Scopes<NameEntry>::ScopeMapEntry entry = (*it);
@@ -99,54 +100,136 @@ int main(int argc, char **argv)
 		}
 		++it;
 	}
-#endif
+}
 
-#if 1
-	{
-		std::vector<int> formals;
-		Frame *frame = Frame::newFrame(NULL, formals);
-		IRTranslater translate(frame);
-		absyn->accept(&translate);
-		ir = translate.texp;
-		printf("Intermediate Representation===========\n\n");
-		tree::TreePrinter::printTree(ir->unNx());
-		printf("======================================\n\n");
+void translatePhase(FragmentList &fragments)
+{
+	std::vector<int> formals;
+	Frame *frame = Frame::newFrame(NULL, formals);
+	IRTranslater translater(frame);
+	absyn->accept(&translater);
+	fragments = translater.getFragments();
+#if 0
+	//ir = translater.getExp();
+	printf("Intermediate Representation===========\n\n");
+	//tree::TreePrinter::printTree(ir->unNx());
+	
+	FragmentList::iterator it;
+	it = fragments.begin();
+	while (it != fragments.end()) {
+		Fragment *frag = *it;
+		DBG("%s", frag->toString().c_str());
+		++it;
 	}
+
+	printf("======================================\n\n");
+#endif
+}
+
+void codegenPhase2(assem::InstructionList *instList, TempMap *tempMap);
+
+void codegenPhase(const FragmentList &frags)
+{
+	FragmentList::const_iterator it;
+	it = frags.begin();
+	while (it != frags.end()) {
+		Fragment *frag = *it;
+
+		if (frag->isProc()) {
+			ProcFragment *proc = (ProcFragment*)frag; 
+			Canon canon;
+			tree::StmList stms;
+			stms = canon.linearize(proc->getStm());
+#if 0
+			printf("Linearized IR=========================\n\n");
+			tree::TreePrinter::printStmList(stms);
+			printf("======================================\n\n");
+		
+#endif
+			
+			BasicBlocks bb(stms);
+#if 0
+			printf("Basic Blocks=========================\n\n");
+			std::list< tree::StmList >::const_iterator i1 = bb.blocks.begin();
+			while (i1 != bb.blocks.end()) {
+				DBG("-----");
+				const tree::StmList &block = (*i1);
+				tree::TreePrinter::printStmList(block);
+				++i1;
+				
+			}
+			printf("======================================\n\n");
 #endif
 
-	{
-		Canon canon;
-		tree::StmList stms;
-		stms = canon.linearize(ir->unNx());
-		printf("Linearized IR=========================\n\n");
-		tree::TreePrinter::printStmList(stms);
-		printf("======================================\n\n");
-
-#if 1
-		printf("Basic Blocks=========================\n\n");
-		BasicBlocks bb(stms);
-		std::list< tree::StmList >::const_iterator i1 = bb.blocks.begin();
-		while (i1 != bb.blocks.end()) {
-			DBG("-----");
-			const tree::StmList &block = (*i1);
-			tree::TreePrinter::printStmList(block);
-			++i1;
-		}
-#endif
-
-#if 1
-		{
-			printf("Traces=========================\n\n");
 			Trace trace(bb.blocks);
+#if 0
+			printf("Traces=========================\n\n");
 			tree::TreePrinter::printStmList(trace.traced);
-		}
+			printf("======================================\n\n");
 #endif
 
+			printf("CodeGen=========================\n\n");
+			Frame *frame = proc->getFrame();
+			stms = trace.traced;
+			tree::StmList::iterator it = stms.begin();
+			while (it != stms.end()) {
+				tree::Stm *stm = *it;
+				assem::InstructionList *instList = frame->codegen(stm);
+				codegenPhase2(instList, frame);
+				++it;
+			}
+		} else {
+			assert(frag->isData());
+			DataFragment *data = (DataFragment*)frag;
+			DBG("%d", data->toString().c_str());
+		}
+		++it;
 	}
+}
+
+void codegenPhase2(assem::InstructionList *instList, TempMap *tempMap)
+{
+	assem::InstructionList::iterator it;
+	it = instList->begin();
+	while (it != instList->end()) {
+		assem::Instruction *inst = *it;
+		std::string s = inst->format(tempMap);
+		DBG("%s", s.c_str());
+		++it;
+	}
+}
+
+int main(int argc, char **argv)
+{
+	if (argc==2) {
+		yyin = fopen(argv[1], "rb");
+	} else {
+		yyin = stdin;
+	}
+	initialize();
+
+	if (!parsePhase()) {
+		return -1;
+	}
+	//makeDot();
+	//printSource();
+	if (!typeCheckPhase()) {
+		return -1;
+	}
+
+	//printSymbols();
+
+	FragmentList frags;
+	translatePhase(frags);
+
+	codegenPhase(frags);
+
 	//HeapManager::instance()->dump();
 	HeapManager::instance()->clean();
+
 	return 0;
 }
+
 
 void printAbsyn()
 {

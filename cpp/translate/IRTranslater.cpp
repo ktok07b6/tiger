@@ -582,7 +582,8 @@ IRTranslater::visit(LetExp *exp)
 			DBG("accept dec");
 			d->accept(this);
 
-			texp ?
+			//If d is function decl, it is not added.
+			texp && !d->isFundec() ?
 				sm.add(texp->unNx())
 			:
 				(void)(0);//DBG("texp is Nil");
@@ -795,6 +796,9 @@ IRTranslater::getExp()
 const FragmentList &
 IRTranslater::getFragments()
 {
+	procEntryExit(texp);
+	assert(currentLevel == NULL);
+
 	return fragments;
 }
 
