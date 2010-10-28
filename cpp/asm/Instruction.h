@@ -11,24 +11,17 @@ class TempMap;
 
 namespace assem {
 
-class Targets
+class Instruction : public Object
 {
  public:
- Targets(const LabelList &l) : li(l) 
-	{
-	}
-	LabelList li;
-};
-
- class Instruction : public Object
-{
- public:
-	Instruction();
+	Instruction(const std::string &assem);
 	virtual ~Instruction() {}
 
 	virtual TempList use() = 0;
 	virtual TempList def() = 0;
-	virtual Targets jumps() = 0;
+	virtual LabelList jumps() = 0;
+
+	virtual bool isMove() {return false;}
 	std::string format(TempMap *m);
 	std::string toString() {
 		return assem;
@@ -48,7 +41,11 @@ class OPER : public Instruction
 
 	virtual TempList use();
 	virtual TempList def();
-	virtual Targets jumps();
+	virtual LabelList jumps();
+private:
+	TempList dst;
+	TempList src;
+	LabelList targets;
 };
 
 class MOVE : public Instruction
@@ -58,7 +55,12 @@ class MOVE : public Instruction
 
 	virtual TempList use();
 	virtual TempList def();
-	virtual Targets jumps();
+	virtual LabelList jumps();
+
+	virtual bool isMove() {return true;}
+ private:
+	Temp *dst;
+	Temp *src;
 };
 
 class LABEL : public Instruction
@@ -68,7 +70,7 @@ class LABEL : public Instruction
 
 	virtual TempList use();
 	virtual TempList def();
-	virtual Targets jumps();
+	virtual LabelList jumps();
 };
 
 }//namespace assem

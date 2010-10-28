@@ -69,7 +69,7 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	}
 	framePtr = gcnew(Temp, ("fp"));
 
-	generator = new ARMCodeGen();
+	generator = new ARMCodeGen(this);
 }
 
 ARMFrame::~ARMFrame()

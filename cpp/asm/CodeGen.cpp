@@ -1,5 +1,4 @@
 #include "CodeGen.h"
-#include "Temp.h"
 #include "Instruction.h"
 #include "TreeMatcher.h"
 

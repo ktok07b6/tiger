@@ -3,22 +3,26 @@
 namespace assem {
 
 LABEL::LABEL(const std::string &assem, Label *l)
+	: Instruction(assem)
 {
 }
 
 TempList 
 LABEL::use()
 {
+	return TempList();
 }
 
 TempList 
 LABEL::def()
 {
+	return TempList();
 }
 
-Targets 
+LabelList
 LABEL::jumps()
 {
+	return LabelList();
 }
 
 }//namespace assem
