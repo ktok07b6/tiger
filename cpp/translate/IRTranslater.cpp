@@ -512,12 +512,6 @@ IRTranslater::visit(ForExp *exp)
 	FUNCLOG;
 	//TODO:
 	//LetExpへの変換
-	std::vector<int> formals;
-	//static chainのため1つ余分に引数を割り当てる
-	for (unsigned int i = 0; i < 2; ++i) {
-		formals.push_back(1);//TODO:
-	}
-	currentLevel = Level::newLevel(currentLevel, exp->var, true, formals);
 	Level::Access *access = currentLevel->allocLocal(true); //TODO: escape
 	DBG("exp->symInfo = %p", exp->symInfo);
 	exp->symInfo->access = access;
