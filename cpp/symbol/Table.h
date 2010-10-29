@@ -56,8 +56,8 @@ struct Scopes : public Object
 template<class T>
 class Table 
 {
-	typedef std::list<T*> TBinders;
-	typedef std::map<Symbol*, TBinders*> BinderDictionary;
+	typedef std::list<T*> TList;
+	typedef std::map<Symbol*, TList*> BinderDictionary;
 	typedef typename BinderDictionary::iterator BinderDictionaryIter;
 
 	BinderDictionary dict;
@@ -82,7 +82,7 @@ class Table
 		typename BinderDictionary::const_iterator it;
 		it = dict.begin();
 		while(it != dict.end()) {
-			TBinders *binds = it->second;
+			TList *binds = it->second;
 			delete binds;
 			++it;
 		}
@@ -93,7 +93,7 @@ class Table
 		BinderDictionaryIter it;
 		it = dict.find(key);
 		if (it != dict.end()) {
-			TBinders *binds = it->second;
+			TList *binds = it->second;
 			DBG("binds = %p", binds);
 			T *value = binds->front();
 			DBG("get value = %s %p", value->toString().c_str(), value);
@@ -111,7 +111,7 @@ class Table
 		
 		BinderDictionaryIter it;
 		it = dict.find(key);
-		TBinders *binds;
+		TList *binds;
 		if (it != dict.end()) {
 			DBG("add binder entry");
 			//変数束縛の上書きはBinderのリストで表現
@@ -123,7 +123,7 @@ class Table
 			//1つのkeyにつき1つのBindersインスタンスを生成
 			//Bindersが指すT *valueは
 			//カレントスコープの変数束縛を表す
-			binds = new TBinders();
+			binds = new TList();
 			binds->push_front(value);
 			DBG("binds = %p", binds);
 			dict.insert(std::make_pair(key, binds));
@@ -142,7 +142,7 @@ class Table
 		typename BinderDictionary::const_iterator it;
 		it = other.dict.begin();
 		while(it != other.dict.end()) {
-			TBinders *binds = it->second;
+			TList *binds = it->second;
 			assert(binds->size() == 1);//1スコープ階層の定義のみ追加可能
 			put(it->first, binds->front());
 			++it;
@@ -167,12 +167,12 @@ class Table
 		BindsInScope<T> *scope = bindsInScopeList.back();
 		bindsInScopeList.pop_back();
 
-		//make scopesymbols & delete TBinders entry
+		//make scopesymbols & delete TList entry
 		typename std::list< BindInScope<T> >::iterator it;
 		it = scope->li.begin();
 		while (it != scope->li.end()) {
 			const BindInScope<T> &scopeEntry = *it;
-			TBinders *binds = scopeEntry.binds;
+			TList *binds = scopeEntry.binds;
 			if (!binds->empty()) {
 				binds->pop_front();
 			}

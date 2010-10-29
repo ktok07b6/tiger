@@ -69,6 +69,13 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		emit(gcnew(assem::OPER, (assem, TempList(), tsrc)));
 		return;
 	}
+	//(TEMP(i), CONST(e2))
+	if (_M0(TEMP_T, temp) == dst && _M0(CONST_T, konst) == src) {
+		std::string assem = format("mov $d0, #%d", konst->value);
+		emit(gcnew(assem::MOVE, (assem, temp->temp, NULL)));
+		return;
+	}
+
 	//(TEMP(i), e2)
 	if (_M0(TEMP_T, temp) == dst) {
 		string assem = "mov $d0, $s0";
@@ -120,20 +127,23 @@ ARMCodeGen::munchEXPR(tree::Exp *exp)
 {
 	tree::CALL *call;
 	if (_M0(CALL_T, call) == exp) {
-		TempList tsrc = munchArgs(call->args);
+		TempList tsrc;
+		TempList tdst;
+		munchArgs(call->args, &tsrc, &tdst);
+
 		LabelList targets;
 		targets.push_back(call->func->label);
 		std::string assem = format("bl $j0");
-		emit(gcnew(assem::OPER, (assem, TempList(), tsrc, targets)));
+		emit(gcnew(assem::OPER, (assem, tdst, tsrc, targets)));
 	}
 }
 
-TempList 
-ARMCodeGen::munchArgs(const tree::ExpList &exps)
+void
+ARMCodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc, TempList *tdst)
 {
-	TempList tsrc;
 	const Frame::Registers &regs = frame->registers();
 	if (exps.size() <= regs.args.size()) {
+		tree::CONST *konst;
 		tree::ExpList::const_iterator it;
 		TempList::const_iterator arg_reg;
 		it = exps.begin();
@@ -141,19 +151,25 @@ ARMCodeGen::munchArgs(const tree::ExpList &exps)
 		while (it != exps.end()) {
 			tree::Exp *e = *it;
 			Temp *dst = *arg_reg;
-			Temp *src = munchExp(e);
-			std::string arg_reg_str = frame->tempMap(dst);
-			std::string assem = format("mov %s, $s0", arg_reg_str.c_str());
-			emit(gcnew(assem::MOVE, (assem, dst, src)));
-		
+			if (_M0(CONST_T, konst) == e) {
+				std::string arg_reg_str = frame->tempMap(dst);
+				std::string assem = format("mov %s, #%d", arg_reg_str.c_str(), konst->value);
+				emit(gcnew(assem::MOVE, (assem, dst, NULL)));
+
+			} else {
+				Temp *src = munchExp(e);
+				std::string arg_reg_str = frame->tempMap(dst);
+				std::string assem = format("mov %s, $s0", arg_reg_str.c_str());
+				emit(gcnew(assem::MOVE, (assem, dst, src)));
+				tsrc->push_back(src);
+			}
+			tdst->push_back(dst);
 			++it;
 			++arg_reg;
-			tsrc.push_back(src);
 		}
 	} else {
 		//TODO:
 	}
-	return tsrc;
 }
 
 
@@ -274,11 +290,14 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 Temp *
 ARMCodeGen::munchCALL(tree::CALL *c)
 {
-	TempList tsrc = munchArgs(c->args);
+	TempList tsrc;
 	TempList tdst;
+	munchArgs(c->args, &tsrc, &tdst);
+
 	assert(frame);
 	Temp *rv = frame->rv();
-	tdst.push_back(rv);
+	tdst.push_back(rv);//TODO: r0の二重登録チェック
+
 	LabelList targets;
 	targets.push_back(c->func->label);
 	std::string assem = "bl $j0";

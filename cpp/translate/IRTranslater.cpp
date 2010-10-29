@@ -144,6 +144,8 @@ IRTranslater::visit(CallExp *exp)
 	lev->formals;
 	*/
 	tree::ExpList args;
+	
+	//FIXME
 	if (currentFuncName == exp->func) {
 		//In case of the recusive call, to pass the static link as first argument.
 		tree::TEMP *fp = _TEMP(currentLevel->getFrame()->fp());
@@ -154,6 +156,7 @@ IRTranslater::visit(CallExp *exp)
 		tree::TEMP *fp = _TEMP(currentLevel->getFrame()->fp());
 		args.push_back(fp);
 	}
+	
 
 	ExpList::iterator it;
 	it = exp->explist->begin();
@@ -512,7 +515,7 @@ IRTranslater::visit(ForExp *exp)
 	FUNCLOG;
 	//TODO:
 	//LetExpへの変換
-	Level::Access *access = currentLevel->allocLocal(true); //TODO: escape
+	Level::Access *access = currentLevel->allocLocal(exp->escape);
 	DBG("exp->symInfo = %p", exp->symInfo);
 	exp->symInfo->access = access;
 	tree::Exp *var = access->simpleVar(currentLevel);
@@ -669,20 +672,26 @@ IRTranslater::visit(FunDec *dec)
 
 	std::vector<int> formals;
 	//static chainのため1つ余分に引数を割り当てる
-	for (unsigned int i = 0; i < dec->params->size()+1; ++i) {
-		formals.push_back(1);//TODO:
+	//FIXME
+	formals.push_back(1);//always escape
+	
+	TypeFieldList::iterator it;
+	it = dec->params->begin();
+	while (it != dec->params->end()) {
+		TypeField *f = *it;
+		formals.push_back(f->escape);
+		++it;
 	}
-
 	currentLevel = Level::newLevel(currentLevel, dec->name, true, formals);
 
 	dec->fnInfo->level = currentLevel;
 	//dec->name->name;
 	//dec->result->name;
 	tree::SEQMaker sm;
-	TypeFieldList::iterator it;
 	it = dec->params->begin();
 	std::vector<Level::Access*>::iterator it2;
 	it2 = currentLevel->formals.begin();
+	//FIXME:
 	it2++;//skip static chain
 	while (it != dec->params->end()) {
 		TypeField *f = *it;
@@ -705,8 +714,19 @@ IRTranslater::visit(FunDec *dec)
 		if (e) {
 			//function
 			tree::TEMP *rv = _TEMP(currentLevel->getFrame()->rv());
-			tree::MOVE *mv_return_value = _MOVE(rv, e); 
-			sm.add(mv_return_value);
+			if (e->isESEQ_T()) {
+				tree::ESEQ *eseq = (tree::ESEQ*)e;
+				while (eseq->exp->isESEQ_T()) {
+					eseq = (tree::ESEQ*)eseq->exp;
+				}
+				tree::MOVE *mv_return_value = _MOVE(rv, eseq->exp);
+				tree::EXPR *expr = _EXPR(mv_return_value);
+
+			} else {
+				tree::MOVE *mv_return_value = _MOVE(rv, e); 
+				sm.add(mv_return_value);
+			}
+
 		} else {
 			//procedure
 			sm.add(texp->unNx());
@@ -721,14 +741,12 @@ void
 IRTranslater::visit(VarDec *dec)
 {
 	FUNCLOG;
-	Level::Access *access = currentLevel->allocLocal(true); //TODO: escape
+	Level::Access *access = currentLevel->allocLocal(dec->escape);
 	DBG("dec->symInfo = %p", dec->symInfo);
 	dec->symInfo->access = access;
 
 	tree::Exp *var = access->simpleVar(currentLevel);
-	//dec->name->name;
-	//dec->escape;
-	//dec->type->name;
+
 	dec->init->accept(this);
 
 	tree::Exp *init;

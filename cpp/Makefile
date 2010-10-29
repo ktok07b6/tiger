@@ -73,6 +73,7 @@ SOURCES_CPP= \
 	AbsynPrinter.cpp \
 	AST2DotTranslater.cpp \
 	TypeCheck.cpp \
+	FindEscape.cpp \
 	Temp.cpp \
 	Label.cpp \
 	Level.cpp \

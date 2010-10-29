@@ -1,0 +1,3481 @@
+Terminals which are not used
+
+   TIGER_SYMBOL
+   TIGER_EOL
+   TIGER_EOF
+   TIGER_ERROR
+
+
+State 33 conflicts: 1 shift/reduce
+State 46 conflicts: 8 shift/reduce
+State 84 conflicts: 12 shift/reduce
+State 85 conflicts: 12 shift/reduce
+State 86 conflicts: 12 shift/reduce
+State 87 conflicts: 8 shift/reduce
+State 98 conflicts: 13 shift/reduce
+State 99 conflicts: 12 shift/reduce
+State 143 conflicts: 12 shift/reduce
+State 154 conflicts: 12 shift/reduce
+State 168 conflicts: 12 shift/reduce
+State 169 conflicts: 12 shift/reduce
+
+
+文法
+
+    0 $accept: program $end
+
+    1 program: expr
+
+    2 expr: string_expr
+    3     | integer_expr
+    4     | nil_expr
+    5     | lvalue_expr
+    6     | neg_expr
+    7     | binary_op_expr
+    8     | assignment_expr
+    9     | function_call
+   10     | seq_expr
+   11     | record_creation_expr
+   12     | array_creation_expr
+   13     | if_expr
+   14     | while_expr
+   15     | for_expr
+   16     | break_expr
+   17     | let_expr
+
+   18 string_expr: STRING_CONSTANT
+
+   19 integer_expr: INTEGER_CONSTANT
+
+   20 nil_expr: NIL
+
+   21 lvalue_expr: lvalue
+
+   22 lvalue: id
+   23       | lvalue '.' id
+   24       | type_id
+   25       | lvalue '.' type_id
+   26       | lvalue '[' expr ']'
+
+   27 neg_expr: MINUS expr
+
+   28 binary_op_expr: expr arithmetic_op expr
+   29               | expr compare_op expr
+   30               | expr boolean_op expr
+
+   31 arithmetic_op: PLUS
+   32              | MINUS
+   33              | TIMES
+   34              | DIVIDE
+
+   35 compare_op: EQ
+   36           | NE
+   37           | GT
+   38           | LT
+   39           | GE
+   40           | LE
+
+   41 boolean_op: AND
+   42           | OR
+
+   43 assignment_expr: lvalue ASSIGN expr
+
+   44 function_call: id '(' expr_list ')'
+
+   45 expr_list: /* 空 */
+   46          | expr
+   47          | expr_list ',' expr
+
+   48 seq: /* 空 */
+   49    | expr
+   50    | seq ';' expr
+
+   51 seq_expr: '(' seq ')'
+
+   52 let_seq_expr: seq
+
+   53 record_creation_expr: type_id '{' record_field_list '}'
+
+   54 record_field: id EQ expr
+   55             | type_id EQ expr
+
+   56 record_field_list: record_field
+   57                  | record_field_list ',' record_field
+
+   58 array_creation_expr: type_id '[' expr ']' OF expr
+
+   59 if_expr: IF expr THEN expr
+   60        | IF expr THEN expr ELSE expr
+
+   61 while_expr: WHILE expr DO expr
+
+   62 for_expr: FOR id ASSIGN expr TO expr DO expr
+   63         | FOR type_id ASSIGN expr TO expr DO expr
+
+   64 break_expr: BREAK
+
+   65 let_expr: LET decs IN let_seq_expr END
+
+   66 decs: dec
+   67     | decs dec
+
+   68 dec: tydec
+   69    | vardec
+   70    | fundec
+
+   71 tydec: TYPE id EQ ty
+   72      | TYPE type_id EQ ty
+
+   73 ty: type_id
+   74   | id
+   75   | '{' tyfields '}'
+   76   | ARRAY OF type_id
+   77   | ARRAY OF id
+
+   78 tyfield: id ':' type_id
+   79        | id ':' id
+   80        | type_id ':' type_id
+
+   81 tyfields: /* 空 */
+   82         | tyfield
+   83         | tyfields ',' tyfield
+
+   84 vardec: VAR id ASSIGN expr
+   85       | VAR id ':' type_id ASSIGN expr
+   86       | VAR type_id ASSIGN expr
+   87       | VAR type_id ':' type_id ASSIGN expr
+
+   88 fundec: FUNCTION id '(' tyfields ')' EQ expr
+   89       | FUNCTION id '(' tyfields ')' ':' type_id EQ expr
+
+   90 id: TIGER_IDENT
+
+   91 type_id: TIGER_TYPE_IDENT
+
+
+出現位置の規則による終端
+
+$end (0) 0
+'(' (40) 44 51 88 89
+')' (41) 44 51 88 89
+',' (44) 47 57 83
+'.' (46) 23 25
+':' (58) 78 79 80 85 87 89
+';' (59) 50
+'[' (91) 26 58
+']' (93) 26 58
+'{' (123) 53 75
+'}' (125) 53 75
+error (256)
+TIGER_SYMBOL (258)
+TIGER_IDENT (259) 90
+TIGER_TYPE_IDENT (260) 91
+TIGER_EOL (261)
+TIGER_EOF (262)
+STRING_CONSTANT (263) 18
+INTEGER_CONSTANT (264) 19
+NIL (265) 20
+TIGER_ERROR (266)
+IF (267) 59 60
+THEN (268) 59 60
+ELSE (269) 60
+WHILE (270) 61
+DO (271) 61 62 63
+FOR (272) 62 63
+TO (273) 62 63
+LET (274) 65
+IN (275) 65
+END (276) 65
+FUNCTION (277) 88 89
+VAR (278) 84 85 86 87
+ARRAY (279) 76 77
+OF (280) 58 76 77
+BREAK (281) 64
+ASSIGN (282) 43 62 63 84 85 86 87
+PLUS (283) 31
+MINUS (284) 27 32
+TIMES (285) 33
+DIVIDE (286) 34
+EQ (287) 35 54 55 71 72 88 89
+NE (288) 36
+GT (289) 37
+LT (290) 38
+GE (291) 39
+LE (292) 40
+AND (293) 41
+OR (294) 42
+TYPE (295) 71 72
+
+
+出現位置の規則による非終端
+
+$accept (51)
+    左辺: 0
+program (52)
+    左辺: 1, 右辺: 0
+expr (53)
+    左辺: 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17,
+    右辺: 1 26 27 28 29 30 43 46 47 49 50 54 55 58 59 60 61 62 63
+    84 85 86 87 88 89
+string_expr (54)
+    左辺: 18, 右辺: 2
+integer_expr (55)
+    左辺: 19, 右辺: 3
+nil_expr (56)
+    左辺: 20, 右辺: 4
+lvalue_expr (57)
+    左辺: 21, 右辺: 5
+lvalue (58)
+    左辺: 22 23 24 25 26, 右辺: 21 23 25 26 43
+neg_expr (59)
+    左辺: 27, 右辺: 6
+binary_op_expr (60)
+    左辺: 28 29 30, 右辺: 7
+arithmetic_op (61)
+    左辺: 31 32 33 34, 右辺: 28
+compare_op (62)
+    左辺: 35 36 37 38 39 40, 右辺: 29
+boolean_op (63)
+    左辺: 41 42, 右辺: 30
+assignment_expr (64)
+    左辺: 43, 右辺: 8
+function_call (65)
+    左辺: 44, 右辺: 9
+expr_list (66)
+    左辺: 45 46 47, 右辺: 44 47
+seq (67)
+    左辺: 48 49 50, 右辺: 50 51 52
+seq_expr (68)
+    左辺: 51, 右辺: 10
+let_seq_expr (69)
+    左辺: 52, 右辺: 65
+record_creation_expr (70)
+    左辺: 53, 右辺: 11
+record_field (71)
+    左辺: 54 55, 右辺: 56 57
+record_field_list (72)
+    左辺: 56 57, 右辺: 53 57
+array_creation_expr (73)
+    左辺: 58, 右辺: 12
+if_expr (74)
+    左辺: 59 60, 右辺: 13
+while_expr (75)
+    左辺: 61, 右辺: 14
+for_expr (76)
+    左辺: 62 63, 右辺: 15
+break_expr (77)
+    左辺: 64, 右辺: 16
+let_expr (78)
+    左辺: 65, 右辺: 17
+decs (79)
+    左辺: 66 67, 右辺: 65 67
+dec (80)
+    左辺: 68 69 70, 右辺: 66 67
+tydec (81)
+    左辺: 71 72, 右辺: 68
+ty (82)
+    左辺: 73 74 75 76 77, 右辺: 71 72
+tyfield (83)
+    左辺: 78 79 80, 右辺: 82 83
+tyfields (84)
+    左辺: 81 82 83, 右辺: 75 83 88 89
+vardec (85)
+    左辺: 84 85 86 87, 右辺: 69
+fundec (86)
+    左辺: 88 89, 右辺: 70
+id (87)
+    左辺: 90, 右辺: 22 23 44 54 62 71 74 77 78 79 84 85 88 89
+type_id (88)
+    左辺: 91, 右辺: 24 25 53 55 58 63 72 73 76 78 80 85 86 87 89
+
+
+状態 0
+
+    0 $accept: . program $end
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    program               go to state 13
+    expr                  go to state 14
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 1
+
+   90 id: TIGER_IDENT .
+
+    $default  reduce using rule 90 (id)
+
+
+状態 2
+
+   91 type_id: TIGER_TYPE_IDENT .
+
+    $default  reduce using rule 91 (type_id)
+
+
+状態 3
+
+   18 string_expr: STRING_CONSTANT .
+
+    $default  reduce using rule 18 (string_expr)
+
+
+状態 4
+
+   19 integer_expr: INTEGER_CONSTANT .
+
+    $default  reduce using rule 19 (integer_expr)
+
+
+状態 5
+
+   20 nil_expr: NIL .
+
+    $default  reduce using rule 20 (nil_expr)
+
+
+状態 6
+
+   59 if_expr: IF . expr THEN expr
+   60        | IF . expr THEN expr ELSE expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 34
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 7
+
+   61 while_expr: WHILE . expr DO expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 35
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 8
+
+   62 for_expr: FOR . id ASSIGN expr TO expr DO expr
+   63         | FOR . type_id ASSIGN expr TO expr DO expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    id       go to state 36
+    type_id  go to state 37
+
+
+状態 9
+
+   65 let_expr: LET . decs IN let_seq_expr END
+
+    FUNCTION  shift, and go to state 38
+    VAR       shift, and go to state 39
+    TYPE      shift, and go to state 40
+
+    decs    go to state 41
+    dec     go to state 42
+    tydec   go to state 43
+    vardec  go to state 44
+    fundec  go to state 45
+
+
+状態 10
+
+   64 break_expr: BREAK .
+
+    $default  reduce using rule 64 (break_expr)
+
+
+状態 11
+
+   27 neg_expr: MINUS . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 46
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 12
+
+   51 seq_expr: '(' . seq ')'
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    $default  reduce using rule 48 (seq)
+
+    expr                  go to state 47
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq                   go to state 48
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 13
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 49
+
+
+状態 14
+
+    1 program: expr .
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 1 (program)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 15
+
+    2 expr: string_expr .
+
+    $default  reduce using rule 2 (expr)
+
+
+状態 16
+
+    3 expr: integer_expr .
+
+    $default  reduce using rule 3 (expr)
+
+
+状態 17
+
+    4 expr: nil_expr .
+
+    $default  reduce using rule 4 (expr)
+
+
+状態 18
+
+    5 expr: lvalue_expr .
+
+    $default  reduce using rule 5 (expr)
+
+
+状態 19
+
+   21 lvalue_expr: lvalue .
+   23 lvalue: lvalue . '.' id
+   25       | lvalue . '.' type_id
+   26       | lvalue . '[' expr ']'
+   43 assignment_expr: lvalue . ASSIGN expr
+
+    ASSIGN  shift, and go to state 65
+    '.'     shift, and go to state 66
+    '['     shift, and go to state 67
+
+    $default  reduce using rule 21 (lvalue_expr)
+
+
+状態 20
+
+    6 expr: neg_expr .
+
+    $default  reduce using rule 6 (expr)
+
+
+状態 21
+
+    7 expr: binary_op_expr .
+
+    $default  reduce using rule 7 (expr)
+
+
+状態 22
+
+    8 expr: assignment_expr .
+
+    $default  reduce using rule 8 (expr)
+
+
+状態 23
+
+    9 expr: function_call .
+
+    $default  reduce using rule 9 (expr)
+
+
+状態 24
+
+   10 expr: seq_expr .
+
+    $default  reduce using rule 10 (expr)
+
+
+状態 25
+
+   11 expr: record_creation_expr .
+
+    $default  reduce using rule 11 (expr)
+
+
+状態 26
+
+   12 expr: array_creation_expr .
+
+    $default  reduce using rule 12 (expr)
+
+
+状態 27
+
+   13 expr: if_expr .
+
+    $default  reduce using rule 13 (expr)
+
+
+状態 28
+
+   14 expr: while_expr .
+
+    $default  reduce using rule 14 (expr)
+
+
+状態 29
+
+   15 expr: for_expr .
+
+    $default  reduce using rule 15 (expr)
+
+
+状態 30
+
+   16 expr: break_expr .
+
+    $default  reduce using rule 16 (expr)
+
+
+状態 31
+
+   17 expr: let_expr .
+
+    $default  reduce using rule 17 (expr)
+
+
+状態 32
+
+   22 lvalue: id .
+   44 function_call: id . '(' expr_list ')'
+
+    '('  shift, and go to state 68
+
+    $default  reduce using rule 22 (lvalue)
+
+
+状態 33
+
+   24 lvalue: type_id .
+   53 record_creation_expr: type_id . '{' record_field_list '}'
+   58 array_creation_expr: type_id . '[' expr ']' OF expr
+
+    '['  shift, and go to state 69
+    '{'  shift, and go to state 70
+
+    '['       [reduce using rule 24 (lvalue)]
+    $default  reduce using rule 24 (lvalue)
+
+
+状態 34
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   59 if_expr: IF expr . THEN expr
+   60        | IF expr . THEN expr ELSE expr
+
+    THEN    shift, and go to state 71
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 35
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   61 while_expr: WHILE expr . DO expr
+
+    DO      shift, and go to state 72
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 36
+
+   62 for_expr: FOR id . ASSIGN expr TO expr DO expr
+
+    ASSIGN  shift, and go to state 73
+
+
+状態 37
+
+   63 for_expr: FOR type_id . ASSIGN expr TO expr DO expr
+
+    ASSIGN  shift, and go to state 74
+
+
+状態 38
+
+   88 fundec: FUNCTION . id '(' tyfields ')' EQ expr
+   89       | FUNCTION . id '(' tyfields ')' ':' type_id EQ expr
+
+    TIGER_IDENT  shift, and go to state 1
+
+    id  go to state 75
+
+
+状態 39
+
+   84 vardec: VAR . id ASSIGN expr
+   85       | VAR . id ':' type_id ASSIGN expr
+   86       | VAR . type_id ASSIGN expr
+   87       | VAR . type_id ':' type_id ASSIGN expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    id       go to state 76
+    type_id  go to state 77
+
+
+状態 40
+
+   71 tydec: TYPE . id EQ ty
+   72      | TYPE . type_id EQ ty
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    id       go to state 78
+    type_id  go to state 79
+
+
+状態 41
+
+   65 let_expr: LET decs . IN let_seq_expr END
+   67 decs: decs . dec
+
+    IN        shift, and go to state 80
+    FUNCTION  shift, and go to state 38
+    VAR       shift, and go to state 39
+    TYPE      shift, and go to state 40
+
+    dec     go to state 81
+    tydec   go to state 43
+    vardec  go to state 44
+    fundec  go to state 45
+
+
+状態 42
+
+   66 decs: dec .
+
+    $default  reduce using rule 66 (decs)
+
+
+状態 43
+
+   68 dec: tydec .
+
+    $default  reduce using rule 68 (dec)
+
+
+状態 44
+
+   69 dec: vardec .
+
+    $default  reduce using rule 69 (dec)
+
+
+状態 45
+
+   70 dec: fundec .
+
+    $default  reduce using rule 70 (dec)
+
+
+状態 46
+
+   27 neg_expr: MINUS expr .
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    EQ        [reduce using rule 27 (neg_expr)]
+    NE        [reduce using rule 27 (neg_expr)]
+    GT        [reduce using rule 27 (neg_expr)]
+    LT        [reduce using rule 27 (neg_expr)]
+    GE        [reduce using rule 27 (neg_expr)]
+    LE        [reduce using rule 27 (neg_expr)]
+    AND       [reduce using rule 27 (neg_expr)]
+    OR        [reduce using rule 27 (neg_expr)]
+    $default  reduce using rule 27 (neg_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 47
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   49 seq: expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 49 (seq)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 48
+
+   50 seq: seq . ';' expr
+   51 seq_expr: '(' seq . ')'
+
+    ')'  shift, and go to state 82
+    ';'  shift, and go to state 83
+
+
+状態 49
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+状態 50
+
+   31 arithmetic_op: PLUS .
+
+    $default  reduce using rule 31 (arithmetic_op)
+
+
+状態 51
+
+   32 arithmetic_op: MINUS .
+
+    $default  reduce using rule 32 (arithmetic_op)
+
+
+状態 52
+
+   33 arithmetic_op: TIMES .
+
+    $default  reduce using rule 33 (arithmetic_op)
+
+
+状態 53
+
+   34 arithmetic_op: DIVIDE .
+
+    $default  reduce using rule 34 (arithmetic_op)
+
+
+状態 54
+
+   35 compare_op: EQ .
+
+    $default  reduce using rule 35 (compare_op)
+
+
+状態 55
+
+   36 compare_op: NE .
+
+    $default  reduce using rule 36 (compare_op)
+
+
+状態 56
+
+   37 compare_op: GT .
+
+    $default  reduce using rule 37 (compare_op)
+
+
+状態 57
+
+   38 compare_op: LT .
+
+    $default  reduce using rule 38 (compare_op)
+
+
+状態 58
+
+   39 compare_op: GE .
+
+    $default  reduce using rule 39 (compare_op)
+
+
+状態 59
+
+   40 compare_op: LE .
+
+    $default  reduce using rule 40 (compare_op)
+
+
+状態 60
+
+   41 boolean_op: AND .
+
+    $default  reduce using rule 41 (boolean_op)
+
+
+状態 61
+
+   42 boolean_op: OR .
+
+    $default  reduce using rule 42 (boolean_op)
+
+
+状態 62
+
+   28 binary_op_expr: expr arithmetic_op . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 84
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 63
+
+   29 binary_op_expr: expr compare_op . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 85
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 64
+
+   30 binary_op_expr: expr boolean_op . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 86
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 65
+
+   43 assignment_expr: lvalue ASSIGN . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 87
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 66
+
+   23 lvalue: lvalue '.' . id
+   25       | lvalue '.' . type_id
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    id       go to state 88
+    type_id  go to state 89
+
+
+状態 67
+
+   26 lvalue: lvalue '[' . expr ']'
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 90
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 68
+
+   44 function_call: id '(' . expr_list ')'
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    $default  reduce using rule 45 (expr_list)
+
+    expr                  go to state 91
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    expr_list             go to state 92
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 69
+
+   58 array_creation_expr: type_id '[' . expr ']' OF expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 93
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 70
+
+   53 record_creation_expr: type_id '{' . record_field_list '}'
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    record_field       go to state 94
+    record_field_list  go to state 95
+    id                 go to state 96
+    type_id            go to state 97
+
+
+状態 71
+
+   59 if_expr: IF expr THEN . expr
+   60        | IF expr THEN . expr ELSE expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 98
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 72
+
+   61 while_expr: WHILE expr DO . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 99
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 73
+
+   62 for_expr: FOR id ASSIGN . expr TO expr DO expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 100
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 74
+
+   63 for_expr: FOR type_id ASSIGN . expr TO expr DO expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 101
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 75
+
+   88 fundec: FUNCTION id . '(' tyfields ')' EQ expr
+   89       | FUNCTION id . '(' tyfields ')' ':' type_id EQ expr
+
+    '('  shift, and go to state 102
+
+
+状態 76
+
+   84 vardec: VAR id . ASSIGN expr
+   85       | VAR id . ':' type_id ASSIGN expr
+
+    ASSIGN  shift, and go to state 103
+    ':'     shift, and go to state 104
+
+
+状態 77
+
+   86 vardec: VAR type_id . ASSIGN expr
+   87       | VAR type_id . ':' type_id ASSIGN expr
+
+    ASSIGN  shift, and go to state 105
+    ':'     shift, and go to state 106
+
+
+状態 78
+
+   71 tydec: TYPE id . EQ ty
+
+    EQ  shift, and go to state 107
+
+
+状態 79
+
+   72 tydec: TYPE type_id . EQ ty
+
+    EQ  shift, and go to state 108
+
+
+状態 80
+
+   65 let_expr: LET decs IN . let_seq_expr END
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    $default  reduce using rule 48 (seq)
+
+    expr                  go to state 47
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq                   go to state 109
+    seq_expr              go to state 24
+    let_seq_expr          go to state 110
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 81
+
+   67 decs: decs dec .
+
+    $default  reduce using rule 67 (decs)
+
+
+状態 82
+
+   51 seq_expr: '(' seq ')' .
+
+    $default  reduce using rule 51 (seq_expr)
+
+
+状態 83
+
+   50 seq: seq ';' . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 111
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 84
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   28               | expr arithmetic_op expr .
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    PLUS      [reduce using rule 28 (binary_op_expr)]
+    MINUS     [reduce using rule 28 (binary_op_expr)]
+    TIMES     [reduce using rule 28 (binary_op_expr)]
+    DIVIDE    [reduce using rule 28 (binary_op_expr)]
+    EQ        [reduce using rule 28 (binary_op_expr)]
+    NE        [reduce using rule 28 (binary_op_expr)]
+    GT        [reduce using rule 28 (binary_op_expr)]
+    LT        [reduce using rule 28 (binary_op_expr)]
+    GE        [reduce using rule 28 (binary_op_expr)]
+    LE        [reduce using rule 28 (binary_op_expr)]
+    AND       [reduce using rule 28 (binary_op_expr)]
+    OR        [reduce using rule 28 (binary_op_expr)]
+    $default  reduce using rule 28 (binary_op_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 85
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   29               | expr compare_op expr .
+   30               | expr . boolean_op expr
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    PLUS      [reduce using rule 29 (binary_op_expr)]
+    MINUS     [reduce using rule 29 (binary_op_expr)]
+    TIMES     [reduce using rule 29 (binary_op_expr)]
+    DIVIDE    [reduce using rule 29 (binary_op_expr)]
+    EQ        [reduce using rule 29 (binary_op_expr)]
+    NE        [reduce using rule 29 (binary_op_expr)]
+    GT        [reduce using rule 29 (binary_op_expr)]
+    LT        [reduce using rule 29 (binary_op_expr)]
+    GE        [reduce using rule 29 (binary_op_expr)]
+    LE        [reduce using rule 29 (binary_op_expr)]
+    AND       [reduce using rule 29 (binary_op_expr)]
+    OR        [reduce using rule 29 (binary_op_expr)]
+    $default  reduce using rule 29 (binary_op_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 86
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   30               | expr boolean_op expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    PLUS      [reduce using rule 30 (binary_op_expr)]
+    MINUS     [reduce using rule 30 (binary_op_expr)]
+    TIMES     [reduce using rule 30 (binary_op_expr)]
+    DIVIDE    [reduce using rule 30 (binary_op_expr)]
+    EQ        [reduce using rule 30 (binary_op_expr)]
+    NE        [reduce using rule 30 (binary_op_expr)]
+    GT        [reduce using rule 30 (binary_op_expr)]
+    LT        [reduce using rule 30 (binary_op_expr)]
+    GE        [reduce using rule 30 (binary_op_expr)]
+    LE        [reduce using rule 30 (binary_op_expr)]
+    AND       [reduce using rule 30 (binary_op_expr)]
+    OR        [reduce using rule 30 (binary_op_expr)]
+    $default  reduce using rule 30 (binary_op_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 87
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   43 assignment_expr: lvalue ASSIGN expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    EQ        [reduce using rule 43 (assignment_expr)]
+    NE        [reduce using rule 43 (assignment_expr)]
+    GT        [reduce using rule 43 (assignment_expr)]
+    LT        [reduce using rule 43 (assignment_expr)]
+    GE        [reduce using rule 43 (assignment_expr)]
+    LE        [reduce using rule 43 (assignment_expr)]
+    AND       [reduce using rule 43 (assignment_expr)]
+    OR        [reduce using rule 43 (assignment_expr)]
+    $default  reduce using rule 43 (assignment_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 88
+
+   23 lvalue: lvalue '.' id .
+
+    $default  reduce using rule 23 (lvalue)
+
+
+状態 89
+
+   25 lvalue: lvalue '.' type_id .
+
+    $default  reduce using rule 25 (lvalue)
+
+
+状態 90
+
+   26 lvalue: lvalue '[' expr . ']'
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+    ']'     shift, and go to state 112
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 91
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   46 expr_list: expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 46 (expr_list)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 92
+
+   44 function_call: id '(' expr_list . ')'
+   47 expr_list: expr_list . ',' expr
+
+    ')'  shift, and go to state 113
+    ','  shift, and go to state 114
+
+
+状態 93
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   58 array_creation_expr: type_id '[' expr . ']' OF expr
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+    ']'     shift, and go to state 115
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 94
+
+   56 record_field_list: record_field .
+
+    $default  reduce using rule 56 (record_field_list)
+
+
+状態 95
+
+   53 record_creation_expr: type_id '{' record_field_list . '}'
+   57 record_field_list: record_field_list . ',' record_field
+
+    ','  shift, and go to state 116
+    '}'  shift, and go to state 117
+
+
+状態 96
+
+   54 record_field: id . EQ expr
+
+    EQ  shift, and go to state 118
+
+
+状態 97
+
+   55 record_field: type_id . EQ expr
+
+    EQ  shift, and go to state 119
+
+
+状態 98
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   59 if_expr: IF expr THEN expr .
+   60        | IF expr THEN expr . ELSE expr
+
+    ELSE    shift, and go to state 120
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    ELSE      [reduce using rule 59 (if_expr)]
+    PLUS      [reduce using rule 59 (if_expr)]
+    MINUS     [reduce using rule 59 (if_expr)]
+    TIMES     [reduce using rule 59 (if_expr)]
+    DIVIDE    [reduce using rule 59 (if_expr)]
+    EQ        [reduce using rule 59 (if_expr)]
+    NE        [reduce using rule 59 (if_expr)]
+    GT        [reduce using rule 59 (if_expr)]
+    LT        [reduce using rule 59 (if_expr)]
+    GE        [reduce using rule 59 (if_expr)]
+    LE        [reduce using rule 59 (if_expr)]
+    AND       [reduce using rule 59 (if_expr)]
+    OR        [reduce using rule 59 (if_expr)]
+    $default  reduce using rule 59 (if_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 99
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   61 while_expr: WHILE expr DO expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    PLUS      [reduce using rule 61 (while_expr)]
+    MINUS     [reduce using rule 61 (while_expr)]
+    TIMES     [reduce using rule 61 (while_expr)]
+    DIVIDE    [reduce using rule 61 (while_expr)]
+    EQ        [reduce using rule 61 (while_expr)]
+    NE        [reduce using rule 61 (while_expr)]
+    GT        [reduce using rule 61 (while_expr)]
+    LT        [reduce using rule 61 (while_expr)]
+    GE        [reduce using rule 61 (while_expr)]
+    LE        [reduce using rule 61 (while_expr)]
+    AND       [reduce using rule 61 (while_expr)]
+    OR        [reduce using rule 61 (while_expr)]
+    $default  reduce using rule 61 (while_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 100
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   62 for_expr: FOR id ASSIGN expr . TO expr DO expr
+
+    TO      shift, and go to state 121
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 101
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   63 for_expr: FOR type_id ASSIGN expr . TO expr DO expr
+
+    TO      shift, and go to state 122
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 102
+
+   88 fundec: FUNCTION id '(' . tyfields ')' EQ expr
+   89       | FUNCTION id '(' . tyfields ')' ':' type_id EQ expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    $default  reduce using rule 81 (tyfields)
+
+    tyfield   go to state 123
+    tyfields  go to state 124
+    id        go to state 125
+    type_id   go to state 126
+
+
+状態 103
+
+   84 vardec: VAR id ASSIGN . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 127
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 104
+
+   85 vardec: VAR id ':' . type_id ASSIGN expr
+
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    type_id  go to state 128
+
+
+状態 105
+
+   86 vardec: VAR type_id ASSIGN . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 129
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 106
+
+   87 vardec: VAR type_id ':' . type_id ASSIGN expr
+
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    type_id  go to state 130
+
+
+状態 107
+
+   71 tydec: TYPE id EQ . ty
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    ARRAY             shift, and go to state 131
+    '{'               shift, and go to state 132
+
+    ty       go to state 133
+    id       go to state 134
+    type_id  go to state 135
+
+
+状態 108
+
+   72 tydec: TYPE type_id EQ . ty
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    ARRAY             shift, and go to state 131
+    '{'               shift, and go to state 132
+
+    ty       go to state 136
+    id       go to state 134
+    type_id  go to state 135
+
+
+状態 109
+
+   50 seq: seq . ';' expr
+   52 let_seq_expr: seq .
+
+    ';'  shift, and go to state 83
+
+    $default  reduce using rule 52 (let_seq_expr)
+
+
+状態 110
+
+   65 let_expr: LET decs IN let_seq_expr . END
+
+    END  shift, and go to state 137
+
+
+状態 111
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   50 seq: seq ';' expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 50 (seq)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 112
+
+   26 lvalue: lvalue '[' expr ']' .
+
+    $default  reduce using rule 26 (lvalue)
+
+
+状態 113
+
+   44 function_call: id '(' expr_list ')' .
+
+    $default  reduce using rule 44 (function_call)
+
+
+状態 114
+
+   47 expr_list: expr_list ',' . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 138
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 115
+
+   58 array_creation_expr: type_id '[' expr ']' . OF expr
+
+    OF  shift, and go to state 139
+
+
+状態 116
+
+   57 record_field_list: record_field_list ',' . record_field
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    record_field  go to state 140
+    id            go to state 96
+    type_id       go to state 97
+
+
+状態 117
+
+   53 record_creation_expr: type_id '{' record_field_list '}' .
+
+    $default  reduce using rule 53 (record_creation_expr)
+
+
+状態 118
+
+   54 record_field: id EQ . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 141
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 119
+
+   55 record_field: type_id EQ . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 142
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 120
+
+   60 if_expr: IF expr THEN expr ELSE . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 143
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 121
+
+   62 for_expr: FOR id ASSIGN expr TO . expr DO expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 144
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 122
+
+   63 for_expr: FOR type_id ASSIGN expr TO . expr DO expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 145
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 123
+
+   82 tyfields: tyfield .
+
+    $default  reduce using rule 82 (tyfields)
+
+
+状態 124
+
+   83 tyfields: tyfields . ',' tyfield
+   88 fundec: FUNCTION id '(' tyfields . ')' EQ expr
+   89       | FUNCTION id '(' tyfields . ')' ':' type_id EQ expr
+
+    ')'  shift, and go to state 146
+    ','  shift, and go to state 147
+
+
+状態 125
+
+   78 tyfield: id . ':' type_id
+   79        | id . ':' id
+
+    ':'  shift, and go to state 148
+
+
+状態 126
+
+   80 tyfield: type_id . ':' type_id
+
+    ':'  shift, and go to state 149
+
+
+状態 127
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   84 vardec: VAR id ASSIGN expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 84 (vardec)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 128
+
+   85 vardec: VAR id ':' type_id . ASSIGN expr
+
+    ASSIGN  shift, and go to state 150
+
+
+状態 129
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   86 vardec: VAR type_id ASSIGN expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 86 (vardec)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 130
+
+   87 vardec: VAR type_id ':' type_id . ASSIGN expr
+
+    ASSIGN  shift, and go to state 151
+
+
+状態 131
+
+   76 ty: ARRAY . OF type_id
+   77   | ARRAY . OF id
+
+    OF  shift, and go to state 152
+
+
+状態 132
+
+   75 ty: '{' . tyfields '}'
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    $default  reduce using rule 81 (tyfields)
+
+    tyfield   go to state 123
+    tyfields  go to state 153
+    id        go to state 125
+    type_id   go to state 126
+
+
+状態 133
+
+   71 tydec: TYPE id EQ ty .
+
+    $default  reduce using rule 71 (tydec)
+
+
+状態 134
+
+   74 ty: id .
+
+    $default  reduce using rule 74 (ty)
+
+
+状態 135
+
+   73 ty: type_id .
+
+    $default  reduce using rule 73 (ty)
+
+
+状態 136
+
+   72 tydec: TYPE type_id EQ ty .
+
+    $default  reduce using rule 72 (tydec)
+
+
+状態 137
+
+   65 let_expr: LET decs IN let_seq_expr END .
+
+    $default  reduce using rule 65 (let_expr)
+
+
+状態 138
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   47 expr_list: expr_list ',' expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 47 (expr_list)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 139
+
+   58 array_creation_expr: type_id '[' expr ']' OF . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 154
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 140
+
+   57 record_field_list: record_field_list ',' record_field .
+
+    $default  reduce using rule 57 (record_field_list)
+
+
+状態 141
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   54 record_field: id EQ expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 54 (record_field)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 142
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   55 record_field: type_id EQ expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 55 (record_field)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 143
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   60 if_expr: IF expr THEN expr ELSE expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    PLUS      [reduce using rule 60 (if_expr)]
+    MINUS     [reduce using rule 60 (if_expr)]
+    TIMES     [reduce using rule 60 (if_expr)]
+    DIVIDE    [reduce using rule 60 (if_expr)]
+    EQ        [reduce using rule 60 (if_expr)]
+    NE        [reduce using rule 60 (if_expr)]
+    GT        [reduce using rule 60 (if_expr)]
+    LT        [reduce using rule 60 (if_expr)]
+    GE        [reduce using rule 60 (if_expr)]
+    LE        [reduce using rule 60 (if_expr)]
+    AND       [reduce using rule 60 (if_expr)]
+    OR        [reduce using rule 60 (if_expr)]
+    $default  reduce using rule 60 (if_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 144
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   62 for_expr: FOR id ASSIGN expr TO expr . DO expr
+
+    DO      shift, and go to state 155
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 145
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   63 for_expr: FOR type_id ASSIGN expr TO expr . DO expr
+
+    DO      shift, and go to state 156
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 146
+
+   88 fundec: FUNCTION id '(' tyfields ')' . EQ expr
+   89       | FUNCTION id '(' tyfields ')' . ':' type_id EQ expr
+
+    EQ   shift, and go to state 157
+    ':'  shift, and go to state 158
+
+
+状態 147
+
+   83 tyfields: tyfields ',' . tyfield
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    tyfield  go to state 159
+    id       go to state 125
+    type_id  go to state 126
+
+
+状態 148
+
+   78 tyfield: id ':' . type_id
+   79        | id ':' . id
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    id       go to state 160
+    type_id  go to state 161
+
+
+状態 149
+
+   80 tyfield: type_id ':' . type_id
+
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    type_id  go to state 162
+
+
+状態 150
+
+   85 vardec: VAR id ':' type_id ASSIGN . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 163
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 151
+
+   87 vardec: VAR type_id ':' type_id ASSIGN . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 164
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 152
+
+   76 ty: ARRAY OF . type_id
+   77   | ARRAY OF . id
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    id       go to state 165
+    type_id  go to state 166
+
+
+状態 153
+
+   75 ty: '{' tyfields . '}'
+   83 tyfields: tyfields . ',' tyfield
+
+    ','  shift, and go to state 147
+    '}'  shift, and go to state 167
+
+
+状態 154
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   58 array_creation_expr: type_id '[' expr ']' OF expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    PLUS      [reduce using rule 58 (array_creation_expr)]
+    MINUS     [reduce using rule 58 (array_creation_expr)]
+    TIMES     [reduce using rule 58 (array_creation_expr)]
+    DIVIDE    [reduce using rule 58 (array_creation_expr)]
+    EQ        [reduce using rule 58 (array_creation_expr)]
+    NE        [reduce using rule 58 (array_creation_expr)]
+    GT        [reduce using rule 58 (array_creation_expr)]
+    LT        [reduce using rule 58 (array_creation_expr)]
+    GE        [reduce using rule 58 (array_creation_expr)]
+    LE        [reduce using rule 58 (array_creation_expr)]
+    AND       [reduce using rule 58 (array_creation_expr)]
+    OR        [reduce using rule 58 (array_creation_expr)]
+    $default  reduce using rule 58 (array_creation_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 155
+
+   62 for_expr: FOR id ASSIGN expr TO expr DO . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 168
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 156
+
+   63 for_expr: FOR type_id ASSIGN expr TO expr DO . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 169
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 157
+
+   88 fundec: FUNCTION id '(' tyfields ')' EQ . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 170
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 158
+
+   89 fundec: FUNCTION id '(' tyfields ')' ':' . type_id EQ expr
+
+    TIGER_TYPE_IDENT  shift, and go to state 2
+
+    type_id  go to state 171
+
+
+状態 159
+
+   83 tyfields: tyfields ',' tyfield .
+
+    $default  reduce using rule 83 (tyfields)
+
+
+状態 160
+
+   79 tyfield: id ':' id .
+
+    $default  reduce using rule 79 (tyfield)
+
+
+状態 161
+
+   78 tyfield: id ':' type_id .
+
+    $default  reduce using rule 78 (tyfield)
+
+
+状態 162
+
+   80 tyfield: type_id ':' type_id .
+
+    $default  reduce using rule 80 (tyfield)
+
+
+状態 163
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   85 vardec: VAR id ':' type_id ASSIGN expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 85 (vardec)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 164
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   87 vardec: VAR type_id ':' type_id ASSIGN expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 87 (vardec)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 165
+
+   77 ty: ARRAY OF id .
+
+    $default  reduce using rule 77 (ty)
+
+
+状態 166
+
+   76 ty: ARRAY OF type_id .
+
+    $default  reduce using rule 76 (ty)
+
+
+状態 167
+
+   75 ty: '{' tyfields '}' .
+
+    $default  reduce using rule 75 (ty)
+
+
+状態 168
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   62 for_expr: FOR id ASSIGN expr TO expr DO expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    PLUS      [reduce using rule 62 (for_expr)]
+    MINUS     [reduce using rule 62 (for_expr)]
+    TIMES     [reduce using rule 62 (for_expr)]
+    DIVIDE    [reduce using rule 62 (for_expr)]
+    EQ        [reduce using rule 62 (for_expr)]
+    NE        [reduce using rule 62 (for_expr)]
+    GT        [reduce using rule 62 (for_expr)]
+    LT        [reduce using rule 62 (for_expr)]
+    GE        [reduce using rule 62 (for_expr)]
+    LE        [reduce using rule 62 (for_expr)]
+    AND       [reduce using rule 62 (for_expr)]
+    OR        [reduce using rule 62 (for_expr)]
+    $default  reduce using rule 62 (for_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 169
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   63 for_expr: FOR type_id ASSIGN expr TO expr DO expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    PLUS      [reduce using rule 63 (for_expr)]
+    MINUS     [reduce using rule 63 (for_expr)]
+    TIMES     [reduce using rule 63 (for_expr)]
+    DIVIDE    [reduce using rule 63 (for_expr)]
+    EQ        [reduce using rule 63 (for_expr)]
+    NE        [reduce using rule 63 (for_expr)]
+    GT        [reduce using rule 63 (for_expr)]
+    LT        [reduce using rule 63 (for_expr)]
+    GE        [reduce using rule 63 (for_expr)]
+    LE        [reduce using rule 63 (for_expr)]
+    AND       [reduce using rule 63 (for_expr)]
+    OR        [reduce using rule 63 (for_expr)]
+    $default  reduce using rule 63 (for_expr)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 170
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   88 fundec: FUNCTION id '(' tyfields ')' EQ expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 88 (fundec)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
+
+
+状態 171
+
+   89 fundec: FUNCTION id '(' tyfields ')' ':' type_id . EQ expr
+
+    EQ  shift, and go to state 172
+
+
+状態 172
+
+   89 fundec: FUNCTION id '(' tyfields ')' ':' type_id EQ . expr
+
+    TIGER_IDENT       shift, and go to state 1
+    TIGER_TYPE_IDENT  shift, and go to state 2
+    STRING_CONSTANT   shift, and go to state 3
+    INTEGER_CONSTANT  shift, and go to state 4
+    NIL               shift, and go to state 5
+    IF                shift, and go to state 6
+    WHILE             shift, and go to state 7
+    FOR               shift, and go to state 8
+    LET               shift, and go to state 9
+    BREAK             shift, and go to state 10
+    MINUS             shift, and go to state 11
+    '('               shift, and go to state 12
+
+    expr                  go to state 173
+    string_expr           go to state 15
+    integer_expr          go to state 16
+    nil_expr              go to state 17
+    lvalue_expr           go to state 18
+    lvalue                go to state 19
+    neg_expr              go to state 20
+    binary_op_expr        go to state 21
+    assignment_expr       go to state 22
+    function_call         go to state 23
+    seq_expr              go to state 24
+    record_creation_expr  go to state 25
+    array_creation_expr   go to state 26
+    if_expr               go to state 27
+    while_expr            go to state 28
+    for_expr              go to state 29
+    break_expr            go to state 30
+    let_expr              go to state 31
+    id                    go to state 32
+    type_id               go to state 33
+
+
+状態 173
+
+   28 binary_op_expr: expr . arithmetic_op expr
+   29               | expr . compare_op expr
+   30               | expr . boolean_op expr
+   89 fundec: FUNCTION id '(' tyfields ')' ':' type_id EQ expr .
+
+    PLUS    shift, and go to state 50
+    MINUS   shift, and go to state 51
+    TIMES   shift, and go to state 52
+    DIVIDE  shift, and go to state 53
+    EQ      shift, and go to state 54
+    NE      shift, and go to state 55
+    GT      shift, and go to state 56
+    LT      shift, and go to state 57
+    GE      shift, and go to state 58
+    LE      shift, and go to state 59
+    AND     shift, and go to state 60
+    OR      shift, and go to state 61
+
+    $default  reduce using rule 89 (fundec)
+
+    arithmetic_op  go to state 62
+    compare_op     go to state 63
+    boolean_op     go to state 64
