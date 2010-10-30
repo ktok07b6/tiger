@@ -20,6 +20,7 @@ char buffer[4096];
 }
 std::string format(const char *fmt, ...)
 {
+	//TODO: lock for multi threading
 	va_list ap;
 	va_start(ap, fmt);
 	vsprintf(buffer, fmt, ap);

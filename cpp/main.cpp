@@ -1,9 +1,12 @@
 #include <string.h>
+#include <errno.h>
+
 #include "Absyn.h"
 #include "parser.hpp"
 #include "AbsynPrinter.h"
 #include "AST2DotTranslater.h"
 #include "TypeCheck.h"
+#include "FindEscape.h"
 #include "debug.h"
 #include "Type.h"
 #include "NameEntry.h"
@@ -63,6 +66,12 @@ void addPreInstallFuncs()
 
 bool typeCheckPhase()
 {
+	printf("Finding escape value===========\n\n");
+	FindEscape *findEscape = new FindEscape();
+	absyn->accept(findEscape);
+	delete findEscape;
+
+	printf("Type checkn===========\n\n");
 	//put default symbols
 	nameTable.beginScope(0);
 	typeTable.beginScope(0);
@@ -109,11 +118,11 @@ void translatePhase(FragmentList &fragments)
 	IRTranslater translater(frame);
 	absyn->accept(&translater);
 	fragments = translater.getFragments();
-#if 0
-	ir = translater.getExp();
+#if 1
+	//ir = translater.getExp();
 	printf("Intermediate Representation===========\n\n");
-	tree::TreePrinter::printTree(ir->unNx());
-	/*
+	//tree::TreePrinter::printTree(ir->unNx());
+	
 	FragmentList::iterator it;
 	it = fragments.begin();
 	while (it != fragments.end()) {
@@ -121,7 +130,7 @@ void translatePhase(FragmentList &fragments)
 		DBG("%s", frag->toString().c_str());
 		++it;
 	}
-	*/
+	
 	printf("======================================\n\n");
 #endif
 }
@@ -130,6 +139,8 @@ void codegenPhase2(assem::InstructionList *instList, TempMap *tempMap);
 
 void codegenPhase(const FragmentList &frags)
 {
+	printSource();
+
 	FragmentList::const_iterator it;
 	it = frags.begin();
 	while (it != frags.end()) {
@@ -140,7 +151,7 @@ void codegenPhase(const FragmentList &frags)
 			Canon canon;
 			tree::StmList stms;
 			stms = canon.linearize(proc->getStm());
-#if 0
+#if 1
 			printf("Linearized IR=========================\n\n");
 			tree::TreePrinter::printStmList(stms);
 			printf("======================================\n\n");
@@ -168,7 +179,6 @@ void codegenPhase(const FragmentList &frags)
 			printf("======================================\n\n");
 #endif
 
-			printSource();
 			printf("CodeGen=========================\n\n");
 			Frame *frame = proc->getFrame();
 			stms = trace.traced;
@@ -202,8 +212,13 @@ void codegenPhase2(assem::InstructionList *instList, TempMap *tempMap)
 
 int main(int argc, char **argv)
 {
+	yyin = NULL;
 	if (argc==2) {
 		yyin = fopen(argv[1], "rb");
+		if (yyin == NULL) {
+			fprintf(stderr, "tiger: %s (%s)\n", strerror(errno), argv[1]);
+			exit(-1);
+		}
 	} else {
 		yyin = stdin;
 	}

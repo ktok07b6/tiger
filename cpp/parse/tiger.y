@@ -460,12 +460,12 @@ while_expr
 for_expr
 : FOR id ASSIGN expr TO expr DO expr
 {
-	$$ = gcnew(ForExp, ($2, true, $4, $6, $8, 0));
+	$$ = gcnew(ForExp, ($2, false, $4, $6, $8, 0));
 	PARSER_DBG("ForExp %p", $$);
 }
 | FOR type_id ASSIGN expr TO expr DO expr
 {
-	$$ = gcnew(ForExp, ($2, true, $4, $6, $8, 0));
+	$$ = gcnew(ForExp, ($2, false, $4, $6, $8, 0));
 	PARSER_DBG("ForExp %p", $$);
 }
 
@@ -564,17 +564,17 @@ ty
 tyfield
 : id ':' type_id
 {
-	$$ = gcnew(TypeField, ($1, true, $3, 0));
+	$$ = gcnew(TypeField, ($1, false, $3, 0));
 	PARSER_DBG("TypeField %p", $$);
 }
 | id ':' id
 {
-	$$ = gcnew(TypeField, ($1, true, $3, 0));
+	$$ = gcnew(TypeField, ($1, false, $3, 0));
 	PARSER_DBG("TypeField %p", $$);
 }
 | type_id ':' type_id
 {
-	$$ = gcnew(TypeField, ($1, true, $3, 0));
+	$$ = gcnew(TypeField, ($1, false, $3, 0));
 	PARSER_DBG("TypeField %p", $$);
 }
 ;
@@ -606,22 +606,22 @@ tyfields
 vardec
 : VAR id ASSIGN expr
 {
-	$$ = gcnew(VarDec, ($2, true, Symbol::symbol(""), $4, 0));
+	$$ = gcnew(VarDec, ($2, false, Symbol::symbol(""), $4, 0));
 	PARSER_DBG("VarDec %p", $$);
 }
 | VAR id ':' type_id ASSIGN expr
 {
-	$$ = gcnew(VarDec, ($2, true, $4, $6, 0));
+	$$ = gcnew(VarDec, ($2, false, $4, $6, 0));
 	PARSER_DBG("VarDec %p", $$);
 }
 | VAR type_id ASSIGN expr
 {
-	$$ = gcnew(VarDec, ($2, true, Symbol::symbol(""), $4, 0));
+	$$ = gcnew(VarDec, ($2, false, Symbol::symbol(""), $4, 0));
 	PARSER_DBG("VarDec %p", $$);
 }
 | VAR type_id ':' type_id ASSIGN expr
 {
-	$$ = gcnew(VarDec, ($2, true, $4, $6, 0));
+	$$ = gcnew(VarDec, ($2, false, $4, $6, 0));
 	PARSER_DBG("VarDec %p", $$);
 }
 ;

@@ -15,7 +15,7 @@ class ARMCodeGen : public assem::CodeGen
 	virtual void munchJUMP(Label *lab);
 	virtual void munchCJUMP(tree::CJUMP *cj);
 	virtual void munchEXPR(tree::Exp *exp);
-	virtual TempList munchArgs(const tree::ExpList &exp);
+	virtual void munchArgs(const tree::ExpList &exps, TempList *tsrc, TempList *tdst);
 
 	virtual Temp *munchMEM(tree::MEM *m);
 	virtual Temp *munchBINOP(tree::BINOP *b);

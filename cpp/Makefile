@@ -73,6 +73,7 @@ SOURCES_CPP= \
 	AbsynPrinter.cpp \
 	AST2DotTranslater.cpp \
 	TypeCheck.cpp \
+	FindEscape.cpp \
 	Temp.cpp \
 	Label.cpp \
 	Level.cpp \
@@ -119,7 +120,6 @@ tiger: $(DEPS) $(OBJECTS)
 
 parse/parser.cpp: parse/tiger.y
 	yacc -v -oparse/parser.cpp -d parse/tiger.y
-	-@mv parser.cpp.h parser.hpp
 
 parse/lexer.cpp: parse/tiger.l parse/parser.cpp
 	flex -oparse/lexer.cpp parse/tiger.l
@@ -132,3 +132,4 @@ endif
 clean:
 	-@echo -@rm obj/* $(TARGET)
 	-@rm obj/* $(TARGET) 
+	-@rm parse/*.cpp

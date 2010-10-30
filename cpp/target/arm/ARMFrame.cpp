@@ -54,20 +54,30 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	//Access *access;
 
 	//size_t num = f.size();
-
-	std::vector<int>::const_iterator it;
-	it = f.begin();
-	while (it != f.end()) {
-		formals.push_back(allocLocal((*it)!=0));
-		++it;
-	}
-
 	char buf[64];
 	for (int i = 0; i < MAX_REG; ++i) {
 		sprintf(buf, "r%d", i);
 		r[i] = gcnew(Temp, (buf));
 	}
 	framePtr = gcnew(Temp, ("fp"));
+
+	//TODO: if(このフレームがstatic linkを必要とするなら)
+	//frameOffset += WORD_SIZE;//static linkのためにfp[0]を空ける
+
+	int i = 0;
+	std::vector<int>::const_iterator it;
+	it = f.begin();
+	while (it != f.end()) {
+		bool escape = (*it);
+		if (escape) {
+			formals.push_back(allocLocal(true));
+		} else {
+			formals.push_back(gcnew(InReg, (r[i-1])));
+		}
+		++i;
+		++it;
+	}
+
 
 	generator = new ARMCodeGen(this);
 

@@ -7,6 +7,7 @@
 #include <cassert>
 #include "debug.h"
 #include "HeapManager.h"
+#include "tiger.h"
 
 struct Symbol;
 
@@ -56,8 +57,8 @@ struct Scopes : public Object
 template<class T>
 class Table 
 {
-	typedef std::list<T*> TBinders;
-	typedef std::map<Symbol*, TBinders*> BinderDictionary;
+	typedef std::list<T*> TList;
+	typedef std::map<Symbol*, TList*> BinderDictionary;
 	typedef typename BinderDictionary::iterator BinderDictionaryIter;
 
 	BinderDictionary dict;
@@ -82,50 +83,50 @@ class Table
 		typename BinderDictionary::const_iterator it;
 		it = dict.begin();
 		while(it != dict.end()) {
-			TBinders *binds = it->second;
+			TList *binds = it->second;
 			delete binds;
 			++it;
 		}
 	}
 
 	T *get(Symbol *key) {
-		DBG("get key = %s %p", key->name.c_str(), key);
+		VDBG("get key = %s %p", key->name.c_str(), key);
 		BinderDictionaryIter it;
 		it = dict.find(key);
 		if (it != dict.end()) {
-			TBinders *binds = it->second;
-			DBG("binds = %p", binds);
+			TList *binds = it->second;
+			VDBG("binds = %p", binds);
 			T *value = binds->front();
-			DBG("get value = %s %p", value->toString().c_str(), value);
+			VDBG("get value = %s %p", value->toString().c_str(), value);
 			return value;
 		} else {
-			DBG("(nil)");
+			VDBG("(nil)");
 			return NULL;
 		}
 	}	
 
 	void put(Symbol *key, T *value) 
 	{
-		DBG("put key = %s [%p]", key->name.c_str(), key);
-		DBG("put value = %s [%p]", value->toString().c_str(), value);
+		VDBG("put key = %s [%p]", key->name.c_str(), key);
+		VDBG("put value = %s [%p]", value->toString().c_str(), value);
 		
 		BinderDictionaryIter it;
 		it = dict.find(key);
-		TBinders *binds;
+		TList *binds;
 		if (it != dict.end()) {
-			DBG("add binder entry");
+			VDBG("add binder entry");
 			//変数束縛の上書きはBinderのリストで表現
 			binds = it->second;
 			binds->push_front(value);
-			DBG("binds = %p", binds);
+			VDBG("binds = %p", binds);
 		} else {
-			DBG("new binder entry");
+			VDBG("new binder entry");
 			//1つのkeyにつき1つのBindersインスタンスを生成
 			//Bindersが指すT *valueは
 			//カレントスコープの変数束縛を表す
-			binds = new TBinders();
+			binds = new TList();
 			binds->push_front(value);
-			DBG("binds = %p", binds);
+			VDBG("binds = %p", binds);
 			dict.insert(std::make_pair(key, binds));
 		}
 		assert(!bindsInScopeList.empty());
@@ -142,7 +143,7 @@ class Table
 		typename BinderDictionary::const_iterator it;
 		it = other.dict.begin();
 		while(it != other.dict.end()) {
-			TBinders *binds = it->second;
+			TList *binds = it->second;
 			assert(binds->size() == 1);//1スコープ階層の定義のみ追加可能
 			put(it->first, binds->front());
 			++it;
@@ -151,7 +152,7 @@ class Table
 
 	void beginScope(void *exp) 
 	{
-		DBG("%s", __PRETTY_FUNCTION__);
+		VDBG("%s", __PRETTY_FUNCTION__);
 		BindsInScope<T> *scope = gcnew(BindsInScope<T>, ());
 		scope->id = (unsigned int)exp;
 		bindsInScopeList.push_back(scope);
@@ -160,19 +161,19 @@ class Table
 
 	void endScope() 
 	{
-		//DBG("%s", toString().c_str());
-		DBG("%s", __PRETTY_FUNCTION__);
+		//VDBG("%s", toString().c_str());
+		VDBG("%s", __PRETTY_FUNCTION__);
 		--scopeLevel;
 		assert(!bindsInScopeList.empty());
 		BindsInScope<T> *scope = bindsInScopeList.back();
 		bindsInScopeList.pop_back();
 
-		//make scopesymbols & delete TBinders entry
+		//make scopesymbols & delete TList entry
 		typename std::list< BindInScope<T> >::iterator it;
 		it = scope->li.begin();
 		while (it != scope->li.end()) {
 			const BindInScope<T> &scopeEntry = *it;
-			TBinders *binds = scopeEntry.binds;
+			TList *binds = scopeEntry.binds;
 			if (!binds->empty()) {
 				binds->pop_front();
 			}
@@ -189,9 +190,7 @@ class Table
 		it = bindsInScopeList.begin();
 		int level = 0;
 		while (it != bindsInScopeList.end()) {
-			char buf[32];
-			sprintf(buf, "scope %d ===========\n", level);
-			result += buf;
+			result += format("scope %d ===========\n", level);
 
 			BindsInScope<T> *scope = *it;
 			typename std::list< BindInScope<T> >::iterator it2;

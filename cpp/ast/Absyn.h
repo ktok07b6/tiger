@@ -9,6 +9,7 @@
 #include <vector>
 #include "Symbol.h"
 #include "AbsynVisitor.h"
+#include "debug.h"
 
 struct VarEntry;
 struct FuncEntry;
@@ -287,7 +288,8 @@ struct ArrayExp : Exp
 struct TypeField : Absyn
 {
  TypeField(Symbol *name, bool escape, Symbol *type, int pos)
-	 : Absyn(pos), name(name), escape(escape), type(type) {}
+	 : Absyn(pos), name(name), escape(escape), type(type) 
+	{}
 	Symbol *name;
 	bool escape;
 	Symbol *type;
