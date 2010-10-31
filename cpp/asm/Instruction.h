@@ -21,7 +21,8 @@ class Instruction : public Object
 	virtual TempList def() = 0;
 	virtual LabelList jumps() = 0;
 
-	virtual bool isMove() {return false;}
+	virtual bool isMOVE() {return false;}
+	virtual bool isLABEL() {return false;}
 	std::string format(TempMap *m);
 	std::string toString() {
 		return assem;
@@ -57,7 +58,7 @@ class MOVE : public Instruction
 	virtual TempList def();
 	virtual LabelList jumps();
 
-	virtual bool isMove() {return true;}
+	virtual bool isMOVE() {return true;}
  private:
 	Temp *dst;
 	Temp *src;
@@ -71,6 +72,10 @@ class LABEL : public Instruction
 	virtual TempList use();
 	virtual TempList def();
 	virtual LabelList jumps();
+	virtual bool isLABEL() {return true;}
+	Label *label() {return lab;}
+ private:
+	Label *lab;
 };
 
 }//namespace assem

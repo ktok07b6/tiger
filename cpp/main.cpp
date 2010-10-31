@@ -21,6 +21,8 @@
 #include "BasicBlocks.h"
 #include "Trace.h"
 #include "Instruction.h"
+#include "Property.h"
+Property<int> value;
 
 extern int yylex();
 extern int yyparse();

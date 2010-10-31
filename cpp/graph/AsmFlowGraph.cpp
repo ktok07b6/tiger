@@ -21,8 +21,8 @@ AsmFlowGraph::~AsmFlowGraph()
 assem::Instruction *
 AsmFlowGraph::instr(Node *n)
 {
-	InstructionNodeMap::iterator it = instTable.find(n);
-	return it->second;
+	InstNode *inode = (InstNode*)n;
+	return inode->getInst();
 }
 
 void 
@@ -33,31 +33,70 @@ AsmFlowGraph::makeInstructionTable(const assem::InstructionList &instrs)
 	assem::InstructionList::const_iterator it;
 	it = instrs.begin();
 	while (it != instrs.end()) {
-		Node *node = gcnew(Node, (this));
-		addNode(node);
-		
+		Node *node = gcnew(InstNode, (this));
+		Graph::addNode(node);
+
 		if (prevNode && !codegen->isJump(prevInst)) {
 			addEdge(prevNode, node);
 		}
-		instTable.insert(make_pair(node, *it));
+		
 		prevInst = *it;
 		prevNode = node;
 		++it;
+	}
+
+	//
+	const NodeList &nodes = Graph::getNodes();
+	NodeList::iterator it2;
+	it2 = nodes.begin();
+	while (it2 != nodes.end()) {
+		InstNode *fromNode = (InstNode*)(*it2);
+		assem::Instruction *inst = fromNode->getInst();
+		LabelList targets = inst->jumps();
+		if (!targets.empty()) {
+			Label *la = targets.front();
+			InstNode *toNode = findLABELNode(la);
+			if (toNode) {
+				addEdge(fromNode, toNode);
+			}
+		}
+		++it2;
 	}
 }
 
 void 
 AsmFlowGraph::makeMoveTable()
 {
-	InstructionNodeMap::const_iterator it;
-	it = instTable.begin();
-	while (it != instTable.end()) {
-		Node *node = it->first;
-		assem::Instruction *inst = it->second;
-		bool b = codegen->isMove(inst);
-		moveTable.insert(make_pair(node, b));
+	const NodeList &nodes = Graph::getNodes();
+	NodeList::const_iterator it;
+	it = nodes.begin();
+	while (it != nodes.end()) {
+		InstNode *inode = (InstNode*)(*it);
+		bool b = codegen->isMove(inode->getInst());
 		++it;
 	}
+}
+
+AsmFlowGraph::InstNode *
+AsmFlowGraph::findLABELNode(Label *l)
+{
+	const NodeList &nodes = Graph::getNodes();
+	NodeList::const_iterator it;
+	it = nodes.begin();
+	while (it != nodes.end()) {
+		InstNode *inode = (InstNode*)(*it);
+		assem::Instruction *inst = inode->getInst();
+		if (inst->isLABEL()) {
+			assem::LABEL *asmlab = (assem::LABEL*)(inst);
+			//TODO:文字列でなくポインタで比較したい
+			//Labelで同じ名前を同じオブジェクトにすることが必要
+			if (l->toString() == asmlab->label()->toString()) {
+				return inode;
+			}
+		}
+		++it;
+	}
+	return NULL;
 }
 
 }//namespace graph

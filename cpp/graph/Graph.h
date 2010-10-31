@@ -14,7 +14,7 @@ class Graph : public Object
 {
 public:
 	Graph();
-	NodeList getNodes();
+	const NodeList &getNodes();
 	void addNode(Node *n);
 	void addEdge(Node *from, Node *to);
 	void rmEdge(Node *from, Node *to);

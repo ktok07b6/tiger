@@ -4,6 +4,7 @@ namespace assem {
 
 LABEL::LABEL(const std::string &assem, Label *l)
 	: Instruction(assem)
+	, lab(l)
 {
 }
 

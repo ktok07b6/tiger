@@ -10,7 +10,7 @@ Graph::Graph()
 {
 }
 
-NodeList 
+const NodeList & 
 Graph::getNodes()
 {
 	return nodes;

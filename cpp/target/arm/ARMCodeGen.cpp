@@ -327,7 +327,7 @@ ARMCodeGen::munchTEMP(tree::TEMP *t)
 bool 
 ARMCodeGen::isMove(assem::Instruction *inst)
 {
-	return inst->isMove();
+	return inst->isMOVE();
 	/*
 	std::string assem = inst->toString();
 	return strncmp("mov", assem.c_str(), 3) == 0;

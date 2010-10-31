@@ -3,6 +3,7 @@
 
 #include "FlowGraph.h"
 #include "Instruction.h"
+#include "Node.h"
 
 namespace assem {
 class CodeGen;
@@ -19,9 +20,20 @@ public:
 	~AsmFlowGraph();
 	assem::Instruction *instr(Node *n);
 private:
+	class InstNode : public Node
+	{
+	public:
+	InstNode(AsmFlowGraph *g) : Node(g) {}
+		assem::Instruction *getInst() {
+			return inst;
+		}
+	private:
+		assem::Instruction *inst;
+	};
+
 	void makeInstructionTable(const assem::InstructionList &instrs);
 	void makeMoveTable();
-	InstructionNodeMap instTable;
+	InstNode *findLABELNode(Label *l);
 
 	assem::CodeGen *codegen;
 };
