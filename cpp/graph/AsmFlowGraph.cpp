@@ -8,8 +8,7 @@ namespace graph {
 
 AsmFlowGraph::AsmFlowGraph(const assem::InstructionList &instrs)
 {
-	makeInstructionTable(instrs);
-	makeMoveTable();
+	makeNodes(instrs);
 	codegen = assem::CodeGen::create();
 }
 
@@ -26,14 +25,14 @@ AsmFlowGraph::instr(Node *n)
 }
 
 void 
-AsmFlowGraph::makeInstructionTable(const assem::InstructionList &instrs)
+AsmFlowGraph::makeNodes(const assem::InstructionList &instrs)
 {
 	Node *prevNode = NULL;
 	assem::Instruction *prevInst = NULL;
 	assem::InstructionList::const_iterator it;
 	it = instrs.begin();
 	while (it != instrs.end()) {
-		Node *node = gcnew(InstNode, (this));
+		Node *node = gcnew(InstNode, (this, *it));
 		Graph::addNode(node);
 
 		if (prevNode && !codegen->isJump(prevInst)) {
@@ -64,19 +63,6 @@ AsmFlowGraph::makeInstructionTable(const assem::InstructionList &instrs)
 	}
 }
 
-void 
-AsmFlowGraph::makeMoveTable()
-{
-	const NodeList &nodes = Graph::getNodes();
-	NodeList::const_iterator it;
-	it = nodes.begin();
-	while (it != nodes.end()) {
-		InstNode *inode = (InstNode*)(*it);
-		bool b = codegen->isMove(inode->getInst());
-		++it;
-	}
-}
-
 AsmFlowGraph::InstNode *
 AsmFlowGraph::findLABELNode(Label *l)
 {
@@ -97,6 +83,31 @@ AsmFlowGraph::findLABELNode(Label *l)
 		++it;
 	}
 	return NULL;
+}
+
+
+TempList 
+AsmFlowGraph::def(Node *node)
+{
+	assert(node);
+	assert(((InstNode*)node)->getInst());
+	return ((InstNode*)node)->getInst()->def();
+}
+
+TempList 
+AsmFlowGraph::use(Node *node)
+{
+	assert(node);
+	assert(((InstNode*)node)->getInst());
+	return ((InstNode*)node)->getInst()->use();
+}
+
+bool 
+AsmFlowGraph::isMove(Node *node)
+{
+	assert(node);
+	assert(((InstNode*)node)->getInst());
+	return codegen->isMove(((InstNode*)node)->getInst());
 }
 
 }//namespace graph

@@ -7,19 +7,12 @@
 
 namespace graph {
 
-typedef std::map<Node *, TempList> TempListNodeMap;
-typedef std::map<Node *, bool> BoolNodeMap;
-
 class FlowGraph : public Graph
 {
 public:
-	virtual TempList def(Node *node);
-	virtual TempList use(Node *node);
-	virtual bool isMove(Node *node);
-
-	TempListNodeMap defsTable;
-	TempListNodeMap usesTable;
-	BoolNodeMap moveTable;
+	virtual TempList def(Node *node) = 0;
+	virtual TempList use(Node *node) = 0;
+	virtual bool isMove(Node *node) = 0;
 };
 
 }//namespace graph

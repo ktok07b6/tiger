@@ -100,6 +100,7 @@ SOURCES_CPP= \
 	Node.cpp \
 	FlowGraph.cpp \
 	AsmFlowGraph.cpp \
+	InterferenceGraph.cpp \
 	$(NULL)
 
 SOURCES_C= \

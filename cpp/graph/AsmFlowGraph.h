@@ -11,19 +11,22 @@ class CodeGen;
 
 namespace graph {
 
-typedef std::map<Node *, assem::Instruction *> InstructionNodeMap;
-
 class AsmFlowGraph : public FlowGraph
 {
 public:
 	AsmFlowGraph(const assem::InstructionList &instrs);
 	~AsmFlowGraph();
+	virtual TempList def(Node *node);
+	virtual TempList use(Node *node);
+	virtual bool isMove(Node *node);
+
 	assem::Instruction *instr(Node *n);
+
 private:
 	class InstNode : public Node
 	{
 	public:
-	InstNode(AsmFlowGraph *g) : Node(g) {}
+	InstNode(AsmFlowGraph *g, assem::Instruction *i) : Node(g), inst(i) {}
 		assem::Instruction *getInst() {
 			return inst;
 		}
@@ -31,8 +34,7 @@ private:
 		assem::Instruction *inst;
 	};
 
-	void makeInstructionTable(const assem::InstructionList &instrs);
-	void makeMoveTable();
+	void makeNodes(const assem::InstructionList &instrs);
 	InstNode *findLABELNode(Label *l);
 
 	assem::CodeGen *codegen;
