@@ -8,7 +8,7 @@
 namespace assem {
 
 class Instruction;
-typedef std::list<Instruction*> InstructionList;
+typedef std::vector<Instruction*> InstructionList;
 
 class CodeGen
 {

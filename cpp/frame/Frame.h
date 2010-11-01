@@ -14,7 +14,7 @@ class Label;
 class Proc;
 namespace assem {
 class Instruction;
-typedef std::list<Instruction*> InstructionList;
+typedef std::vector<Instruction*> InstructionList;
 }
 
 class Frame : public Object, public TempMap

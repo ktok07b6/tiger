@@ -5,7 +5,7 @@
 #include "Temp.h"
 #include "Label.h"
 #include <string>
-#include <list>
+#include <vector>
 
 class TempMap;
 
@@ -31,7 +31,7 @@ class Instruction : public Object
 	std::string assem;
 };
 
-typedef std::list<Instruction*> InstructionList;
+typedef std::vector<Instruction*> InstructionList;
 
 
 class OPER : public Instruction

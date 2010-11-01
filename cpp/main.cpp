@@ -72,12 +72,12 @@ void addPreInstallFuncs()
 
 bool typeCheckPhase()
 {
-	printf("Finding escape value===========\n\n");
+	DBG("Finding escape value===========\n\n");
 	FindEscape *findEscape = new FindEscape();
 	absyn->accept(findEscape);
 	delete findEscape;
 
-	printf("Type checkn===========\n\n");
+	DBG("Type checkn===========\n\n");
 	//put default symbols
 	nameTable.beginScope(0);
 	typeTable.beginScope(0);
@@ -124,9 +124,9 @@ void translatePhase(FragmentList &fragments)
 	IRTranslater translater(frame);
 	absyn->accept(&translater);
 	fragments = translater.getFragments();
-#if 1
+#if 0
 	//ir = translater.getExp();
-	printf("Intermediate Representation===========\n\n");
+	DBG("Intermediate Representation===========\n\n");
 	//tree::TreePrinter::printTree(ir->unNx());
 	
 	FragmentList::iterator it;
@@ -137,7 +137,7 @@ void translatePhase(FragmentList &fragments)
 		++it;
 	}
 	
-	printf("======================================\n\n");
+	DBG("======================================");
 #endif
 }
 
@@ -157,16 +157,16 @@ void codegenPhase(const FragmentList &frags)
 			Canon canon;
 			tree::StmList stms;
 			stms = canon.linearize(proc->getStm());
-#if 1
-			printf("Linearized IR=========================\n\n");
+#if 0
+			DBG("Linearized IR=========================");
 			tree::TreePrinter::printStmList(stms);
-			printf("======================================\n\n");
+			DBG("======================================");
 		
 #endif
 			
 			BasicBlocks bb(stms);
 #if 0
-			printf("Basic Blocks=========================\n\n");
+			DBG("Basic Blocks=========================");
 			std::list< tree::StmList >::const_iterator i1 = bb.blocks.begin();
 			while (i1 != bb.blocks.end()) {
 				DBG("-----");
@@ -175,17 +175,17 @@ void codegenPhase(const FragmentList &frags)
 				++i1;
 				
 			}
-			printf("======================================\n\n");
+			DBG("======================================");
 #endif
 
 			Trace trace(bb.blocks);
-#if 0
-			printf("Traces=========================\n\n");
+#if 1
+			DBG("Traces=========================");
 			tree::TreePrinter::printStmList(trace.traced);
-			printf("======================================\n\n");
+			DBG("======================================");
 #endif
 
-			printf("CodeGen=========================\n\n");
+			DBG("CodeGen=========================");
 			Frame *frame = proc->getFrame();
 			stms = trace.traced;
 			assem::InstructionList instList;

@@ -26,6 +26,7 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 	tree::BINOP *binop;
 	tree::CONST *konst;
 	tree::TEMP *temp;
+	tree::TEMP *temp2;
 
 	if (_M1(MEM_T, mem, _M0(BINOP_T, binop)) == dst) {
 		if (binop->op == tree::BINOP::oPLUS) {
@@ -69,6 +70,36 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		emit(gcnew(assem::OPER, (assem, TempList(), tsrc)));
 		return;
 	}
+	/*
+	//(TEMP(i), BINOP(...))
+	if (_M0(TEMP_T, temp) == dst && _M0(BINOP_T, binop) == src) {
+		if (binop->op == tree::BINOP::oPLUS) {
+			if (_M0(TEMP_T, temp2) == binop->l && _M0(CONST_T, konst) == binop->r) {
+				if (temp == temp2) {
+					string assem = format("add $d0, $s0, #%d", konst->value);
+					TempList tdst, tsrc;
+					tdst.push_back(temp->temp);
+					tsrc.push_back(temp->temp);
+					emit(gcnew(assem::OPER, (assem, tdst, tsrc)));
+					return;
+				}
+			} else if (_M0(TEMP_T, temp2) == binop->r && _M0(CONST_T, konst) == binop->l) {
+				if (temp == temp2) {
+					string assem = format("add $d0, $s0, #%d", konst->value);
+					TempList tdst, tsrc;
+					tdst.push_back(temp->temp);
+					tsrc.push_back(temp->temp);
+					emit(gcnew(assem::OPER, (assem, tdst, tsrc)));
+					return;
+				}
+			}
+
+		} else if (binop->op == tree::BINOP::oMINUS) {
+		} else if (binop->op == tree::BINOP::oMUL) {
+		} else if (binop->op == tree::BINOP::oDIV) {
+		}
+	}
+	*/
 	//(TEMP(i), CONST(e2))
 	if (_M0(TEMP_T, temp) == dst && _M0(CONST_T, konst) == src) {
 		std::string assem = format("mov $d0, #%d", konst->value);
