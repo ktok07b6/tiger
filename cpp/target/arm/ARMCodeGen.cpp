@@ -134,11 +134,21 @@ ARMCodeGen::munchJUMP(Label *lab)
 void 
 ARMCodeGen::munchCJUMP(tree::CJUMP *cj)
 {
+	tree::CONST *konst;
 	std::string assem;
-	assem = "cmp $s0, $s1";
 	TempList tsrc;
-	tsrc.push_back(munchExp(cj->l));
-	tsrc.push_back(munchExp(cj->r));
+
+	if (_M0(CONST_T, konst) == cj->l) {
+		assem = format("cmp $s0, #%d", konst->value);
+		tsrc.push_back(munchExp(cj->r));
+	} else if (_M0(CONST_T, konst) == cj->r) {
+		assem = format("cmp $s0, #%d", konst->value);
+		tsrc.push_back(munchExp(cj->l));
+	} else {
+		assem = "cmp $s0, $s1";
+		tsrc.push_back(munchExp(cj->l));
+		tsrc.push_back(munchExp(cj->r));
+	}
 	emit(gcnew(assem::OPER, (assem, TempList(), tsrc)));
 
 	const char *cond[] = {"eq", "ne", 
