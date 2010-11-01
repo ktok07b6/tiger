@@ -7,22 +7,23 @@ Node::Node(Graph *g)
 {
 }
 
-NodeList 
-Node::succ()
+const NodeList & 
+Node::succ() const
 {
 	return successors;
 }
 
-NodeList 
-Node::pred()
+const NodeList & 
+Node::pred() const
 {
 	return predecessors;
 }
 
-NodeList 
-Node::adj()
+const NodeList & 
+Node::adj() const
 {
-	NodeList adjacencies;
+	//TODO: caching adjacencies
+	adjacencies.clear();
 	std::merge(successors.begin(), successors.end(), 
 			   predecessors.begin(), predecessors.end(), 
 			  std::insert_iterator<NodeList>(adjacencies,
@@ -31,43 +32,43 @@ Node::adj()
 }
 
 int 
-Node::outDegree()
-{
+Node::outDegree() const
+{ 
 	return successors.size();
 }
 
 int 
-Node::inDegree()
+Node::inDegree() const
 {
 	return predecessors.size();
 }
 
 int 
-Node::degree()
+Node::degree() const
 {
 	return outDegree() + inDegree();
 }
 
 bool 
-Node::goesTo(Node *n)
+Node::goesTo(Node *n) const 
 {
 	return successors.find(n) != successors.end();
 }
 
 bool 
-Node::comesFrom(Node *n)
+Node::comesFrom(Node *n) const
 {
 	return predecessors.find(n) != predecessors.end();
 }
 
 bool 
-Node::adj(Node *n)
+Node::adj(Node *n) const
 {
 	return goesTo(n) || comesFrom(n);
 }
 
 std::string 
-Node::toString()
+Node::toString() const
 {
 	return "";
 }

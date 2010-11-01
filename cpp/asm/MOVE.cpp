@@ -13,7 +13,9 @@ TempList
 MOVE::use()
 {
 	TempList uses;
-	uses.push_back(src);
+	if (src) {
+		uses.push_back(src);
+	}
 	return uses;
 }
 
@@ -21,7 +23,9 @@ TempList
 MOVE::def()
 {
 	TempList defs;
-	defs.push_back(dst);
+	if (dst) {
+		defs.push_back(dst);
+	}
 	return defs;
 }
 

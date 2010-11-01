@@ -11,7 +11,7 @@ Graph::Graph()
 }
 
 const NodeList & 
-Graph::getNodes()
+Graph::getNodes() const
 {
 	return nodes;
 }

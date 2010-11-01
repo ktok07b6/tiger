@@ -10,9 +10,9 @@ namespace graph {
 class FlowGraph : public Graph
 {
 public:
-	virtual TempList def(Node *node) = 0;
-	virtual TempList use(Node *node) = 0;
-	virtual bool isMove(Node *node) = 0;
+	virtual TempList def(Node *node) const = 0;
+	virtual TempList use(Node *node) const  = 0;
+	virtual bool isMove(Node *node) const  = 0;
 };
 
 }//namespace graph

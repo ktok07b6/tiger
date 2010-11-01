@@ -16,24 +16,24 @@ class AsmFlowGraph : public FlowGraph
 public:
 	AsmFlowGraph(const assem::InstructionList &instrs);
 	~AsmFlowGraph();
-	virtual TempList def(Node *node);
-	virtual TempList use(Node *node);
-	virtual bool isMove(Node *node);
+	virtual TempList def(Node *node) const;
+	virtual TempList use(Node *node) const;
+	virtual bool isMove(Node *node) const;
 
 	assem::Instruction *instr(Node *n);
 
-private:
 	class InstNode : public Node
 	{
 	public:
 	InstNode(AsmFlowGraph *g, assem::Instruction *i) : Node(g), inst(i) {}
-		assem::Instruction *getInst() {
+		assem::Instruction *getInst() const{
 			return inst;
 		}
 	private:
 		assem::Instruction *inst;
 	};
 
+private:
 	void makeNodes(const assem::InstructionList &instrs);
 	InstNode *findLABELNode(Label *l);
 

@@ -21,6 +21,9 @@
 #include "BasicBlocks.h"
 #include "Trace.h"
 #include "Instruction.h"
+#include "AsmFlowGraph.h"
+#include "Liveness.h"
+
 #include "Property.h"
 Property<int> value;
 
@@ -137,7 +140,7 @@ void translatePhase(FragmentList &fragments)
 #endif
 }
 
-void codegenPhase2(assem::InstructionList *instList, TempMap *tempMap);
+void codegenPhase2(assem::InstructionList &instList, TempMap *tempMap);
 
 void codegenPhase(const FragmentList &frags)
 {
@@ -184,13 +187,15 @@ void codegenPhase(const FragmentList &frags)
 			printf("CodeGen=========================\n\n");
 			Frame *frame = proc->getFrame();
 			stms = trace.traced;
+			assem::InstructionList instList;
 			tree::StmList::iterator it = stms.begin();
 			while (it != stms.end()) {
 				tree::Stm *stm = *it;
-				assem::InstructionList *instList = frame->codegen(stm);
-				codegenPhase2(instList, frame);
+				assem::InstructionList *ilist = frame->codegen(stm);
+				std::copy(ilist->begin(), ilist->end(), std::back_inserter(instList));
 				++it;
 			}
+			codegenPhase2(instList, frame);
 		} else {
 			assert(frag->isData());
 			DataFragment *data = (DataFragment*)frag;
@@ -200,17 +205,20 @@ void codegenPhase(const FragmentList &frags)
 	}
 }
 
-void codegenPhase2(assem::InstructionList *instList, TempMap *tempMap)
+void codegenPhase2(assem::InstructionList &instList, TempMap *tempMap)
 {
 	assem::InstructionList::iterator it;
-	it = instList->begin();
-	while (it != instList->end()) {
+	it = instList.begin();
+	while (it != instList.end()) {
 		assem::Instruction *inst = *it;
 		std::string s = inst->format(tempMap);
 		DBG("%s", s.c_str());
 		++it;
 	}
+	const graph::AsmFlowGraph flow(instList);
+	const regalloc::Liveness liveness(flow);
 }
+
 
 int main(int argc, char **argv)
 {

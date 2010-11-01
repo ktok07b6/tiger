@@ -17,21 +17,22 @@ public:
 	virtual ~Node() {}
 
 	Node(Graph *g);
-    NodeList succ();
-    NodeList pred();
-    NodeList adj();
-    int outDegree();
-    int inDegree();
-    int degree();
-    bool goesTo(Node *n);
-    bool comesFrom(Node *n);
-    bool adj(Node *n);
-	virtual std::string toString();
+	const NodeList &succ() const;
+	const NodeList &pred() const;
+	const NodeList &adj() const;
+	int outDegree() const;
+	int inDegree() const;
+	int degree() const;
+	bool goesTo(Node *n) const;
+	bool comesFrom(Node *n) const;
+	bool adj(Node *n) const;
+	virtual std::string toString() const;
 
 private:
 	Graph *graph;
 	NodeList successors;
 	NodeList predecessors;
+	mutable NodeList adjacencies;
 	friend class Graph;
 };
 

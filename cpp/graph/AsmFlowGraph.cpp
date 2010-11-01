@@ -8,8 +8,8 @@ namespace graph {
 
 AsmFlowGraph::AsmFlowGraph(const assem::InstructionList &instrs)
 {
-	makeNodes(instrs);
 	codegen = assem::CodeGen::create();
+	makeNodes(instrs);
 }
 
 AsmFlowGraph::~AsmFlowGraph()
@@ -87,7 +87,7 @@ AsmFlowGraph::findLABELNode(Label *l)
 
 
 TempList 
-AsmFlowGraph::def(Node *node)
+AsmFlowGraph::def(Node *node) const
 {
 	assert(node);
 	assert(((InstNode*)node)->getInst());
@@ -95,7 +95,7 @@ AsmFlowGraph::def(Node *node)
 }
 
 TempList 
-AsmFlowGraph::use(Node *node)
+AsmFlowGraph::use(Node *node) const
 {
 	assert(node);
 	assert(((InstNode*)node)->getInst());
@@ -103,7 +103,7 @@ AsmFlowGraph::use(Node *node)
 }
 
 bool 
-AsmFlowGraph::isMove(Node *node)
+AsmFlowGraph::isMove(Node *node) const
 {
 	assert(node);
 	assert(((InstNode*)node)->getInst());
