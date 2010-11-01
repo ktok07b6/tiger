@@ -188,6 +188,69 @@ ARMFrame::procEntryExit2(assem::InstructionList *body)
 Proc *
 ARMFrame::procEntryExit3(assem::InstructionList *body)
 {
+	/*
+	  stack frame example
+
+	       ...  lower address
+	  XXXXFFFC |--------------|
+	  XXXX0000 |    <empty>   |
+	  XXXX0004 |--------------|
+	  XXXX0008 |      ...     |-+ <== sp
+	  XXXX000C |--------------| |
+	  XXXX0010 |      ...     | | local vars & args
+	  XXXX0014 |--------------| |
+	  XXXX0018 | static link  |-+ <== fp
+	  XXXX001C |--------------|
+	  XXXX0020 |      lr      |-+
+	  XXXX0024 |--------------| | 
+	  XXXX0028 |      fp      | | callee save regs
+	  XXXX002C |--------------| |
+	  XXXX0030 |      ...     |-+
+	  XXXX0034 |--------------|
+	  XXXX0038 |      ...     | <== old sp
+	  XXXX003C |--------------|
+	       ...  higher address
+	 */
+
+	assem::InstructionList proc;
+
+	int localVarCount = 0;//TODO:
+	std::string assem;
+	std::string calleeSaveStr;//TODO:
+	TempList::const_iterator it = regs.calleeSaves.begin();
+	while (it != regs.calleeSaves.end()) {
+		Temp *r = *it;
+		calleeSaveStr += r->toString();
+		calleeSaveStr += ",";
+		++it;
+	}
+	calleeSaveStr += "fp,";
+
+	//prologue//////////
+	assem = format("stmfd sp!, {%s lr}", calleeSaveStr.c_str());
+	assem::OPER *stmfd = gcnew(assem::OPER, (assem, TempList(), TempList()));
+	proc.push_back(stmfd);
+	assem = "sub fp, sp, #4";
+	assem::OPER *set_fp = gcnew(assem::OPER, (assem, TempList(), TempList()));
+	proc.push_back(set_fp);
+
+	assem = format("sub sp, sp, #%d", localVarCount * WORD_SIZE);
+	assem::OPER *set_sp = gcnew(assem::OPER, (assem, TempList(), TempList()));
+	proc.push_back(set_sp);
+
+	//body//////////////
+	std::copy(body->begin(), body->end(), std::back_inserter(proc));
+
+
+	//epilogue//////////
+	assem = "add sp, fp, #4";
+	assem::OPER *rewind_sp = gcnew(assem::OPER, (assem, TempList(), TempList()));
+	proc.push_back(rewind_sp);
+	
+	assem = format("ldmfd sp!, {%s pc}", calleeSaveStr.c_str());
+	assem::OPER *ldmfd = gcnew(assem::OPER, (assem, TempList(), TempList()));
+	proc.push_back(ldmfd);
+
 	return NULL;
 }
 
