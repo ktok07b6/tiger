@@ -5,23 +5,25 @@
 #include "Node.h"
 #include <list>
 #include <map>
-
-class Temp;
+#include <vector>
+#include "Temp.h"
 
 namespace graph {
 
 class AsmFlowGraph;
+
 class InterferenceGraph : public Graph
 {
 public:
 	typedef std::pair<Node*, Node*> NodePair;
 	typedef std::list<NodePair> NodePairList;
 
-	InterferenceGraph(const AsmFlowGraph &agraph);
+	InterferenceGraph(const std::vector<TempList*> &liveouts);
 	Node *temp2node(Temp *t);
 	Temp *node2temp(Node *n);
 	const NodePairList &moves();
 
+	virtual void show() const;
  private:
 	class TempNode : public Node
 	{
@@ -32,6 +34,7 @@ public:
 		Temp *temp;
 	};
 	NodePairList movedNodes;
+	std::map<Temp *, TempNode *> temp2nodeMap;
 };
 
 }//namespace graph

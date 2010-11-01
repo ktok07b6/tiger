@@ -18,8 +18,8 @@ public:
 	void addNode(Node *n);
 	void addEdge(Node *from, Node *to);
 	void rmEdge(Node *from, Node *to);
-	void show();
-private:
+	virtual void show() const;
+protected:
 	NodeList nodes;
 };
 

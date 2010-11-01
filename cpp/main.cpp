@@ -23,6 +23,7 @@
 #include "Instruction.h"
 #include "AsmFlowGraph.h"
 #include "Liveness.h"
+#include "InterferenceGraph.h"
 
 #include "Property.h"
 Property<int> value;
@@ -217,6 +218,8 @@ void codegenPhase2(assem::InstructionList &instList, TempMap *tempMap)
 	}
 	const graph::AsmFlowGraph flow(instList);
 	const regalloc::Liveness liveness(flow);
+	const graph::InterferenceGraph *igraph = liveness.getInterferenceGraph();
+	igraph->show();
 }
 
 

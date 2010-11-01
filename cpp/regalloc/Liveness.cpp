@@ -39,6 +39,7 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 	}
 	calcLives();
 
+#if 1
 	int n = 0;
 	it = flowNodes.begin();
 	while (it != flowNodes.end()) {
@@ -56,9 +57,14 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 		++it;
 		++n;
 	}
-
+#endif
+	makeInterferenceGraph();
 }
 
+Liveness::~Liveness()
+{
+	delete igraph;
+}
 
 void
 Liveness::calcLives()
@@ -153,6 +159,20 @@ Liveness::isContinuing(int n, const TempList &oldLivein, const TempList &oldLive
 			std::equal(liveout.begin(), liveout.end(), oldLiveout.begin()) == false;
 	}
 	return true;
+}
+
+void
+Liveness::makeInterferenceGraph()
+{
+	std::vector<TempList*> liveouts;
+	LiveInfoVec::iterator it = info.begin();
+	while (it != info.end()) {
+		LiveInfo *linfo = *it;
+		liveouts.push_back(&(linfo->liveout));
+		++it;
+	}
+
+	igraph = new InterferenceGraph(liveouts);
 }
 
 }//namespace regalloc
