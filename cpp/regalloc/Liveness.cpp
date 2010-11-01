@@ -71,11 +71,13 @@ Liveness::calcLives()
 {
 	//TODO: test & improve performance
  retry:
-	bool continuing = false;	
-	for (size_t n = 0; n < info.size(); ++n) {
+	bool continuing = false;
+	for (int n = info.size()-1; 0 <= n; --n) {
 		TempList oldLivein = info[n]->livein;
 		TempList oldLiveout = info[n]->liveout;
 		
+		info[n]->liveout = getAllLiveinsAtSuccessors(info[n]->node);
+
 		//info[n]->livein = info[n]->use + (info[n]->liveout - info[n]->def);
 		TempList tmp = tempListSub(info[n]->liveout, info[n]->def);
 		std::copy(info[n]->use.begin(), info[n]->use.end(), std::back_inserter(tmp));
@@ -83,14 +85,10 @@ Liveness::calcLives()
 		tmp.erase(std::unique(tmp.begin(), tmp.end()), tmp.end());
 		info[n]->livein = tmp;
 		
-		info[n]->liveout = getAllLiveinsAtSuccessors(info[n]->node);
-		//TempList allLivein = getAllLiveinsAtSuccessors(info[n]->node);
-		//std::copy(allLivein.begin(), allLivein.end(), std::back_inserter(info[n]->liveout));
-		
 		continuing |= isContinuing(n, oldLivein, oldLiveout);
 	}
 	if (continuing) {
-		DBG("continue liveness calc");
+		DBG("continue liveness calculation");
 		goto retry;
 	}
 }
@@ -118,11 +116,11 @@ Liveness::getAllLiveinsAtSuccessors(const Node *node)
 	while (suc != successors.end()) {
 		const TempList &in = getLivein(*suc);
 		std::copy(in.begin(), in.end(), std::back_inserter(liveins));
-		std::sort(liveins.begin(), liveins.end());
-		liveins.erase(std::unique(liveins.begin(), liveins.end()), liveins.end());
-
 		++suc;
 	}
+	std::sort(liveins.begin(), liveins.end());
+	liveins.erase(std::unique(liveins.begin(), liveins.end()), liveins.end());
+
 	return liveins;
 }
 
