@@ -33,15 +33,17 @@ InterferenceGraph::InterferenceGraph(const std::vector<TempList*> &liveouts)
 	while (it != liveouts.end()) {
 		TempList *liveout = (*it);
 		if (2 <= liveout->size()) {
-			TempList::iterator t1 = liveout->begin();
-			TempList::iterator t2 = liveout->begin();
-			++t2;
-			while (t2 != liveout->end()) {
-				Node *n1 = temp2node(*t1);
-				Node *n2 = temp2node(*t2);
-				Graph::addEdge(n1, n2);
-				++t1;
-				++t2;
+			for (int i = 0; i < liveout->size(); ++i) {
+				TempList::iterator tfrom = liveout->begin();
+				std::advance(tfrom, i);
+				TempList::iterator tto = tfrom;
+				++tto;
+				while (tto != liveout->end()) {
+					Node *nfrom = temp2node(*tfrom);
+					Node *nto = temp2node(*tto);
+					Graph::addEdge(nfrom, nto);
+					++tto;
+				}
 			}
 		}
 		++it;
