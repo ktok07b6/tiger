@@ -18,7 +18,8 @@ public:
 	void addNode(Node *n);
 	void addEdge(Node *from, Node *to);
 	void rmEdge(Node *from, Node *to);
-	void merge(Node *n1, Node *n2);
+
+	virtual void rmNode(Node *n);
 	virtual void show() const;
 protected:
 	NodeList nodes;

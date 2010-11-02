@@ -61,6 +61,21 @@ Color::coalesce()
 void
 Color::merge(Node *n1, Node *n2)
 {
+	//copy succ & pred nodes
+	NodeList succ = n2->succ();
+	NodeList pred = n2->pred();
+	Temp *t2 = igraph.node2temp(n2);
+
+	igraph.rmNode(n2);
+
+	BOOST_FOREACH(Node *other, succ) {
+		igraph.addEdge(n1, other);
+	} 
+	BOOST_FOREACH(Node *other, pred) {
+		igraph.addEdge(other, n1);
+	}
+	
+
 	//rewrite program
 }
 
