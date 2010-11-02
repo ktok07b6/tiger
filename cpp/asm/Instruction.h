@@ -59,6 +59,9 @@ class MOVE : public Instruction
 	virtual LabelList jumps();
 
 	virtual bool isMOVE() {return true;}
+
+	Temp *getSrc() { return src; }
+	Temp *getDst() { return dst; }
  private:
 	Temp *dst;
 	Temp *src;

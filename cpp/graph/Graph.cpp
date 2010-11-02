@@ -3,6 +3,7 @@
 
 #include "HeapManager.h"
 #include <assert.h>
+#include "debug.h"
 
 namespace graph {
 
@@ -26,10 +27,22 @@ Graph::addEdge(Node *from, Node *to)
 {
 	assert(from != to);
 	if (from->successors.find(to) == from->successors.end()) {
+		if (to->successors.find(from) != to->successors.end()) {
+			WARN(">>>>>> edge is crossover <<<<<<");
+			return;
+		}
 		from->successors.insert(to);
+	} else {
+		WARN("already added");
 	}
-	if (to->successors.find(from) == to->successors.end()) {
+	if (to->predecessors.find(from) == to->predecessors.end()) {
+		if (from->predecessors.find(to) != from->predecessors.end()) {
+			WARN(">>>>>> edge is crossover <<<<<<");
+			return;
+		}
 		to->predecessors.insert(from);
+	} else {
+		WARN("already added");
 	}
 }
 

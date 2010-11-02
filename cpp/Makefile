@@ -102,6 +102,7 @@ SOURCES_CPP= \
 	AsmFlowGraph.cpp \
 	InterferenceGraph.cpp \
 	Liveness.cpp \
+	Color.cpp \
 	$(NULL)
 
 SOURCES_C= \

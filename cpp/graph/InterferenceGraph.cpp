@@ -55,6 +55,7 @@ InterferenceGraph::InterferenceGraph(const std::vector<TempList*> &liveouts)
 Node *
 InterferenceGraph::temp2node(Temp *t)
 {
+	assert(t);
 	std::map<Temp*, TempNode*>::iterator it;
 	it = temp2nodeMap.find(t);
 	if (it != temp2nodeMap.end()) {
@@ -66,6 +67,7 @@ InterferenceGraph::temp2node(Temp *t)
 Temp *
 InterferenceGraph::node2temp(Node *n)
 {
+	assert(n);
 	TempNode *tnode = (TempNode*)n;
 	return tnode->getTemp();
 }
@@ -74,6 +76,12 @@ const InterferenceGraph::NodePairList &
 InterferenceGraph::moves()
 {
 	return movedNodes;
+}
+
+void 
+InterferenceGraph::addMove(const NodePair &nodes)
+{
+	movedNodes.push_back(nodes);
 }
 
 void 

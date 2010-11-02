@@ -16,9 +16,9 @@ class AsmFlowGraph : public FlowGraph
 public:
 	AsmFlowGraph(const assem::InstructionList &instrs);
 	~AsmFlowGraph();
-	virtual TempList def(Node *node) const;
-	virtual TempList use(Node *node) const;
-	virtual bool isMove(Node *node) const;
+	virtual TempList def(const Node *node) const;
+	virtual TempList use(const Node *node) const;
+	virtual bool isMove(const Node *node) const;
 
 	assem::Instruction *instr(Node *n);
 

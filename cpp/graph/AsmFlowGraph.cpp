@@ -87,27 +87,27 @@ AsmFlowGraph::findLABELNode(Label *l)
 
 
 TempList 
-AsmFlowGraph::def(Node *node) const
+AsmFlowGraph::def(const Node *node) const
 {
 	assert(node);
-	assert(((InstNode*)node)->getInst());
-	return ((InstNode*)node)->getInst()->def();
+	assert(((const InstNode*)node)->getInst());
+	return ((const InstNode*)node)->getInst()->def();
 }
 
 TempList 
-AsmFlowGraph::use(Node *node) const
+AsmFlowGraph::use(const Node *node) const
 {
 	assert(node);
-	assert(((InstNode*)node)->getInst());
-	return ((InstNode*)node)->getInst()->use();
+	assert(((const InstNode*)node)->getInst());
+	return ((const InstNode*)node)->getInst()->use();
 }
 
 bool 
-AsmFlowGraph::isMove(Node *node) const
+AsmFlowGraph::isMove(const Node *node) const
 {
 	assert(node);
-	assert(((InstNode*)node)->getInst());
-	return codegen->isMove(((InstNode*)node)->getInst());
+	assert(((const InstNode*)node)->getInst());
+	return codegen->isMove(((const InstNode*)node)->getInst());
 }
 
 }//namespace graph

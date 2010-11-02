@@ -22,9 +22,10 @@ public:
 	Node *temp2node(Temp *t);
 	Temp *node2temp(Node *n);
 	const NodePairList &moves();
+	void addMove(const NodePair &nodes);
 
 	virtual void show() const;
- private:
+
 	class TempNode : public Node
 	{
 	public:
@@ -33,6 +34,8 @@ public:
 	private:
 		Temp *temp;
 	};
+
+ private:
 	NodePairList movedNodes;
 	std::map<Temp *, TempNode *> temp2nodeMap;
 };

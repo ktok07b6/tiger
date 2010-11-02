@@ -59,6 +59,21 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 	}
 #endif
 	makeInterferenceGraph();
+	//moved temps
+	it = flowNodes.begin();
+	while (it != flowNodes.end()) {
+		const AsmFlowGraph::InstNode *inst = (AsmFlowGraph::InstNode*)(*it);
+		if (flow.isMove(inst)) {
+			assem::MOVE *mv = (assem::MOVE*)inst->getInst();
+			Temp *src = mv->getSrc();
+			Temp *dst = mv->getDst();
+			Node *nsrc = igraph->temp2node(src);
+			Node *ndst = igraph->temp2node(dst);
+			InterferenceGraph::NodePair nodes(nsrc, ndst);
+			igraph->addMove(nodes);
+		}
+		++it;
+	}
 }
 
 Liveness::~Liveness()

@@ -3,10 +3,12 @@
 
 #include "TempMap.h"
 #include "Node.h"
-
+#include <stack>
+#include "InterferenceGraph.h"
 namespace graph {
-class InterferenceGraph;
+	//class InterferenceGraph;
 }
+
 namespace regalloc {
 
 class Color : public TempMap
@@ -16,12 +18,22 @@ public:
 	virtual std::string tempMap(Temp *temp);
 
 private:
-	void pushToSimplifyWorkList(graph::Node *node);
+
+	void coloring();
+	void coalesce();
+	void merge(Node *n1, Node *n2);
+	bool setColor(graph::Node *);
+	bool isEnableColoring() const;
+
+	void pushToSimplifyWorks(graph::Node *node);
+	graph::Node *popFromSimplifyWorks();
+
 	enum {
 		K = 8
 	};
 
-	graph::NodeList simplifyWorkList;
+	std::stack<graph::Node*> simplifyWorks;
+	graph::InterferenceGraph igraph;
 };
 
 } //namespace regalloc
