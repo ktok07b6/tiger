@@ -1,6 +1,7 @@
 #include <boost/foreach.hpp>
 #include "Color.h"
 #include "InterferenceGraph.h"
+#include "tiger.h"
 
 using namespace graph;
 
@@ -10,7 +11,10 @@ Color::Color(const InterferenceGraph &ig)
 	: igraph(ig)
 {
 	//We repeatedly remove (and push on a stack) nodes of degree less than K.
-retry: 
+retry:
+	//precolor
+
+	//simplify
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
 		if (isEnableColoring()) {
@@ -29,7 +33,7 @@ retry:
 		//TODO:
 		//spill 
 	}  
-		
+
 	while (!simplifyWorks.empty()) { 
 		Node *n = popFromSimplifyWorks();
 		bool b = setColor(n);
@@ -37,13 +41,6 @@ retry:
 	} 
 
 }
-
-std::string 
-Color::tempMap(Temp *temp)
-{
-	return "";
-}
-
 
 void
 Color::coalesce() 
@@ -53,30 +50,9 @@ Color::coalesce()
 		Node *src = n.first;
 		Node *dst = n.second;
 		if (!src->adj(dst)) {
-			merge(src, dst);
+			igraph.merge(src, dst);
 		}
 	} 
-}
-
-void
-Color::merge(Node *n1, Node *n2)
-{
-	//copy succ & pred nodes
-	NodeList succ = n2->succ();
-	NodeList pred = n2->pred();
-	Temp *t2 = igraph.node2temp(n2);
-
-	igraph.rmNode(n2);
-
-	BOOST_FOREACH(Node *other, succ) {
-		igraph.addEdge(n1, other);
-	} 
-	BOOST_FOREACH(Node *other, pred) {
-		igraph.addEdge(other, n1);
-	}
-	
-
-	//rewrite program
 }
 
 void
@@ -92,18 +68,34 @@ Color::coloring()
 bool 
 Color::setColor(Node *n) 
 {
-	/*
-	BOOST_FOREACH(r, regs) {
-		const NodeList &rnodes = r->getNodes();
-		adj = n->adj();
-		if (!rnodes->contain(adj)) {
-			rnodes->push(n);
+	BOOST_FOREACH(NodeList &colored, coloredNodes) {
+		const NodeList &adj = n->adj();
+		bool conflict = false;
+		BOOST_FOREACH(Node *n, adj) {
+			if (colored.find(n) != colored.end()) {
+				conflict = true;
+			}
+		}
+		if (!conflict) {
+			colored.insert(n);
 			return true;
-		} 
+		}
 	} 
-	*/
 	return false; 
 } 
+
+int
+Color::getColoredIndex(Node *n)
+{
+	int index = 0;
+	BOOST_FOREACH(NodeList &colored, coloredNodes) {
+		if (colored.find(n) != colored.end()) {
+			return index;
+		}
+		++index;
+	}
+	return -1;
+}
 
 bool 
 Color::isEnableColoring() const
@@ -149,6 +141,15 @@ Color::popFromSimplifyWorks()
 		igraph.addEdge(node, n);
 	} 
 	return node; 
+}
+
+
+std::string 
+Color::tempMap(Temp *temp)
+{
+	Node *n = igraph.temp2node(temp);
+	int regnum = getColoredIndex(n);
+	return format("r%d", regnum);
 }
 
 

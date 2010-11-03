@@ -21,8 +21,8 @@ private:
 
 	void coloring();
 	void coalesce();
-	void merge(Node *n1, Node *n2);
 	bool setColor(graph::Node *);
+	int getColoredIndex(graph::Node *);
 	bool isEnableColoring() const;
 
 	void pushToSimplifyWorks(graph::Node *node);
@@ -34,6 +34,7 @@ private:
 
 	std::stack<graph::Node*> simplifyWorks;
 	graph::InterferenceGraph igraph;
+	graph::NodeList coloredNodes[K];
 };
 
 } //namespace regalloc

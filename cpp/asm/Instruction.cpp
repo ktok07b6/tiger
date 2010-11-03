@@ -43,9 +43,8 @@ Instruction::format(TempMap *m)
 		}
 		++it;
 	}
-	DBG("                          old assem = %s", assem.c_str());
+	//DBG("                          old assem = %s", assem.c_str());
 	//DBG("new assem = %s", result.c_str());
-	assem = result;
 	return result;
 }
 

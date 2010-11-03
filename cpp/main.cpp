@@ -24,6 +24,7 @@
 #include "AsmFlowGraph.h"
 #include "Liveness.h"
 #include "InterferenceGraph.h"
+#include "Color.h"
 
 #include "Property.h"
 Property<int> value;
@@ -220,6 +221,16 @@ void codegenPhase2(assem::InstructionList &instList, TempMap *tempMap)
 	const regalloc::Liveness liveness(flow);
 	const graph::InterferenceGraph *igraph = liveness.getInterferenceGraph();
 	igraph->show();
+
+	regalloc::Color color(*igraph);
+	it = instList.begin();
+	while (it != instList.end()) {
+		assem::Instruction *inst = *it;
+		std::string s = inst->format(&color);
+		DBG("%s", s.c_str());
+		++it;
+	}
+
 }
 
 

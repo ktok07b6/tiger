@@ -67,10 +67,12 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 			assem::MOVE *mv = (assem::MOVE*)inst->getInst();
 			Temp *src = mv->getSrc();
 			Temp *dst = mv->getDst();
-			Node *nsrc = igraph->temp2node(src);
-			Node *ndst = igraph->temp2node(dst);
-			InterferenceGraph::NodePair nodes(nsrc, ndst);
-			igraph->addMove(nodes);
+			if (src && dst) {
+				Node *nsrc = igraph->temp2node(src);
+				Node *ndst = igraph->temp2node(dst);
+				InterferenceGraph::NodePair nodes(nsrc, ndst);
+				igraph->addMove(nodes);
+			}
 		}
 		++it;
 	}

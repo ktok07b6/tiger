@@ -20,22 +20,31 @@ public:
 
 	InterferenceGraph(const std::vector<TempList*> &liveouts);
 	Node *temp2node(Temp *t);
-	Temp *node2temp(Node *n);
+	const TempList &node2temp(Node *n);
+
 	const NodePairList &moves();
 	void addMove(const NodePair &nodes);
 
+	void merge(Node *n1, Node *n2);
 	virtual void show() const;
 
+ private:
 	class TempNode : public Node
 	{
 	public:
-	TempNode(InterferenceGraph *g, Temp *t) : Node(g), temp(t) {}
-		Temp *getTemp() { return temp; }
+	TempNode(InterferenceGraph *g, Temp *t) : Node(g) {
+			addTemp(t);
+		}
+		const TempList &getTemp() const { return temps; }
+		void addTemp(Temp *t) {
+			temps.push_back(t);
+		}
+	virtual std::string toString() const;
 	private:
-		Temp *temp;
+		TempList temps;
 	};
 
- private:
+
 	NodePairList movedNodes;
 	std::map<Temp *, TempNode *> temp2nodeMap;
 };

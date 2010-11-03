@@ -1,3 +1,4 @@
+#include <boost/foreach.hpp>
 #include "InterferenceGraph.h"
 #include "Temp.h"
 #include "AsmFlowGraph.h"
@@ -64,7 +65,7 @@ InterferenceGraph::temp2node(Temp *t)
 	return NULL;
 }
 
-Temp *
+const TempList &
 InterferenceGraph::node2temp(Node *n)
 {
 	assert(n);
@@ -84,25 +85,69 @@ InterferenceGraph::addMove(const NodePair &nodes)
 	movedNodes.push_back(nodes);
 }
 
+
+void
+InterferenceGraph::coalesce(Node *n1, Node *n2)
+{
+	//TODO: must be conservative
+
+	//assert(n1->graph == this && n2->graph == this);
+	TempNode *tn1 = (TempNode*)n1;
+	TempNode *tn2 = (TempNode*)n2;
+
+	//copy succ & pred nodes
+	NodeList succ = tn2->succ();
+	NodeList pred = tn2->pred();
+
+	rmNode(n2);
+
+	BOOST_FOREACH(Node *other, succ) {
+		addEdge(n1, other);
+	} 
+	BOOST_FOREACH(Node *other, pred) {
+		addEdge(other, n1);
+	}
+
+	const TempList &tlist = tn2->getTemp();
+	BOOST_FOREACH(Temp *t, tlist) {
+		//replace TempNode
+		std::map<Temp*, TempNode*>::iterator it;
+		it = temp2nodeMap.find(t);
+		assert(it != temp2nodeMap.end());
+		it->second = tn1; 
+	
+		tn1->addTemp(t);
+	}
+}
+
+
 void 
 InterferenceGraph::show() const
 {
 	DBG("InterferenceGraph ================");
-	NodeList::iterator it = nodes.begin();
-	while (it != nodes.end()) {
-		TempNode *tnode = (TempNode*)(*it);
-		Temp *t = tnode->getTemp();
-		DBG("%s -->", t->toString().c_str());
-		const NodeList &adj = tnode->adj();
-		NodeList::const_iterator it2 = adj.begin();
-		while (it2 != adj.end()) {
-			TempNode *tnode2 = (TempNode*)(*it2);
-			Temp *t2 = tnode2->getTemp();
-			DBG("       %s", t2->toString().c_str());
-			++it2;
+	BOOST_FOREACH(Node *n1, nodes) {
+		TempNode *tn1 = (TempNode*)(n1);
+
+		//from
+		DBG("%s-->", tn1->toString().c_str());
+
+		//to
+		const NodeList &adj = tn1->adj();
+		BOOST_FOREACH(Node *n2, adj) {
+			TempNode *tn2 = (TempNode*)(n2);
+			DBG("       %s", tn2->toString().c_str());
 		}
-		++it;
 	}
+}
+
+std::string 
+InterferenceGraph::TempNode::toString() const
+{
+	std::string str;
+	BOOST_FOREACH(Temp *t, temps) {
+		str += t->toString() + " ";
+	}
+	return str;
 }
 
 }//namespace graph
