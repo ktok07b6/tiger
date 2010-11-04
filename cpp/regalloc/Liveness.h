@@ -25,7 +25,7 @@ public:
 private:
 	void calcLives();
 	TempList tempListSub(const TempList &liveout, const TempList &def);
-	TempList getAllLiveinsAtSuccessors(const graph::Node *node);
+	TempList getAllLiveinsAtSuccessors(int n);
 	const TempList &getLivein(const graph::Node *node);
 	bool isContinuing(int n, const TempList &oldLivein, const TempList &oldLiveout);
 	void makeInterferenceGraph();

@@ -1,3 +1,4 @@
+#include <boost/foreach.hpp>
 #include "AsmFlowGraph.h"
 #include "Node.h"
 #include "CodeGen.h"
@@ -29,27 +30,23 @@ AsmFlowGraph::makeNodes(const assem::InstructionList &instrs)
 {
 	Node *prevNode = NULL;
 	assem::Instruction *prevInst = NULL;
-	assem::InstructionList::const_iterator it;
-	it = instrs.begin();
-	while (it != instrs.end()) {
-		Node *node = gcnew(InstNode, (this, *it));
+	BOOST_FOREACH(assem::Instruction *inst, instrs) {
+		Node *node = gcnew(InstNode, (this, inst));
 		Graph::addNode(node);
 
 		if (prevNode && !codegen->isJump(prevInst)) {
 			addEdge(prevNode, node);
 		}
 		
-		prevInst = *it;
+		prevInst = inst;
 		prevNode = node;
-		++it;
 	}
 
 	//
+
 	const NodeList &nodes = Graph::getNodes();
-	NodeList::iterator it2;
-	it2 = nodes.begin();
-	while (it2 != nodes.end()) {
-		InstNode *fromNode = (InstNode*)(*it2);
+	BOOST_FOREACH(Node *n, nodes) {
+		InstNode *fromNode = (InstNode*)(n);
 		assem::Instruction *inst = fromNode->getInst();
 		LabelList targets = inst->jumps();
 		if (!targets.empty()) {
@@ -59,7 +56,6 @@ AsmFlowGraph::makeNodes(const assem::InstructionList &instrs)
 				addEdge(fromNode, toNode);
 			}
 		}
-		++it2;
 	}
 }
 
@@ -67,10 +63,8 @@ AsmFlowGraph::InstNode *
 AsmFlowGraph::findLABELNode(Label *l)
 {
 	const NodeList &nodes = Graph::getNodes();
-	NodeList::const_iterator it;
-	it = nodes.begin();
-	while (it != nodes.end()) {
-		InstNode *inode = (InstNode*)(*it);
+	BOOST_FOREACH(Node *n, nodes) {
+		InstNode *inode = (InstNode*)n;
 		assem::Instruction *inst = inode->getInst();
 		if (inst->isLABEL()) {
 			assem::LABEL *asmlab = (assem::LABEL*)(inst);
@@ -80,7 +74,6 @@ AsmFlowGraph::findLABELNode(Label *l)
 				return inode;
 			}
 		}
-		++it;
 	}
 	return NULL;
 }

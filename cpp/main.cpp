@@ -180,7 +180,7 @@ void codegenPhase(const FragmentList &frags)
 #endif
 
 			Trace trace(bb.blocks);
-#if 1
+#if 0
 			DBG("Traces=========================");
 			tree::TreePrinter::printStmList(trace.traced);
 			DBG("======================================");
@@ -209,30 +209,35 @@ void codegenPhase(const FragmentList &frags)
 
 void codegenPhase2(assem::InstructionList &instList, Frame *frame)
 {
+	assem::InstructionList proc;
+	proc = frame->procEntryExit2(instList);
+
 	assem::InstructionList::iterator it;
 #if 1
-	it = instList.begin();
-	while (it != instList.end()) {
+	it = proc.begin();
+	while (it != proc.end()) {
 		assem::Instruction *inst = *it;
 		std::string s = inst->format(frame);
 		DBG("%s", s.c_str());
 		++it;
 	}
 #endif
-	const graph::AsmFlowGraph flow(instList);
+	const graph::AsmFlowGraph flow(proc);
 	const regalloc::Liveness liveness(flow);
 	const graph::InterferenceGraph *igraph = liveness.getInterferenceGraph();
 	igraph->show();
 
-	const Frame::Registers &regs = frame->registers();
-	regalloc::Color color(*igraph, regs.all);
-	it = instList.begin();
-	while (it != instList.end()) {
+	TempList regs = frame->registers().all;
+	regalloc::Color color(*igraph, regs);
+	
+	it = proc.begin();
+	while (it != proc.end()) {
 		assem::Instruction *inst = *it;
 		std::string s = inst->format(&color);
 		DBG("%s", s.c_str());
 		++it;
 	}
+	
 
 }
 

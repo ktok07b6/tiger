@@ -52,8 +52,6 @@ Graph::addEdge(Node *from, Node *to)
 			return;
 		}
 		from->successors.insert(to);
-	} else {
-		WARN("already added");
 	}
 	if (to->predecessors.find(from) == to->predecessors.end()) {
 		if (from->predecessors.find(to) != from->predecessors.end()) {
@@ -61,8 +59,6 @@ Graph::addEdge(Node *from, Node *to)
 			return;
 		}
 		to->predecessors.insert(from);
-	} else {
-		WARN("already added");
 	}
 }
 

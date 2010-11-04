@@ -2,6 +2,7 @@
 #include "Color.h"
 #include "InterferenceGraph.h"
 #include "tiger.h"
+#include <algorithm>
 
 using namespace graph;
 
@@ -9,19 +10,20 @@ namespace regalloc {
 
 Color::Color(const InterferenceGraph &ig, const TempList &regs)
 	: igraph(ig)
+	, regs(regs)
 {
-	//We repeatedly remove (and push on a stack) nodes of degree less than K.
-
 	//precolor
 	int i = 0;
 	BOOST_FOREACH(Temp *r, regs) {
 		Node *n = igraph.temp2node(r);
 		if (n) {
+			//DBG("%s is precolored on %p %d", r->toString().c_str(), n, i);
 			coloredNodes[i].insert(n);
 		}
 		++i;
 	}
 
+	//We repeatedly remove (and push on a stack) nodes of degree less than K.
 	//simplify
 retry:
 	const NodeList &nodes = igraph.getNodes();
@@ -29,7 +31,7 @@ retry:
 		if (isEnableColoring()) {
 			break; 
 		}
-		if (n->degree() < K) {
+		if (n->degree() < K && !isPrecolored(n)) {
 			pushToSimplifyWorks(n);
 		} 
 	} 
@@ -69,8 +71,10 @@ Color::coloring()
 { 
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
-		bool b = setColor(n);
-		assert(b);
+		if (!isPrecolored(n)) {
+			bool b = setColor(n);
+			assert(b);
+		}
 	} 
 }
 
@@ -83,6 +87,7 @@ Color::setColor(Node *n)
 		BOOST_FOREACH(Node *n, adj) {
 			conflict |= (colored.find(n) != colored.end());
 		}
+		
 		if (!conflict) {
 			colored.insert(n);
 			return true;
@@ -90,6 +95,14 @@ Color::setColor(Node *n)
 	} 
 	return false; 
 } 
+
+bool
+Color::isPrecolored(Node *n)
+{
+	TempList t = igraph.node2temp(n);
+	assert(!t.empty());
+	return std::find(regs.begin(), regs.end(), t.front()) != regs.end();
+}
 
 int
 Color::getColoredIndex(Node *n)
@@ -157,7 +170,11 @@ Color::tempMap(Temp *temp)
 	//TODO: Do not depend on a specific target
 	Node *n = igraph.temp2node(temp);
 	int regnum = getColoredIndex(n);
-	return format("r%d", regnum);
+	if (regnum == -1) {
+		//ERROR("%s is not allocated to a register", temp->toString().c_str());
+		return "";
+	}
+	return regs[regnum]->toString();
 }
 
 

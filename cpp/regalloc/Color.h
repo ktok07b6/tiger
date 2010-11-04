@@ -22,6 +22,7 @@ private:
 	void coloring();
 	void coalesce();
 	bool setColor(graph::Node *);
+	bool isPrecolored(graph::Node *);
 	int getColoredIndex(graph::Node *);
 	bool isEnableColoring() const;
 
@@ -30,12 +31,13 @@ private:
 
 	enum {
 		//TODO: Do not depend on a specific target
-		K = 8
+		K = 16
 	};
 
 	std::stack<graph::Node*> simplifyWorks;
 	graph::InterferenceGraph igraph;
 	graph::NodeList coloredNodes[K];
+	TempList regs;
 };
 
 } //namespace regalloc

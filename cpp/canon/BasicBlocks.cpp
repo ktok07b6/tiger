@@ -2,7 +2,7 @@
    
 BasicBlocks::BasicBlocks(tree::StmList stms) 
 {
-	done = gcnew(Label, ());
+	done = gcnew(Label, ("end_of_function"));
 	mkBlocks(stms);
 }
 

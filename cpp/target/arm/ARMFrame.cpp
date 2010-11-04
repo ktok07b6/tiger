@@ -189,14 +189,21 @@ ARMFrame::badSub()
 	return NULL;
 }
 
-assem::InstructionList *
-ARMFrame::procEntryExit2(assem::InstructionList *body)
+assem::InstructionList
+ARMFrame::procEntryExit2(const assem::InstructionList &body)
 {
-	return NULL;
+	assem::InstructionList newbody = body;
+	TempList alive_regs;
+	alive_regs.push_back(rv());
+	alive_regs.push_back(regs.all[13]);
+	std::copy(regs.calleeSaves.begin(), regs.calleeSaves.end(), std::back_inserter(alive_regs));
+	assem::OPER *sink = gcnew(assem::OPER, ("", alive_regs, TempList()));
+	newbody.push_back(sink);
+	return newbody;
 }
 
-Proc *
-ARMFrame::procEntryExit3(assem::InstructionList *body)
+assem::InstructionList
+ARMFrame::procEntryExit3(const assem::InstructionList &body)
 {
 	/*
 	  stack frame example
@@ -249,10 +256,17 @@ ARMFrame::procEntryExit3(assem::InstructionList *body)
 	proc.push_back(set_sp);
 
 	//body//////////////
-	std::copy(body->begin(), body->end(), std::back_inserter(proc));
-
+	std::copy(body.begin(), body.end(), std::back_inserter(proc));
+	assem::Instruction *jmp_to_end_label = body.back();
+	LabelList ll = jmp_to_end_label->jumps();
+	assert(!ll.empty());
+	Label *end_label = ll.front();
 
 	//epilogue//////////
+	assem = format("%s:", end_label->toString().c_str());
+	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, end_label));
+	proc.push_back(end_lab);
+
 	assem = "add sp, fp, #4";
 	assem::OPER *rewind_sp = gcnew(assem::OPER, (assem, TempList(), TempList()));
 	proc.push_back(rewind_sp);
@@ -261,7 +275,7 @@ ARMFrame::procEntryExit3(assem::InstructionList *body)
 	assem::OPER *ldmfd = gcnew(assem::OPER, (assem, TempList(), TempList()));
 	proc.push_back(ldmfd);
 
-	return NULL;
+	return proc;
 }
 
 std::string 

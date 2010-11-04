@@ -26,7 +26,7 @@ class CodeGen
 	virtual void munchJUMP(Label *lab) = 0;
 	virtual void munchCJUMP(tree::CJUMP *cj) = 0;
 	virtual void munchEXPR(tree::Exp *exp) = 0;
-	virtual void munchArgs(const tree::ExpList &exps, TempList *tsrc, TempList *tdst) = 0;
+	virtual void munchArgs(const tree::ExpList &exps, TempList *tsrc) = 0;
 
 	virtual Temp *munchMEM(tree::MEM *m) = 0;
 	virtual Temp *munchBINOP(tree::BINOP *b) = 0;

@@ -1,3 +1,4 @@
+#include <boost/foreach.hpp>
 #include "Liveness.h"
 #include "Node.h"
 #include "FlowGraph.h"
@@ -13,13 +14,11 @@ namespace regalloc {
 void printTempList(const TempList &li)
 {
 	std::string result;
-	TempList::const_iterator it = li.begin();
-	while (it != li.end()) {
-		Temp *t = *it;
+
+	BOOST_FOREACH(Temp *t, li) {
 		assert(t);
 		result += t->toString();
 		result += " ";
-		++it;
 	}
 	DBG("%s", result.c_str());
 }
@@ -28,41 +27,36 @@ void printTempList(const TempList &li)
 Liveness::Liveness(const graph::FlowGraph &flow)
 {
 	const NodeList &flowNodes = flow.getNodes();
-	NodeList::const_iterator it = flowNodes.begin();
-	while (it != flowNodes.end()) {
-		LiveInfo *li = new LiveInfo();
-		li->def = flow.def(*it);
-		li->use = flow.use(*it);
-		li->node = *it;
+	BOOST_FOREACH(Node *n, flowNodes) {
+		LiveInfo *li = new LiveInfo();//TODO: delete
+		li->def = flow.def(n);
+		li->use = flow.use(n);
+		li->node = n;
 		info.push_back(li);
-		++it;
 	}
 	calcLives();
 
-#if 1
-	int n = 0;
-	it = flowNodes.begin();
-	while (it != flowNodes.end()) {
-		const AsmFlowGraph::InstNode *inst = (AsmFlowGraph::InstNode*)(*it);
-		DBG("============================= %d", n);
+#if 0
+	int i = 0;
+	BOOST_FOREACH(Node *n, flowNodes) {
+		const AsmFlowGraph::InstNode *inst = (AsmFlowGraph::InstNode*)n;
+		DBG("============================= %d", i);
 		DBG("%s", inst->getInst()->toString().c_str());
-		//DBG("def:");
-		//printTempList(info[n]->def);
-		//DBG("use:");
-		//printTempList(info[n]->use);
+		DBG("def:");
+		printTempList(info[i]->def);
+		DBG("use:");
+		printTempList(info[i]->use);
 		DBG("livein:");
-		printTempList(info[n]->livein);
+		printTempList(info[i]->livein);
 		DBG("liveout:");
-		printTempList(info[n]->liveout);
-		++it;
-		++n;
+		printTempList(info[i]->liveout);
+		++i;
 	}
 #endif
 	makeInterferenceGraph();
 	//moved temps
-	it = flowNodes.begin();
-	while (it != flowNodes.end()) {
-		const AsmFlowGraph::InstNode *inst = (AsmFlowGraph::InstNode*)(*it);
+	BOOST_FOREACH(Node *n, flowNodes) {
+		const AsmFlowGraph::InstNode *inst = (AsmFlowGraph::InstNode*)n;
 		if (flow.isMove(inst)) {
 			assem::MOVE *mv = (assem::MOVE*)inst->getInst();
 			Temp *src = mv->getSrc();
@@ -74,7 +68,6 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 				igraph->addMove(nodes);
 			}
 		}
-		++it;
 	}
 }
 
@@ -93,7 +86,7 @@ Liveness::calcLives()
 		TempList oldLivein = info[n]->livein;
 		TempList oldLiveout = info[n]->liveout;
 		
-		info[n]->liveout = getAllLiveinsAtSuccessors(info[n]->node);
+		info[n]->liveout = getAllLiveinsAtSuccessors(n);
 
 		//info[n]->livein = info[n]->use + (info[n]->liveout - info[n]->def);
 		TempList tmp = tempListSub(info[n]->liveout, info[n]->def);
@@ -115,25 +108,29 @@ Liveness::tempListSub(const TempList &liveout, const TempList &def)
 {
 	TempList result;
 	result = liveout;
-	TempList::const_iterator it = def.begin();
-	while (it != def.end() && !result.empty()) {
-		const Temp *d = (*it);
-		result.erase(std::remove(result.begin(), result.end(), d), result.end());
-		++it;
+	BOOST_FOREACH(const Temp *t, def) {
+		result.erase(std::remove(result.begin(), result.end(), t), result.end());
+		if(result.empty()) {
+			break;
+		}
 	}
 	return result;
 }
 
 TempList
-Liveness::getAllLiveinsAtSuccessors(const Node *node)
+Liveness::getAllLiveinsAtSuccessors(int n)
 {
 	TempList liveins;
+	Node *node = info[n]->node;
 	const NodeList &successors = node->succ();
-	NodeList::iterator suc = successors.begin();
-	while (suc != successors.end()) {
-		const TempList &in = getLivein(*suc);
-		std::copy(in.begin(), in.end(), std::back_inserter(liveins));
-		++suc;
+	if (successors.empty()) {
+		return info[n]->def;
+	} else {
+		
+		BOOST_FOREACH(Node *succ, successors) {
+			const TempList &livein = getLivein(succ);
+			std::copy(livein.begin(), livein.end(), std::back_inserter(liveins));
+		}
 	}
 	std::sort(liveins.begin(), liveins.end());
 	liveins.erase(std::unique(liveins.begin(), liveins.end()), liveins.end());

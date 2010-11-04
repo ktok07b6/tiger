@@ -11,43 +11,35 @@ InterferenceGraph::InterferenceGraph(const std::vector<TempList*> &liveouts)
 {
 	//enumerate all temps
 	std::set<Temp*> temps;
-	std::vector<TempList*>::const_iterator it = liveouts.begin();
-	while (it != liveouts.end()) {
-		TempList *liveout = (*it);
+	BOOST_FOREACH(TempList *liveout, liveouts) {
 		std::copy(liveout->begin(),
 				  liveout->end(),
 				  std::insert_iterator< std::set<Temp*> >(temps, temps.end()));
-		++it;
 	}
 
 	//create nodes for temps
-	std::set<Temp*>::iterator ti = temps.begin();
-	while (ti != temps.end()) {
-		//Temp *pt = (*ti);
-		TempNode *node = gcnew(TempNode, (this, *ti));
+	BOOST_FOREACH(Temp *t, temps) {
+		TempNode *node = gcnew(TempNode, (this, t));
 		Graph::addNode(node);
-		temp2nodeMap.insert(std::make_pair((*ti), node)); 
-		++ti;
+		temp2nodeMap.insert(std::make_pair(t, node)); 
 	}
 
-	it = liveouts.begin();
-	while (it != liveouts.end()) {
-		TempList *liveout = (*it);
-		if (2 <= liveout->size()) {
-			for (int i = 0; i < liveout->size(); ++i) {
-				TempList::iterator tfrom = liveout->begin();
-				std::advance(tfrom, i);
-				TempList::iterator tto = tfrom;
+	BOOST_FOREACH(TempList *liveout, liveouts) {
+		if (liveout->size() < 2) {
+			continue;
+		}
+		for (unsigned int i = 0; i < liveout->size(); ++i) {
+			TempList::iterator tfrom = liveout->begin();
+			std::advance(tfrom, i);
+			TempList::iterator tto = tfrom;
+			++tto;
+			while (tto != liveout->end()) {
+				Node *nfrom = temp2node(*tfrom);
+				Node *nto = temp2node(*tto);
+				Graph::addEdge(nfrom, nto);
 				++tto;
-				while (tto != liveout->end()) {
-					Node *nfrom = temp2node(*tfrom);
-					Node *nto = temp2node(*tto);
-					Graph::addEdge(nfrom, nto);
-					++tto;
-				}
 			}
 		}
-		++it;
 	}
 	
 

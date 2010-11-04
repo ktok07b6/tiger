@@ -49,8 +49,8 @@ class Frame : public Object, public TempMap
 	virtual tree::Exp *staticChain(tree::Exp *fp) = 0;
 	virtual Label *badPtr() = 0;
 	virtual Label *badSub() = 0;
-	virtual assem::InstructionList *procEntryExit2(assem::InstructionList *body) = 0;
-	virtual Proc *procEntryExit3(assem::InstructionList *body) = 0;
+	virtual assem::InstructionList procEntryExit2(const assem::InstructionList &body) = 0;
+	virtual assem::InstructionList procEntryExit3(const assem::InstructionList &body) = 0;
 	virtual assem::InstructionList *codegen(tree::Stm *stm) = 0;
 	virtual const Registers &registers() = 0;
 	Symbol *name;

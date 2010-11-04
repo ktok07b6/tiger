@@ -19,8 +19,8 @@ class ARMFrame : public Frame
 	virtual tree::Exp *staticChain(tree::Exp *fp);
 	virtual Label *badPtr();
 	virtual Label *badSub();
-	virtual assem::InstructionList *procEntryExit2(assem::InstructionList *body);
-	virtual Proc *procEntryExit3(assem::InstructionList *body);
+	virtual assem::InstructionList procEntryExit2(const assem::InstructionList &body);
+	virtual assem::InstructionList procEntryExit3(const assem::InstructionList &body);
 	virtual std::string tempMap(Temp *temp);
 	virtual assem::InstructionList *codegen(tree::Stm *stm);
 	virtual const Registers &registers();

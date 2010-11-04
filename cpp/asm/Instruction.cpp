@@ -22,22 +22,28 @@ Instruction::format(TempMap *m)
 		char c = *it;
 		if (c == '$') {
 			//assert(distance(it, assem.end() > 2));
+			string s;
 			char type = *(++it);
 			int num = *(++it) - 0x30;
 			switch (type) {
 			case 's':
-				result += m->tempMap(uses[num]);
+				s = m->tempMap(uses[num]);
 				break;
 			case 'd':
-				result += m->tempMap(defs[num]);
+				s = m->tempMap(defs[num]);
 				break;
 			case 'j':
-				//TODO:
-				result += jmps[num]->toString().c_str();
+				s = jmps[num]->toString();
 				break;
 			default:
 				assert(!"invalid assem format");
 			}
+			if (s.empty()) {
+				//If a temp of instruction is not used,
+				//this instruction is ignored.
+				return "";
+			}
+			result += s;
 		} else {
 			result += c;
 		}
