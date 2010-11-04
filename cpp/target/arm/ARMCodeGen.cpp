@@ -4,6 +4,25 @@
 #include "tiger.h"
 #include "Frame.h"
 
+/*
+  ::instruction sufixes::
+  al    unconditional execution
+  eq    equal
+  ne    not equal
+  mi    negative value
+  pl    positive value or zero
+  vs    overflow
+  vc    not overflow
+  cs/hs >= (unsigned)
+  cc/lo <  (unsigned)
+  hi    >  (unsigned)
+  ls    <= (unsigned)
+  ge    >= (signed)
+  lt    <  (signed)
+  gt    >  (signed)
+  le    <= (signed)
+ */
+
 using namespace std;
 
 assem::CodeGen *

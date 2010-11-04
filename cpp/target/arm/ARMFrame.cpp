@@ -4,24 +4,6 @@
 #include "ARMCodeGen.h"
 
 /*
-  ::instruction sufixes::
-  al    unconditional execution
-  eq    equal
-  ne    not equal
-  mi    negative value
-  pl    positive value or zero
-  vs    overflow
-  vc    not overflow
-  cs/hs >= (unsigned)
-  cc/lo <  (unsigned)
-  hi    >  (unsigned)
-  ls    <= (unsigned)
-  ge    >= (signed)
-  lt    <  (signed)
-  gt    >  (signed)
-  le    <= (signed)
- */
-/*
   ::registers::
   r0  a1
   r1  a2
@@ -95,6 +77,16 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	regs.args.push_back(regs.all[1]);
 	regs.args.push_back(regs.all[2]);
 	regs.args.push_back(regs.all[3]);
+
+	//TODO:
+	regs.calleeSaves.push_back(regs.all[4]);
+	regs.calleeSaves.push_back(regs.all[5]);
+	regs.calleeSaves.push_back(regs.all[6]);
+	regs.calleeSaves.push_back(regs.all[7]);
+	regs.calleeSaves.push_back(regs.all[8]);
+	regs.calleeSaves.push_back(regs.all[9]);
+	regs.calleeSaves.push_back(regs.all[10]);
+	regs.calleeSaves.push_back(regs.all[11]);//fp
 }
 
 ARMFrame::~ARMFrame()
@@ -193,9 +185,9 @@ assem::InstructionList
 ARMFrame::procEntryExit2(const assem::InstructionList &body)
 {
 	assem::InstructionList newbody = body;
+
 	TempList alive_regs;
 	alive_regs.push_back(rv());
-	alive_regs.push_back(regs.all[13]);
 	std::copy(regs.calleeSaves.begin(), regs.calleeSaves.end(), std::back_inserter(alive_regs));
 	assem::OPER *sink = gcnew(assem::OPER, ("", alive_regs, TempList()));
 	newbody.push_back(sink);
@@ -230,7 +222,6 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	 */
 
 	assem::InstructionList proc;
-
 	int localVarCount = 0;//TODO:
 	std::string assem;
 	std::string calleeSaveStr;//TODO:
@@ -241,7 +232,7 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 		calleeSaveStr += ",";
 		++it;
 	}
-	calleeSaveStr += "fp,";
+	//calleeSaveStr += "fp,";
 
 	//prologue//////////
 	assem = format("stmfd sp!, {%s lr}", calleeSaveStr.c_str());
@@ -257,7 +248,10 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 
 	//body//////////////
 	std::copy(body.begin(), body.end(), std::back_inserter(proc));
-	assem::Instruction *jmp_to_end_label = body.back();
+	
+	assem::InstructionList::const_iterator it2 = body.begin();
+	std::advance(it2, body.size()-2);
+	assem::Instruction *jmp_to_end_label = *it2;
 	LabelList ll = jmp_to_end_label->jumps();
 	assert(!ll.empty());
 	Label *end_label = ll.front();

@@ -229,9 +229,12 @@ void codegenPhase2(assem::InstructionList &instList, Frame *frame)
 
 	TempList regs = frame->registers().all;
 	regalloc::Color color(*igraph, regs);
+
+	assem::InstructionList proc2;
+	proc2 = frame->procEntryExit3(proc);
 	
-	it = proc.begin();
-	while (it != proc.end()) {
+	it = proc2.begin();
+	while (it != proc2.end()) {
 		assem::Instruction *inst = *it;
 		std::string s = inst->format(&color);
 		DBG("%s", s.c_str());
