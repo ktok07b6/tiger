@@ -33,6 +33,7 @@ class Frame : public Object, public TempMap
 
 	struct Registers 
 	{
+		TempList all;
 		TempList specials;
 		TempList args;
 		TempList calleeSaves;

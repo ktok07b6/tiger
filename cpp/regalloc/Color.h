@@ -14,7 +14,7 @@ namespace regalloc {
 class Color : public TempMap
 {
 public:
-	Color(const graph::InterferenceGraph &igraph);
+	Color(const graph::InterferenceGraph &igraph, const TempList &regs);
 	virtual std::string tempMap(Temp *temp);
 
 private:
@@ -29,6 +29,7 @@ private:
 	graph::Node *popFromSimplifyWorks();
 
 	enum {
+		//TODO: Do not depend on a specific target
 		K = 8
 	};
 

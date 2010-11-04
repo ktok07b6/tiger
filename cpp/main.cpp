@@ -142,7 +142,7 @@ void translatePhase(FragmentList &fragments)
 #endif
 }
 
-void codegenPhase2(assem::InstructionList &instList, TempMap *tempMap);
+void codegenPhase2(assem::InstructionList &instList, Frame *frame);
 
 void codegenPhase(const FragmentList &frags)
 {
@@ -207,22 +207,25 @@ void codegenPhase(const FragmentList &frags)
 	}
 }
 
-void codegenPhase2(assem::InstructionList &instList, TempMap *tempMap)
+void codegenPhase2(assem::InstructionList &instList, Frame *frame)
 {
 	assem::InstructionList::iterator it;
+#if 1
 	it = instList.begin();
 	while (it != instList.end()) {
 		assem::Instruction *inst = *it;
-		std::string s = inst->format(tempMap);
+		std::string s = inst->format(frame);
 		DBG("%s", s.c_str());
 		++it;
 	}
+#endif
 	const graph::AsmFlowGraph flow(instList);
 	const regalloc::Liveness liveness(flow);
 	const graph::InterferenceGraph *igraph = liveness.getInterferenceGraph();
 	igraph->show();
 
-	regalloc::Color color(*igraph);
+	const Frame::Registers &regs = frame->registers();
+	regalloc::Color color(*igraph, regs.all);
 	it = instList.begin();
 	while (it != instList.end()) {
 		assem::Instruction *inst = *it;

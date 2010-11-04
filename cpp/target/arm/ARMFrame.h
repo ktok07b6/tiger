@@ -31,8 +31,6 @@ class ARMFrame : public Frame
 	};
  private:
 	int frameOffset;
-	Temp *framePtr;
-	Temp *r[MAX_REG];
 	ARMCodeGen *generator;
 	assem::InstructionList instList;
 };

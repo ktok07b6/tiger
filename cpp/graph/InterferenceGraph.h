@@ -25,7 +25,7 @@ public:
 	const NodePairList &moves();
 	void addMove(const NodePair &nodes);
 
-	void merge(Node *n1, Node *n2);
+	void coalesce(Node *n1, Node *n2);
 	virtual void show() const;
 
  private:

@@ -54,12 +54,23 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	//Access *access;
 
 	//size_t num = f.size();
-	char buf[64];
-	for (int i = 0; i < MAX_REG; ++i) {
-		sprintf(buf, "r%d", i);
-		r[i] = gcnew(Temp, (buf));
-	}
-	framePtr = gcnew(Temp, ("fp"));
+
+	regs.all.push_back(gcnew(Temp, ("r0")));
+	regs.all.push_back(gcnew(Temp, ("r1")));
+	regs.all.push_back(gcnew(Temp, ("r2")));
+	regs.all.push_back(gcnew(Temp, ("r3")));
+	regs.all.push_back(gcnew(Temp, ("r4")));
+	regs.all.push_back(gcnew(Temp, ("r5")));
+	regs.all.push_back(gcnew(Temp, ("r6")));
+	regs.all.push_back(gcnew(Temp, ("r7")));
+	regs.all.push_back(gcnew(Temp, ("r8")));
+	regs.all.push_back(gcnew(Temp, ("r9")));
+	regs.all.push_back(gcnew(Temp, ("r10")));
+	regs.all.push_back(gcnew(Temp, ("fp")));
+	regs.all.push_back(gcnew(Temp, ("r12")));
+	regs.all.push_back(gcnew(Temp, ("sp")));
+	regs.all.push_back(gcnew(Temp, ("lr")));
+	regs.all.push_back(gcnew(Temp, ("pc")));
 
 	//TODO: if(このフレームがstatic linkを必要とするなら)
 	//frameOffset += WORD_SIZE;//static linkのためにfp[0]を空ける
@@ -72,19 +83,18 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 		if (escape) {
 			formals.push_back(allocLocal(true));
 		} else {
-			formals.push_back(gcnew(InReg, (r[i-1])));
+			formals.push_back(gcnew(InReg, (regs.all[i-1])));
 		}
 		++i;
 		++it;
 	}
 
-
 	generator = new ARMCodeGen(this);
 
-	regs.args.push_back(r[0]);
-	regs.args.push_back(r[1]);
-	regs.args.push_back(r[2]);
-	regs.args.push_back(r[3]);
+	regs.args.push_back(regs.all[0]);
+	regs.args.push_back(regs.all[1]);
+	regs.args.push_back(regs.all[2]);
+	regs.args.push_back(regs.all[3]);
 }
 
 ARMFrame::~ARMFrame()
@@ -110,7 +120,7 @@ ARMFrame::allocLocal(bool escape)
 Temp *
 ARMFrame::fp()
 {
-	return framePtr;
+	return regs.all[11];
 }
 
 int 
@@ -131,7 +141,7 @@ ARMFrame::externalCall(const std::string &func, const tree::ExpList &args)
 Temp *
 ARMFrame::rv()
 {
-	return r[0];
+	return regs.all[0];
 }
 
 tree::Stm *
@@ -258,8 +268,8 @@ std::string
 ARMFrame::tempMap(Temp *temp)
 {
 	for (int i = 0; i < MAX_REG; ++i){
-		if (temp == r[i]) {
-			return r[i]->toString();
+		if (temp == regs.all[i]) {
+			return regs.all[i]->toString();
 		} 
 	}
 	return temp->toString();

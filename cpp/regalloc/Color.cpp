@@ -7,14 +7,23 @@ using namespace graph;
 
 namespace regalloc {
 
-Color::Color(const InterferenceGraph &ig)
+Color::Color(const InterferenceGraph &ig, const TempList &regs)
 	: igraph(ig)
 {
 	//We repeatedly remove (and push on a stack) nodes of degree less than K.
-retry:
+
 	//precolor
+	int i = 0;
+	BOOST_FOREACH(Temp *r, regs) {
+		Node *n = igraph.temp2node(r);
+		if (n) {
+			coloredNodes[i].insert(n);
+		}
+		++i;
+	}
 
 	//simplify
+retry:
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
 		if (isEnableColoring()) {
@@ -50,7 +59,7 @@ Color::coalesce()
 		Node *src = n.first;
 		Node *dst = n.second;
 		if (!src->adj(dst)) {
-			igraph.merge(src, dst);
+			igraph.coalesce(src, dst);
 		}
 	} 
 }
@@ -72,9 +81,7 @@ Color::setColor(Node *n)
 		const NodeList &adj = n->adj();
 		bool conflict = false;
 		BOOST_FOREACH(Node *n, adj) {
-			if (colored.find(n) != colored.end()) {
-				conflict = true;
-			}
+			conflict |= (colored.find(n) != colored.end());
 		}
 		if (!conflict) {
 			colored.insert(n);
@@ -147,6 +154,7 @@ Color::popFromSimplifyWorks()
 std::string 
 Color::tempMap(Temp *temp)
 {
+	//TODO: Do not depend on a specific target
 	Node *n = igraph.temp2node(temp);
 	int regnum = getColoredIndex(n);
 	return format("r%d", regnum);
