@@ -24,10 +24,10 @@ Node::adj() const
 {
 	//TODO: caching adjacencies
 	adjacencies.clear();
-	std::merge(successors.begin(), successors.end(), 
-			   predecessors.begin(), predecessors.end(), 
-			  std::insert_iterator<NodeList>(adjacencies,
-								   adjacencies.end()));
+	adjacencies.push_all(successors);
+	adjacencies.push_all(predecessors);
+	adjacencies.unique();
+
 	return adjacencies;
 }
 
@@ -52,13 +52,13 @@ Node::degree() const
 bool 
 Node::goesTo(Node *n) const 
 {
-	return successors.find(n) != successors.end();
+	return successors.contain(n);
 }
 
 bool 
 Node::comesFrom(Node *n) const
 {
-	return predecessors.find(n) != predecessors.end();
+	return predecessors.contain(n);
 }
 
 bool 

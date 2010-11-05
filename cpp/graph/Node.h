@@ -2,14 +2,15 @@
 #define NODE_H
 
 #include "Object.h"
-#include <set>
 #include <string>
+#include "List.h"
 
 namespace graph {
 
 class Graph;
 class Node;
-typedef std::set<Node*> NodeList;
+
+typedef List<Node> NodeList;
 
 class Node : public Object
 {

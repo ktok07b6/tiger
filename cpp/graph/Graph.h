@@ -4,11 +4,12 @@
 #include <set>
 #include <string>
 #include "Object.h"
+#include "List.h"
 
 namespace graph {
 
 class Node;
-typedef std::set<Node*> NodeList;
+typedef List<Node> NodeList;
 
 class Graph : public Object
 {

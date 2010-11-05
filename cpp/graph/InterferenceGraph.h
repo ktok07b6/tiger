@@ -18,7 +18,8 @@ public:
 	typedef std::pair<Node*, Node*> NodePair;
 	typedef std::list<NodePair> NodePairList;
 
-	InterferenceGraph(const std::vector<TempList*> &liveouts);
+	InterferenceGraph();
+	void newNode(Temp *t);
 	Node *temp2node(Temp *t);
 	const TempList &node2temp(Node *n);
 

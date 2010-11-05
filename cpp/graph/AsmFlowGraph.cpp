@@ -103,4 +103,20 @@ AsmFlowGraph::isMove(const Node *node) const
 	return codegen->isMove(((const InstNode*)node)->getInst());
 }
 
+void 
+AsmFlowGraph::show() const
+{
+	DBG("AsmFlowGraph ================");
+	BOOST_FOREACH(Node *n1, nodes) {
+		InstNode *in = (InstNode*)(n1);
+		DBG("%s", in->toString().c_str());
+	}
+}
+
+std::string
+AsmFlowGraph::InstNode::toString() const
+{
+	return "inst node:" + inst->toString();
+}
+
 }//namespace graph

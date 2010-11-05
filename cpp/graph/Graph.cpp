@@ -22,7 +22,7 @@ void
 Graph::addNode(Node *n)
 {
 	assert(n->graph == this);
-	nodes.insert(n);
+	nodes.push_back(n);
 }
 
 void
@@ -37,7 +37,7 @@ Graph::rmNode(Node *n)
 	BOOST_FOREACH(Node *from, pred) {
 		rmEdge(from, n);
 	}
-	nodes.erase(n);
+	nodes.remove(n);
 }
 
 void 
@@ -46,19 +46,19 @@ Graph::addEdge(Node *from, Node *to)
 	assert(from->graph == this);
 	assert(to->graph == this);
 	assert(from != to);
-	if (from->successors.find(to) == from->successors.end()) {
-		if (to->successors.find(from) != to->successors.end()) {
+	if (!from->successors.contain(to)) {
+		if (to->successors.contain(from)) {
 			WARN(">>>>>> edge is crossover <<<<<<");
 			return;
 		}
-		from->successors.insert(to);
+		from->successors.push_back(to);
 	}
-	if (to->predecessors.find(from) == to->predecessors.end()) {
-		if (from->predecessors.find(to) != from->predecessors.end()) {
+	if (!to->predecessors.contain(from)) {
+		if (from->predecessors.contain(to)) {
 			WARN(">>>>>> edge is crossover <<<<<<");
 			return;
 		}
-		to->predecessors.insert(from);
+		to->predecessors.push_back(from);
 	}
 }
 
@@ -68,8 +68,8 @@ Graph::rmEdge(Node *from, Node *to)
 	assert(from->graph == this);
 	assert(to->graph == this);
 	assert(from != to);
-	from->successors.erase(to);
-	to->predecessors.erase(from);
+	from->successors.remove(to);
+	to->predecessors.remove(from);
 }
 
 void 

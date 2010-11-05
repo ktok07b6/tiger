@@ -22,6 +22,7 @@ public:
 
 	assem::Instruction *instr(Node *n);
 
+	virtual void show() const;
 	class InstNode : public Node
 	{
 	public:
@@ -29,6 +30,7 @@ public:
 		assem::Instruction *getInst() const{
 			return inst;
 		}
+	virtual std::string toString() const;
 	private:
 		assem::Instruction *inst;
 	};

@@ -18,7 +18,7 @@ Color::Color(const InterferenceGraph &ig, const TempList &regs)
 		Node *n = igraph.temp2node(r);
 		if (n) {
 			//DBG("%s is precolored on %p %d", r->toString().c_str(), n, i);
-			coloredNodes[i].insert(n);
+			coloredNodes[i].push_back(n);
 		}
 		++i;
 	}
@@ -85,11 +85,11 @@ Color::setColor(Node *n)
 		const NodeList &adj = n->adj();
 		bool conflict = false;
 		BOOST_FOREACH(Node *n, adj) {
-			conflict |= (colored.find(n) != colored.end());
+			conflict |= (colored.contain(n));
 		}
 		
 		if (!conflict) {
-			colored.insert(n);
+			colored.push_back(n);
 			return true;
 		}
 	} 
@@ -109,7 +109,7 @@ Color::getColoredIndex(Node *n)
 {
 	int index = 0;
 	BOOST_FOREACH(NodeList &colored, coloredNodes) {
-		if (colored.find(n) != colored.end()) {
+		if (colored.contain(n)) {
 			return index;
 		}
 		++index;

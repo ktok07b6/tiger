@@ -26,6 +26,7 @@ void printTempList(const TempList &li)
 
 Liveness::Liveness(const graph::FlowGraph &flow)
 {
+	flow.show();
 	const NodeList &flowNodes = flow.getNodes();
 	BOOST_FOREACH(Node *n, flowNodes) {
 		LiveInfo *li = new LiveInfo();//TODO: delete
@@ -36,39 +37,60 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 	}
 	calcLives();
 
-#if 0
-	int i = 0;
+#if 1
+	int ii = 0;
 	BOOST_FOREACH(Node *n, flowNodes) {
 		const AsmFlowGraph::InstNode *inst = (AsmFlowGraph::InstNode*)n;
-		DBG("============================= %d", i);
+		DBG("============================= %d", ii);
 		DBG("%s", inst->getInst()->toString().c_str());
 		DBG("def:");
-		printTempList(info[i]->def);
+		printTempList(info[ii]->def);
 		DBG("use:");
-		printTempList(info[i]->use);
+		printTempList(info[ii]->use);
 		DBG("livein:");
-		printTempList(info[i]->livein);
+		printTempList(info[ii]->livein);
 		DBG("liveout:");
-		printTempList(info[i]->liveout);
-		++i;
+		printTempList(info[ii]->liveout);
+		++ii;
 	}
 #endif
 	makeInterferenceGraph();
-	//moved temps
+	//add interference edges
+	int i = 0;
 	BOOST_FOREACH(Node *n, flowNodes) {
 		const AsmFlowGraph::InstNode *inst = (AsmFlowGraph::InstNode*)n;
 		if (flow.isMove(inst)) {
 			assem::MOVE *mv = (assem::MOVE*)inst->getInst();
-			Temp *src = mv->getSrc();
-			Temp *dst = mv->getDst();
-			if (src && dst) {
-				Node *nsrc = igraph->temp2node(src);
-				Node *ndst = igraph->temp2node(dst);
-				InterferenceGraph::NodePair nodes(nsrc, ndst);
-				igraph->addMove(nodes);
+			Temp *use = mv->getSrc();
+			Temp *def = mv->getDst();
+			Node *ndef = igraph->temp2node(def);
+			//add edge
+			BOOST_FOREACH(Temp *liveout, info[i]->liveout) {
+				if (liveout != use && liveout != def) {
+					Node *nliveout = igraph->temp2node(liveout);
+					igraph->addEdge(nliveout, ndef);
+				}
+			}
+			//add move relative
+			if (use && def) {
+				Node *nuse = igraph->temp2node(use);
+				igraph->addMove(InterferenceGraph::NodePair(nuse, ndef));
+			}
+		} else {
+			TempList def = inst->getInst()->def();
+			BOOST_FOREACH(Temp *liveout, info[i]->liveout) {
+				Node *nliveout = igraph->temp2node(liveout);
+				BOOST_FOREACH(Temp *d, def) {
+					Node *ndef = igraph->temp2node(d);
+					if (liveout != d) {
+						igraph->addEdge(nliveout, ndef);
+					}
+				}
 			}
 		}
+		++i;
 	}
+
 }
 
 Liveness::~Liveness()
@@ -123,15 +145,12 @@ Liveness::getAllLiveinsAtSuccessors(int n)
 	TempList liveins;
 	Node *node = info[n]->node;
 	const NodeList &successors = node->succ();
-	if (successors.empty()) {
-		return info[n]->def;
-	} else {
 		
-		BOOST_FOREACH(Node *succ, successors) {
-			const TempList &livein = getLivein(succ);
-			std::copy(livein.begin(), livein.end(), std::back_inserter(liveins));
-		}
+	BOOST_FOREACH(Node *succ, successors) {
+		const TempList &livein = getLivein(succ);
+		std::copy(livein.begin(), livein.end(), std::back_inserter(liveins));
 	}
+
 	std::sort(liveins.begin(), liveins.end());
 	liveins.erase(std::unique(liveins.begin(), liveins.end()), liveins.end());
 
@@ -176,15 +195,22 @@ Liveness::isContinuing(int n, const TempList &oldLivein, const TempList &oldLive
 void
 Liveness::makeInterferenceGraph()
 {
-	std::vector<TempList*> liveouts;
-	LiveInfoVec::iterator it = info.begin();
-	while (it != info.end()) {
-		LiveInfo *linfo = *it;
-		liveouts.push_back(&(linfo->liveout));
-		++it;
+	igraph = new InterferenceGraph();
+
+	//enumerate all temps
+	std::set<Temp*> temps;
+	BOOST_FOREACH(LiveInfo *li, info) {
+		TempList &liveout = li->liveout; 
+		std::copy(liveout.begin(),
+				  liveout.end(),
+				  std::insert_iterator< std::set<Temp*> >(temps, temps.end()));
 	}
 
-	igraph = new InterferenceGraph(liveouts);
+	//create nodes for temps
+	BOOST_FOREACH(Temp *t, temps) {
+		igraph->newNode(t);
+	}
+
 }
 
 }//namespace regalloc

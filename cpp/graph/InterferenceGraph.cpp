@@ -7,42 +7,17 @@
 namespace graph {
 
 
-InterferenceGraph::InterferenceGraph(const std::vector<TempList*> &liveouts)
+InterferenceGraph::InterferenceGraph()
 {
-	//enumerate all temps
-	std::set<Temp*> temps;
-	BOOST_FOREACH(TempList *liveout, liveouts) {
-		std::copy(liveout->begin(),
-				  liveout->end(),
-				  std::insert_iterator< std::set<Temp*> >(temps, temps.end()));
-	}
+}
 
-	//create nodes for temps
-	BOOST_FOREACH(Temp *t, temps) {
-		TempNode *node = gcnew(TempNode, (this, t));
-		Graph::addNode(node);
-		temp2nodeMap.insert(std::make_pair(t, node)); 
-	}
 
-	BOOST_FOREACH(TempList *liveout, liveouts) {
-		if (liveout->size() < 2) {
-			continue;
-		}
-		for (unsigned int i = 0; i < liveout->size(); ++i) {
-			TempList::iterator tfrom = liveout->begin();
-			std::advance(tfrom, i);
-			TempList::iterator tto = tfrom;
-			++tto;
-			while (tto != liveout->end()) {
-				Node *nfrom = temp2node(*tfrom);
-				Node *nto = temp2node(*tto);
-				Graph::addEdge(nfrom, nto);
-				++tto;
-			}
-		}
-	}
-	
-
+void
+InterferenceGraph::newNode(Temp *t)
+{
+	TempNode *node = gcnew(TempNode, (this, t));
+	Graph::addNode(node);
+	temp2nodeMap.insert(std::make_pair(t, node)); 
 }
 
 Node *
