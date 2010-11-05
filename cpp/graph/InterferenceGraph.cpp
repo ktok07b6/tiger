@@ -50,8 +50,15 @@ void
 InterferenceGraph::addMove(const NodePair &nodes)
 {
 	movedNodes.push_back(nodes);
+	((TempNode*)nodes.first)->setMove(true);
+	((TempNode*)nodes.second)->setMove(true);
 }
 
+bool
+InterferenceGraph::isMove(Node *node)
+{
+	return ((TempNode*)node)->isMove();
+}
 
 void
 InterferenceGraph::coalesce(Node *n1, Node *n2)

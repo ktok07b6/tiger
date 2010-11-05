@@ -20,7 +20,7 @@ public:
 private:
 
 	void coloring();
-	void coalesce();
+	bool coalesce();
 	bool setColor(graph::Node *);
 	bool isPrecolored(graph::Node *);
 	int getColoredIndex(graph::Node *);

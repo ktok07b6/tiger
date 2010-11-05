@@ -28,32 +28,36 @@ Color::Color(const InterferenceGraph &ig, const TempList &regs)
 retry:
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
-		if (isEnableColoring()) {
-			break; 
-		}
-		if (n->degree() < K && !isPrecolored(n)) {
+		if (n->degree() < K && !isPrecolored(n) && igraph.isMove(n)) {
 			pushToSimplifyWorks(n);
+			continue;
 		} 
+		break;
 	} 
 	
 	if (isEnableColoring()) {
 		coloring(); 
 	} else { 
-		coalesce(); 
-		goto retry;
+		if (coalesce()) { 
+			goto retry;
+		}
 		//TODO:
+		//freeze
 		//spill 
 	}  
 
+	//select
 	while (!simplifyWorks.empty()) { 
 		Node *n = popFromSimplifyWorks();
 		bool b = setColor(n);
 		assert(b);
 	} 
-
+	//TODO:
+	//Is all nodes colored?
+	//rewrite program
 }
 
-void
+bool
 Color::coalesce() 
 { 
 	const InterferenceGraph::NodePairList &nodePairs = igraph.moves();
@@ -62,8 +66,10 @@ Color::coalesce()
 		Node *dst = n.second;
 		if (!src->adj(dst)) {
 			igraph.coalesce(src, dst);
+			return true;
 		}
 	} 
+	return false;
 }
 
 void

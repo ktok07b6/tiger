@@ -66,15 +66,17 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 			Node *ndef = igraph->temp2node(def);
 			//add edge
 			BOOST_FOREACH(Temp *liveout, info[i]->liveout) {
-				if (liveout != use && liveout != def) {
+				if (liveout != use && liveout != def && ndef) {
 					Node *nliveout = igraph->temp2node(liveout);
 					igraph->addEdge(nliveout, ndef);
 				}
 			}
-			//add move relative
-			if (use && def) {
+			if (use) {
+				//add move relative
 				Node *nuse = igraph->temp2node(use);
-				igraph->addMove(InterferenceGraph::NodePair(nuse, ndef));
+				if (nuse && ndef) {
+					igraph->addMove(InterferenceGraph::NodePair(nuse, ndef));
+				}
 			}
 		} else {
 			TempList def = inst->getInst()->def();
@@ -82,7 +84,7 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 				Node *nliveout = igraph->temp2node(liveout);
 				BOOST_FOREACH(Temp *d, def) {
 					Node *ndef = igraph->temp2node(d);
-					if (liveout != d) {
+					if (liveout != d && ndef) {
 						igraph->addEdge(nliveout, ndef);
 					}
 				}
@@ -208,6 +210,7 @@ Liveness::makeInterferenceGraph()
 
 	//create nodes for temps
 	BOOST_FOREACH(Temp *t, temps) {
+		DBG("newNode %s", t->toString().c_str());
 		igraph->newNode(t);
 	}
 

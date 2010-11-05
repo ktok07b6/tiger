@@ -25,6 +25,7 @@ public:
 
 	const NodePairList &moves();
 	void addMove(const NodePair &nodes);
+	bool isMove(Node *node);
 
 	void coalesce(Node *n1, Node *n2);
 	virtual void show() const;
@@ -33,16 +34,24 @@ public:
 	class TempNode : public Node
 	{
 	public:
-	TempNode(InterferenceGraph *g, Temp *t) : Node(g) {
+	TempNode(InterferenceGraph *g, Temp *t) : Node(g), ismove(false) {
 			addTemp(t);
 		}
 		const TempList &getTemp() const { return temps; }
 		void addTemp(Temp *t) {
 			temps.push_back(t);
 		}
+		void setMove(bool b) {
+			ismove = b;
+		}
+		bool isMove() const {
+			return ismove;
+		}
+
 	virtual std::string toString() const;
 	private:
 		TempList temps;
+		bool ismove;
 	};
 
 
