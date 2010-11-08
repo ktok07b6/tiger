@@ -4,7 +4,10 @@ DEFS=-DYYERROR_VERBOSE -DYYDEBUG
 endif
 DEFS+=-DDEBUG
 OPTS=-O0 -g -Wall
-INCS=-I/usr/local/include -I./ -Iasm -Iast -Icanon -Icommon -Iframe -Igraph -Iparse -Iregalloc -Isymbol -Itarget/arm -Itemp -Itranslate -Itree -Itype
+TARGET_CPU=arm
+SUB_DIRS=asm ast canon common frame graph parse regalloc symbol temp translate tree type target/$(TARGET_CPU)
+
+INCS=-I/usr/local/include -I./ $(addprefix -I,$(SUB_DIRS))
 
 CFLAGS=$(INCS) $(OPTS) $(DEFS)
 CXXFLAGS=$(CFLAGS)
@@ -61,10 +64,11 @@ $(patsubst %.cpp,%.dep, $(filter %.cpp,$(1))) \
 )
 endef
 
-VPATH=./ asm ast canon common frame graph parse regalloc symbol target/arm temp translate tree type
+VPATH=./ $(SUB_DIRS)
 
-SOURCES_CPP= \
+SOURCES_LIBCORE= \
 	Object.cpp \
+	HeapManager.cpp \
 	lexer.cpp \
 	parser.cpp \
 	tiger.cpp \
@@ -81,9 +85,8 @@ SOURCES_CPP= \
 	IRTranslater.cpp \
 	TreePrinter.cpp \
 	Tree2DotTranslater.cpp \
-	main.cpp \
+	TreeMatcher.cpp \
 	Ex.cpp Cx.cpp Nx.cpp\
-	HeapManager.cpp \
 	Canon.cpp \
 	BasicBlocks.cpp \
 	Trace.cpp \
@@ -91,10 +94,7 @@ SOURCES_CPP= \
 	OPER.cpp \
 	MOVE.cpp \
 	LABEL.cpp \
-	TreeMatcher.cpp \
 	CodeGen.cpp \
-	ARMFrame.cpp \
-	ARMCodeGen.cpp \
 	Fragment.cpp \
 	Graph.cpp \
 	Node.cpp \
@@ -103,23 +103,26 @@ SOURCES_CPP= \
 	InterferenceGraph.cpp \
 	Liveness.cpp \
 	Color.cpp \
+	ARMFrame.cpp ARMCodeGen.cpp \
 	$(NULL)
 
-SOURCES_C= \
-	$(NULL)
+SOURCES_TIGER=main.cpp
 
-LDFLAGS=-L/usr/local/lib
-LIBS=-lstdc++  -lm -lc 
-TARGET=tiger
+LDFLAGS=-L/usr/local/lib -L./
+LIBS=-lstdc++ -lm -lc 
 
-OBJECTS=$(call objs_from_sources, $(SOURCES_CPP))
-OBJECTS+=$(call objs_from_sources, $(SOURCES_C))
-DEPS=$(call deps_from_sources, $(SOURCES_CPP))
+OBJECTS_LIBCORE=$(call objs_from_sources, $(SOURCES_LIBCORE))
+OBJECTS_TIGER=$(call objs_from_sources, $(SOURCES_TIGER))
+DEPS_LIBCORE=$(call deps_from_sources, $(SOURCES_LIBCORE))
+DEPS_TIGER=$(call deps_from_sources, $(SOURCES_TIGER))
 
-all: $(TARGET)
+all: tiger
 
-tiger: $(DEPS) $(OBJECTS) 
-	$(CXX) $(LDFLAGS) $(LIBS) $(OBJECTS) -o tiger
+tiger: libcore.a $(OBJECTS_TIGER) 
+	$(CXX) $(LDFLAGS) $(LIBS) $(OBJECTS_TIGER) -lcore -o tiger
+
+libcore.a: $(DEPS_LIBCORE) $(OBJECTS_LIBCORE)
+	$(AR) -q libcore.a $(OBJECTS_LIBCORE)
 
 parse/parser.cpp: parse/tiger.y
 	yacc -v -oparse/parser.cpp -d parse/tiger.y
@@ -129,7 +132,7 @@ parse/lexer.cpp: parse/tiger.l parse/parser.cpp
 
 
 ifneq ($(MAKECMDGOALS),clean)
--include $(DEPS)
+-include $(DEPS_LIBCORE) $(DEPS_TIGER)
 endif
 
 clean:
