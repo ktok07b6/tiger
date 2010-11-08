@@ -12,8 +12,10 @@ Color::Color(const InterferenceGraph &ig, const TempList &regs)
 	: igraph(ig)
 	, regs(regs)
 {
+
 	//precolor
 	int i = 0;
+
 	BOOST_FOREACH(Temp *r, regs) {
 		Node *n = igraph.temp2node(r);
 		if (n) {
@@ -23,17 +25,12 @@ Color::Color(const InterferenceGraph &ig, const TempList &regs)
 		++i;
 	}
 
+	build();
+	makeWorkList();
+
 	//We repeatedly remove (and push on a stack) nodes of degree less than K.
 	//simplify
 retry:
-	const NodeList &nodes = igraph.getNodes();
-	BOOST_FOREACH(Node *n, nodes) {
-		if (n->degree() < K && !isPrecolored(n) && igraph.isMove(n)) {
-			pushToSimplifyWorks(n);
-			continue;
-		} 
-		break;
-	} 
 	
 	if (isEnableColoring()) {
 		coloring(); 
@@ -57,49 +54,47 @@ retry:
 	//rewrite program
 }
 
+
+void 
+Color::build()
+{
+}
+
+void 
+Color::makeWorkList()
+{
+	const NodeList &nodes = igraph.getNodes();
+	BOOST_FOREACH(Node *n, nodes) {
+		if (K <= n->degree()) {
+			pushToSpillWorkList(n);
+		}
+		else if (isMoveRelated(n)) {
+			pushToFreezeWorkList(n);
+		}
+		else {
+			pushToSimplifyWorkList(n);
+		} 
+	} 
+}
+
+void 
+Color::simplify()
+{
+}
+
 bool
 Color::coalesce() 
 { 
-	const InterferenceGraph::NodePairList &nodePairs = igraph.moves();
-	BOOST_FOREACH(const InterferenceGraph::NodePair n, nodePairs) {
-		Node *src = n.first;
-		Node *dst = n.second;
-		if (!src->adj(dst)) {
-			igraph.coalesce(src, dst);
-			return true;
-		}
-	} 
-	return false;
 }
 
 void
-Color::coloring() 
+Color::assignColors() 
 { 
-	const NodeList &nodes = igraph.getNodes();
-	BOOST_FOREACH(Node *n, nodes) {
-		if (!isPrecolored(n)) {
-			bool b = setColor(n);
-			assert(b);
-		}
-	} 
 }
 
 bool 
 Color::setColor(Node *n) 
 {
-	BOOST_FOREACH(NodeList &colored, coloredNodes) {
-		const NodeList &adj = n->adj();
-		bool conflict = false;
-		BOOST_FOREACH(Node *n, adj) {
-			conflict |= (colored.contain(n));
-		}
-		
-		if (!conflict) {
-			colored.push_back(n);
-			return true;
-		}
-	} 
-	return false; 
 } 
 
 bool
@@ -126,49 +121,43 @@ Color::getColoredIndex(Node *n)
 bool 
 Color::isEnableColoring() const
 {
-	bool failed = false;
-	const NodeList &nodes = igraph.getNodes();
-	
-	BOOST_FOREACH(const Node *n, nodes) {
-		if (n->degree() >= K) {
-			failed |= true;
-		}
-	} 
-	return !failed; 
 } 
 
 void
-Color::pushToSimplifyWorks(Node *node) 
+Color::pushToSimplifyWorkList(Node *node) 
 {
-	simplifyWorks.push(node);
-	const NodeList &pred = node->pred();
-
-	BOOST_FOREACH(Node *n, pred) {
-		igraph.rmEdge(n, node);
-	} 
-	const NodeList &succ = node->succ();
-	BOOST_FOREACH(Node *n, succ) {
-		igraph.rmEdge(node, n);
-	} 
-}  
-
-Node *
-Color::popFromSimplifyWorks() 
-{
-	Node *node = simplifyWorks.top(); 
-	simplifyWorks.pop();
-	const NodeList &pred = node->pred();
-
-	BOOST_FOREACH(Node *n, pred) {
-		igraph.addEdge(n, node);
-	}
-	const NodeList &succ = node->succ();
-	BOOST_FOREACH(Node *n, succ) { 
-		igraph.addEdge(node, n);
-	} 
-	return node; 
+	node->setState(SIMPLIFY);
 }
 
+void
+Color::pushToFreezeWorkList(Node *node) 
+{
+	node->setState(FREEZE);
+}  
+
+void
+Color::pushToSpillWorkList(Node *node) 
+{
+	node->setState(SPILL);
+}  
+
+NodeList 
+Color::adjacent(Node *n)
+{
+	NodeList adj = n->adj();
+	NodeList tmp;
+	tmp = selectStack;
+	tmp += coalescedNodes;
+	tmp.unique();
+	adj -=  tmp;
+	return adj;
+}
+
+bool
+Color::isMoveRelated(Node *n)
+{
+	return igraph.isMove(n) && (activeMoves.contain(n) || workListMoves.contain(n));
+}
 
 std::string 
 Color::tempMap(Temp *temp)
