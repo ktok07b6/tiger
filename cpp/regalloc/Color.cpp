@@ -25,33 +25,32 @@ Color::Color(const InterferenceGraph &ig, const TempList &regs)
 		++i;
 	}
 
+ retry:
 	build();
 	makeWorkList();
-
-	//We repeatedly remove (and push on a stack) nodes of degree less than K.
-	//simplify
-retry:
-	
-	if (isEnableColoring()) {
-		coloring(); 
-	} else { 
-		if (coalesce()) { 
-			goto retry;
+	do {
+		if (!simplifyWorkList.empty()) {
+			simplify();
 		}
-		//TODO:
-		//freeze
-		//spill 
-	}  
+		else if (!workListMoves.empty()) {
+			coalesce();
+		}
+		else if (!freezeWorkList.empty()) {
+			freeze();
+		}
+		else if (!spillWorkList.empty()) {
+			selectSpill();
+		}
+	} while (!simplifyWorkList.empty() ||
+			 !workListMoves.empty() ||
+			 !freezeWorkList.empty() ||
+			 !spillWorkList.empty());
 
-	//select
-	while (!simplifyWorks.empty()) { 
-		Node *n = popFromSimplifyWorks();
-		bool b = setColor(n);
-		assert(b);
-	} 
-	//TODO:
-	//Is all nodes colored?
-	//rewrite program
+	assignColors();
+
+	if (!spilledNodes.empty()) {
+		//TODO:
+	}
 }
 
 
@@ -66,13 +65,13 @@ Color::makeWorkList()
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
 		if (K <= n->degree()) {
-			pushToSpillWorkList(n);
+			spillWorkList.push_back(n);
 		}
 		else if (isMoveRelated(n)) {
-			pushToFreezeWorkList(n);
+			freezeWorkList.push_back(n);
 		}
 		else {
-			pushToSimplifyWorkList(n);
+			simplifyWorkList.push_back(n);
 		} 
 	} 
 }
@@ -80,11 +79,107 @@ Color::makeWorkList()
 void 
 Color::simplify()
 {
+	assert(!simplifyWorkList.empty());
+
+	Node *n = simplifyWorkList.pop_front();
+	selectStack.push_back(n);
+
+	NodeList adj = adjacent(n);
+	BOOST_FOREACH(Node *a, adj) {
+		decrementDegree(a);
+	}
+}
+
+void
+Color::decrementDegree(Node *n)
+{
+	int degree = degreeMap[n];
+	degreeMap[n] = degree - 1;
+	if (degree == K) {
+		NodeList nodes = adjacent(n);
+		nodes += n;
+		enableMoves(nodes);
+		spillWorkList.remove(n);
+		if (isMoveRelated(n)) {
+			freezeWorkList.push_back(n);
+		} else {
+			simplifyWorkList.push_back(n);
+		}
+	}
+}
+
+void
+Color::enableMoves(const NodeList &nodes)
+{
+	BOOST_FOREACH(Node *n, nodes) {
+		NodeList moves = nodeMoves(n);
+		BOOST_FOREACH(Node *m, moves) {
+			if (activeMoves.contain(m)) {
+				activeMoves.remove(m);
+				workListMoves.push_back(m);
+			}
+		}
+	}
+}
+
+void 
+Color::addWorkList(graph::Node *n)
+{
+	if (!isPrecolored(n) && !isMoveRelated(n) && degreeMap[n] < K) {
+		freezeWorkList.remove(n);
+		simplifyWorkList.push_back(n);
+	}
+}
+
+bool 
+Color::ok(graph::Node *t, graph::Node *r)
+{
+	return degreeMap[t] < K && isPrecolored(t) && t->adj(r);
+}
+
+bool 
+Color::conservative(const graph::NodeList &nodes)
+{
+	int k = 0;
+	BOOST_FOREACH(Node *n, nodes) {
+		if (degreeMap[n] >= K) {
+			++k;
+		}
+	}
+	return (k < K);
 }
 
 bool
 Color::coalesce() 
 { 
+	assert(!workListMoves.empty());
+	//TODO:
+}
+
+void 
+Color::combine(graph::Node *, graph::Node *)
+{
+	//TODO:
+}
+
+Node *
+Color::getAlias(graph::Node *n)
+{
+	if (coalescedNodes.contain(n)) {
+		getAlias(aliasMap[n]);
+	} else {
+		return n;
+	}
+}
+
+void
+Color::freeze()
+{
+}
+
+void
+Color::selectSpill()
+{
 }
 
 void
@@ -118,28 +213,6 @@ Color::getColoredIndex(Node *n)
 	return -1;
 }
 
-bool 
-Color::isEnableColoring() const
-{
-} 
-
-void
-Color::pushToSimplifyWorkList(Node *node) 
-{
-	node->setState(SIMPLIFY);
-}
-
-void
-Color::pushToFreezeWorkList(Node *node) 
-{
-	node->setState(FREEZE);
-}  
-
-void
-Color::pushToSpillWorkList(Node *node) 
-{
-	node->setState(SPILL);
-}  
 
 NodeList 
 Color::adjacent(Node *n)
@@ -151,6 +224,17 @@ Color::adjacent(Node *n)
 	tmp.unique();
 	adj -=  tmp;
 	return adj;
+}
+
+NodeList
+Color::nodeMoves(Node *n)
+{
+	NodeList moves;
+	moves += activeMoves;
+	moves += workListMoves;
+	moves.unique();
+	moves = moves.intersection(moveList[n]);
+	return moves;
 }
 
 bool

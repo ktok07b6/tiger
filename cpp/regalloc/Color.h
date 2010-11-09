@@ -3,7 +3,7 @@
 
 #include "TempMap.h"
 #include "Node.h"
-#include <stack>
+#include <map>
 #include "InterferenceGraph.h"
 namespace graph {
 	//class InterferenceGraph;
@@ -26,16 +26,22 @@ private:
 	void selectSpill();
 	void assignColors();
 
-	void pushToSpillWorkList(graph::Node *);
-	void pushToFreezeWorkList(graph::Node *);
-	void pushToSimplifyWorkList(graph::Node *);
+	void decrementDegree(graph::Node *);
+	void enableMoves(const graph::NodeList &);
+	void addWorkList(graph::Node *);
 
-	NodeList adjacent(graph::Node *);
+	bool ok(graph::Node *t, graph::Node *r);
+	bool conservative(const graph::NodeList &);
+
+	void combine(graph::Node *, graph::Node *);
+	graph::Node *getAlias(graph::Node *);
+
+	graph::NodeList adjacent(graph::Node *);
 
 	bool setColor(graph::Node *);
 	bool isPrecolored(graph::Node *);
 	int getColoredIndex(graph::Node *);
-	bool isEnableColoring() const;
+	graph::NodeList nodeMoves(graph::Node *);
 	bool isMoveRelated(graph::Node *);
 
 	enum {
@@ -44,19 +50,26 @@ private:
 	};
 
 
-	NodeList simplifyWorkList;
-	NodeList freezeWorkList;
-	NodeList spillWorkList;
-	NodeList spilledNodes;
-	NodeList coalescedNodes;
-	NodeList coloredNodes;
-	NodeList selectStack;
+	graph::NodeList simplifyWorkList;
+	graph::NodeList freezeWorkList;
+	graph::NodeList spillWorkList;
+	graph::NodeList spilledNodes;
+	graph::NodeList coalescedNodes;
+	//graph::NodeList coloredNodes;
+	graph::NodeList selectStack;
 
-	NodeList coalescedMoves;
-	NodeList constrainedMoves;
-	NodeList frozenMoves;
-	NodeList worklistMoves;
-	NodeList activeMoves;
+	graph::NodeList coalescedMoves;
+	graph::NodeList constrainedMoves;
+	graph::NodeList frozenMoves;
+	graph::NodeList workListMoves;
+	graph::NodeList activeMoves;
+
+	typedef std::map<graph::Node *, int> DegreeMap;
+	DegreeMap degreeMap;
+	typedef std::map<graph::Node *, graph::Node *> AliasMap;
+	AliasMap aliasMap;
+	typedef std::map<graph::Node *, graph::NodeList> MoveListMap;
+	MoveListMap moveList;
 
 	graph::InterferenceGraph igraph;
 	graph::NodeList coloredNodes[K];

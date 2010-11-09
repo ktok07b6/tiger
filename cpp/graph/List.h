@@ -36,6 +36,12 @@ class List
 	iterator find(T *) const;
 	bool contain(T *) const;
 	void unique();
+	List<T> intersection(const List<T> &);
+
+	void operator+=(T *);
+	void operator+=(const List<T> &);
+	void operator-=(T *);
+	void operator-=(const List<T> &);
 
 	std::list<T*> li;
 };
@@ -135,9 +141,9 @@ template<class T>
 void
 List<T>::push_all(const List<T> &other)
 {
-	typename std::list<T*>::const_iterator it = other.li.begin();
-	while (it != other.li.end()) {
-		li.push_back(*it);
+	const_iterator it = other.begin();
+	while (it != other.end()) {
+		push_back(*it);
 		++it;
 	}
 }
@@ -217,5 +223,51 @@ List<T>::unique()
 	li.unique();
 }
 
+template<class T>
+List<T> 
+List<T>::intersection(const List<T> &other)
+{
+	List<T> result;
+	const_iterator it = other.begin();
+	while (it != other.end()) {
+		if (contain(*it)) {
+			result.push_back(*it);
+		}
+		++it;
+	}
+	return result;
+}
+
+template<class T>
+void 
+List<T>::operator+=(T *n)
+{
+	push_back(n);
+}
+
+template<class T>
+void 
+List<T>::operator+=(const List<T> &other)
+{
+	push_all(other);
+}
+
+template<class T>
+void 
+List<T>::operator-=(T *n)
+{
+	remove(n);
+}
+
+template<class T>
+void 
+List<T>::operator-=(const List<T> &other)
+{
+	const_iterator it = other.begin();
+	while (it != other.end()) {
+		remove(*it);
+		++it;
+	}
+}
 
 #endif //LIST_H
