@@ -40,7 +40,7 @@ Type *TypeCheck::pop()
 void TypeCheck::error(const string &msg)
 {
 	accept = false;
-	throw msg;
+	//throw msg;
 }
 
 void TypeCheck::visit(SimpleVar *var)

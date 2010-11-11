@@ -307,11 +307,7 @@ bool typeCheck()
 {
 	TypeCheck checker;
 
-	try {
-		absyn->accept(&checker);
-	} catch (const std::string &msg) {
-		ERROR("%s", msg.c_str());
-	}
+	absyn->accept(&checker);
 
 	DBG("type checked %d", checker.isAccepted());
 	return checker.isAccepted();

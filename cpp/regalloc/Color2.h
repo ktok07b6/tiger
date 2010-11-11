@@ -1,10 +1,11 @@
-#ifndef COLOR_H
-#define COLOR_H
+#ifndef COLOR2_H
+#define COLOR2_H
 
 #include "TempMap.h"
 #include "Node.h"
 #include <map>
 #include "InterferenceGraph.h"
+#include "Bitmap.h"
 
 namespace graph {
 	//class InterferenceGraph;
@@ -12,10 +13,10 @@ namespace graph {
 
 namespace regalloc {
 
-class Color : public TempMap
+class Color2 : public TempMap
 {
 public:
-	Color(const graph::InterferenceGraph &igraph, const TempList &regs);
+	Color2(const graph::InterferenceGraph &igraph, const TempList &regs);
 	virtual std::string tempMap(Temp *temp);
 
 private:
@@ -50,29 +51,29 @@ private:
 		K = 16
 	};
 
-	graph::NodeList simplifyWorkList;
-	graph::NodeList freezeWorkList;
-	graph::NodeList spillWorkList;
-	graph::NodeList spilledNodes;
-	graph::NodeList coalescedNodes;
-	//graph::NodeList coloredNodes;
-	graph::NodeList selectStack;
+	Bitmap simplifyWorkList;
+	Bitmap freezeWorkList;
+	Bitmap spillWorkList;
+	Bitmap spilledNodes;
+	Bitmap coalescedNodes;
+	//Bitmap coloredNodes;
+	Bitmap selectStack;
 
-	graph::NodeList coalescedMoves;
-	graph::NodeList constrainedMoves;
-	graph::NodeList frozenMoves;
-	graph::NodeList workListMoves;
-	graph::NodeList activeMoves;
+	Bitmap coalescedMoves;
+	Bitmap constrainedMoves;
+	Bitmap frozenMoves;
+	Bitmap workListMoves;
+	Bitmap activeMoves;
 
 	typedef std::map<graph::Node *, int> DegreeMap;
 	DegreeMap degreeMap;
 	typedef std::map<graph::Node *, graph::Node *> AliasMap;
 	AliasMap aliasMap;
-	typedef std::map<graph::Node *, graph::NodeList> MoveListMap;
+	typedef std::map<graph::Node *, Bitmap> MoveListMap;
 	MoveListMap moveList;
 
 	graph::InterferenceGraph igraph;
-	graph::NodeList coloredNodes[K];
+	Bitmap coloredNodes[K];
 	TempList regs;
 };
 
