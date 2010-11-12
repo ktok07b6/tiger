@@ -28,23 +28,23 @@ private:
 	void selectSpill();
 	void assignColors();
 
-	void decrementDegree(graph::Node *);
-	void enableMoves(const graph::NodeList &);
-	void addWorkList(graph::Node *);
+	void decrementDegree(int nid *);
+	void enableMoves(const Bitmap &);
+	void addWorkList(int nid);
 
-	bool ok(graph::Node *t, graph::Node *r);
-	bool conservative(const graph::NodeList &);
+	bool ok(int nid1, int nid2);
+	bool conservative(const Bitmap &);
 
-	void combine(graph::Node *, graph::Node *);
-	graph::Node *getAlias(graph::Node *);
+	void combine(int nid1, int nid2);
+	int getAlias(int nid);
 
-	graph::NodeList adjacent(graph::Node *);
+	Bitmap adjacent(int nid);
 
-	bool setColor(graph::Node *);
-	bool isPrecolored(graph::Node *);
-	int getColoredIndex(graph::Node *);
-	graph::NodeList nodeMoves(graph::Node *);
-	bool isMoveRelated(graph::Node *);
+	bool setColor(int nid);
+	bool isPrecolored(int nid);
+	int getColoredIndex(int nid);
+	Bitmap nodeMoves(int nid);
+	bool isMoveRelated(int nid);
 
 	enum {
 		//TODO: Do not depend on a specific target
@@ -65,11 +65,12 @@ private:
 	Bitmap workListMoves;
 	Bitmap activeMoves;
 
-	typedef std::map<graph::Node *, int> DegreeMap;
+	Bitmap precolored;
+	typedef std::map<int, int> DegreeMap;
 	DegreeMap degreeMap;
-	typedef std::map<graph::Node *, graph::Node *> AliasMap;
+	typedef std::map<int, int> AliasMap;
 	AliasMap aliasMap;
-	typedef std::map<graph::Node *, Bitmap> MoveListMap;
+	typedef std::map<int, Bitmap> MoveListMap;
 	MoveListMap moveList;
 
 	graph::InterferenceGraph igraph;

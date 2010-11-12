@@ -10,7 +10,8 @@ public:
 	Bitmap(unsigned int size, unsigned int initd);
 	Bitmap(unsigned int size, unsigned int *initd);
 	~Bitmap();
-	
+
+	unsigned int right();
 	void set(unsigned int index);
 	void reset(unsigned int index);
 	void clear();
@@ -41,7 +42,18 @@ private:
 	const unsigned int capacity;
 };
 
-	
+inline unsigned int
+Bitmap::right()
+{
+	//TODO: improvement perfomance
+	for (int i = 0; i < maxbit; ++i) {
+		if (d.bit32 & (1 << i)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 inline void 
 Bitmap::set(unsigned int index) 
 {

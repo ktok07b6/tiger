@@ -40,6 +40,14 @@ InterferenceGraph::node2temp(Node *n)
 	return tnode->getTemp();
 }
 
+int
+InterferenceGraph::node2nid(Node *n)
+{
+	assert(n);
+	NodeList::iterator it = nodes.find(n);
+	return std::distance(nodes.begin(), it);
+}
+
 const InterferenceGraph::NodePairList &
 InterferenceGraph::moves()
 {

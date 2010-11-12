@@ -19,8 +19,9 @@ Color2::Color2(const InterferenceGraph &ig, const TempList &regs)
 	BOOST_FOREACH(Temp *r, regs) {
 		Node *n = igraph.temp2node(r);
 		if (n) {
+			int nid = igraph.node2nid(n);
 			//DBG("%s is precolored on %p %d", r->toString().c_str(), n, i);
-			coloredNodes[i].push_back(n);
+			coloredNodes[i].set(nid);
 		}
 		++i;
 	}
@@ -29,22 +30,22 @@ Color2::Color2(const InterferenceGraph &ig, const TempList &regs)
 	build();
 	makeWorkList();
 	do {
-		if (!simplifyWorkList.empty()) {
+		if (!simplifyWorkList.none()) {
 			simplify();
 		}
-		else if (!workListMoves.empty()) {
+		else if (!workListMoves.none()) {
 			coalesce();
 		}
-		else if (!freezeWorkList.empty()) {
+		else if (!freezeWorkList.none()) {
 			freeze();
 		}
-		else if (!spillWorkList.empty()) {
+		else if (!spillWorkList.none()) {
 			selectSpill();
 		}
-	} while (!simplifyWorkList.empty() ||
-			 !workListMoves.empty() ||
-			 !freezeWorkList.empty() ||
-			 !spillWorkList.empty());
+	} while (!simplifyWorkList.none() ||
+			 !workListMoves.none() ||
+			 !freezeWorkList.none() ||
+			 !spillWorkList.none());
 
 	assignColors();
 
@@ -62,87 +63,101 @@ Color2::build()
 void 
 Color2::makeWorkList()
 {
+	int i = 0;
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
 		if (K <= n->degree()) {
-			spillWorkList.push_back(n);
+			spillWorkList.set(i);
 		}
-		else if (isMoveRelated(n)) {
-			freezeWorkList.push_back(n);
+		else if (isMoveRelated(i)) {
+			freezeWorkList.set(i);
 		}
 		else {
-			simplifyWorkList.push_back(n);
+			simplifyWorkList.set(i);
 		} 
+		++i;
 	} 
 }
 
 void 
 Color2::simplify()
 {
-	assert(!simplifyWorkList.empty());
+	assert(!simplifyWorkList.none());
 
-	Node *n = simplifyWorkList.pop_front();
-	selectStack.push_back(n);
+	int nid = simplifyWorkList.right();
+	selectStack.set(nid);
 
-	NodeList adj = adjacent(n);
-	BOOST_FOREACH(Node *a, adj) {
-		decrementDegree(a);
-	}
-}
-
-void
-Color2::decrementDegree(Node *n)
-{
-	int degree = degreeMap[n];
-	degreeMap[n] = degree - 1;
-	if (degree == K) {
-		NodeList nodes = adjacent(n);
-		nodes += n;
-		enableMoves(nodes);
-		spillWorkList.remove(n);
-		if (isMoveRelated(n)) {
-			freezeWorkList.push_back(n);
-		} else {
-			simplifyWorkList.push_back(n);
+	Bitmap adj = adjacent(nid);
+	for (int i = 0; i < adj.size(); ++i) {
+		if (adj.get(i)) {
+			decrementDegree(i);
 		}
 	}
 }
 
 void
-Color2::enableMoves(const NodeList &nodes)
+Color2::decrementDegree(int nid)
 {
-	BOOST_FOREACH(Node *n, nodes) {
-		NodeList moves = nodeMoves(n);
-		BOOST_FOREACH(Node *m, moves) {
-			if (activeMoves.contain(m)) {
-				activeMoves.remove(m);
-				workListMoves.push_back(m);
+	int degree = degreeMap[nid];
+	degreeMap[nid] = degree - 1;
+	if (degree == K) {
+		Bitmap nodes = adjacent(nid);
+		nodes += nid;
+		enableMoves(nodes);
+		spillWorkList.reset(nid);
+		if (isMoveRelated(nid)) {
+			freezeWorkList.set(nid);
+		} else {
+			simplifyWorkList.set(nid);
+		}
+	}
+}
+
+void
+Color2::enableMoves(const Bitmap &nodes)
+{
+	for (int nid = 0; nid < adj.size(); ++nid) {
+		if (!adj.get(nid)) {
+			continue;
+		}
+		Bitmap moves = nodeMoves(nid);
+		for (int m = 0; m < moves.size(); ++m) {
+			if (!moves.get(m)) {
+				continue;
+			}
+			if (activeMoves.get(m)) {
+				activeMoves.reset(m);
+				workListMoves.set(m);
 			}
 		}
 	}
+	
 }
 
 void 
-Color2::addWorkList(graph::Node *n)
+Color2::addWorkList(int nid)
 {
-	if (!isPrecolored(n) && !isMoveRelated(n) && degreeMap[n] < K) {
-		freezeWorkList.remove(n);
-		simplifyWorkList.push_back(n);
+	if (!isPrecolored(nid) && !isMoveRelated(nid) && degreeMap[nid] < K) {
+		freezeWorkList.reset(nid);
+		simplifyWorkList.set(nid);
 	}
 }
 
 bool 
-Color2::ok(graph::Node *t, graph::Node *r)
+Color2::ok(int nid1, int nid2)
 {
-	return degreeMap[t] < K && isPrecolored(t) && t->adj(r);
+	return degreeMap[nid1] < K && isPrecolored(nid1) && t->adj(nid2);
 }
 
 bool 
-Color2::conservative(const graph::NodeList &nodes)
+Color2::conservative(const Bitmap &nodes)
 {
 	int k = 0;
-	BOOST_FOREACH(Node *n, nodes) {
-		if (degreeMap[n] >= K) {
+	for (int nid = 0; nid < adj.size(); ++nid) {
+		if (!adj.get(nid)) {
+			continue;
+		}
+		if (degreeMap[nid] >= K) {
 			++k;
 		}
 	}
@@ -152,23 +167,23 @@ Color2::conservative(const graph::NodeList &nodes)
 bool
 Color2::coalesce() 
 { 
-	assert(!workListMoves.empty());
+	assert(!workListMoves.none());
 	//TODO:
 }
 
 void 
-Color2::combine(graph::Node *, graph::Node *)
+Color2::combine(int nid1, int nid2)
 {
 	//TODO:
 }
 
-Node *
-Color2::getAlias(graph::Node *n)
+int
+Color2::getAlias(int nid)
 {
-	if (coalescedNodes.contain(n)) {
-		getAlias(aliasMap[n]);
+	if (coalescedNodes.get(nid)) {
+		getAlias(aliasMap[nid]);
 	} else {
-		return n;
+		return nid;
 	}
 }
 
@@ -188,24 +203,21 @@ Color2::assignColors()
 }
 
 bool 
-Color2::setColor(Node *n) 
+Color2::setColor(int nid) 
 {
 } 
 
 bool
-Color2::isPrecolored(Node *n)
+Color2::isPrecolored(int nid)
 {
-	TempList t = igraph.node2temp(n);
-	assert(!t.empty());
-	return std::find(regs.begin(), regs.end(), t.front()) != regs.end();
 }
 
 int
-Color2::getColoredIndex(Node *n)
+Color2::getColoredIndex(int nid)
 {
 	int index = 0;
-	BOOST_FOREACH(NodeList &colored, coloredNodes) {
-		if (colored.contain(n)) {
+	BOOST_FOREACH(Bitmap &colored, coloredNodes) {
+		if (colored.get(nid)) {
 			return index;
 		}
 		++index;
@@ -214,33 +226,28 @@ Color2::getColoredIndex(Node *n)
 }
 
 
-NodeList 
-Color2::adjacent(Node *n)
+Bitmap
+Color2::adjacent(int nid)
 {
-	NodeList adj = n->adj();
-	NodeList tmp;
-	tmp = selectStack;
-	tmp += coalescedNodes;
-	tmp.unique();
+	/*
+	Bitmap adj = n->adj();
+	Bitmap tmp;
+	tmp = selectStack | coalescedNodes;
 	adj -=  tmp;
 	return adj;
+	*/
 }
 
-NodeList
-Color2::nodeMoves(Node *n)
+Bitmap
+Color2::nodeMoves(int nid)
 {
-	NodeList moves;
-	moves += activeMoves;
-	moves += workListMoves;
-	moves.unique();
-	moves = moves.intersection(moveList[n]);
-	return moves;
+	return moveList[nid] & activeMoves | workListMoves;
 }
 
 bool
-Color2::isMoveRelated(Node *n)
+Color2::isMoveRelated(int nid)
 {
-	return igraph.isMove(n) && (activeMoves.contain(n) || workListMoves.contain(n));
+	return igraph.isMove(nid) && (activeMoves.get(nid) || workListMoves.get(nid));
 }
 
 std::string 
@@ -248,7 +255,8 @@ Color2::tempMap(Temp *temp)
 {
 	//TODO: Do not depend on a specific target
 	Node *n = igraph.temp2node(temp);
-	int regnum = getColoredIndex(n);
+	int nid = igraph.node2nid(n);
+	int regnum = getColoredIndex(nid);
 	if (regnum == -1) {
 		//ERROR("%s is not allocated to a register", temp->toString().c_str());
 		return "";

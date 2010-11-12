@@ -22,6 +22,7 @@ public:
 	void newNode(Temp *t);
 	Node *temp2node(Temp *t);
 	const TempList &node2temp(Node *n);
+	int node2nid(Node *n);
 
 	const NodePairList &moves();
 	void addMove(const NodePair &nodes);
