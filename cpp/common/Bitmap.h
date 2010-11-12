@@ -12,9 +12,10 @@ public:
 	~Bitmap();
 	
 	void set(unsigned int index);
-	void unset(unsigned int index);
+	void reset(unsigned int index);
+	void clear();
 	bool get(unsigned int index) const;
-	bool empty() const;
+	bool none() const;
 	size_t size() const;
 
 	void flip();
@@ -51,9 +52,15 @@ Bitmap::set(unsigned int index)
 }
 
 inline void 
-Bitmap::unset(unsigned int index) 
+Bitmap::reset(unsigned int index) 
 {
 	d.bit32 &= ~(1<<index);
+}
+
+inline void 
+Bitmap::clear() 
+{
+	d.bit32 = 0;
 }
 	
 inline bool 
@@ -63,7 +70,7 @@ Bitmap::get(unsigned int index) const
 }
 
 inline bool 
-Bitmap::empty() const
+Bitmap::none() const
 {
 	return d.bit32 == 0;
 }
