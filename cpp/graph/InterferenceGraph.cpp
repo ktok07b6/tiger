@@ -43,65 +43,29 @@ InterferenceGraph::node2temp(Node *n)
 int
 InterferenceGraph::node2nid(Node *n)
 {
-	assert(n);
-	NodeList::iterator it = nodes.find(n);
-	return std::distance(nodes.begin(), it);
+	return n->getTag();
 }
 
-const InterferenceGraph::NodePairList &
-InterferenceGraph::moves()
+Node *
+InterferenceGraph::nid2node(int nid)
 {
-	return movedNodes;
+	assert(0 <= nid && nid < nodes.size());
+	Node *n = nodes.at(nid);
+	assert(n->getTag() == nid);
+	return n;
 }
 
 void 
-InterferenceGraph::addMove(const NodePair &nodes)
+InterferenceGraph::addMoveEdge(Node *n1, Node *n2)
 {
-	movedNodes.push_back(nodes);
-	((TempNode*)nodes.first)->setMove(true);
-	((TempNode*)nodes.second)->setMove(true);
+	moves.push_back(std::make_pair(n1, n2));
 }
 
-bool
-InterferenceGraph::isMove(Node *node)
+const InterferenceGraph::Moves &
+InterferenceGraph::getMoves() const
 {
-	return ((TempNode*)node)->isMove();
+	return moves;
 }
-
-void
-InterferenceGraph::coalesce(Node *n1, Node *n2)
-{
-	//TODO: must be conservative
-
-	//assert(n1->graph == this && n2->graph == this);
-	TempNode *tn1 = (TempNode*)n1;
-	TempNode *tn2 = (TempNode*)n2;
-
-	//copy succ & pred nodes
-	NodeList succ = tn2->succ();
-	NodeList pred = tn2->pred();
-
-	rmNode(n2);
-
-	BOOST_FOREACH(Node *other, succ) {
-		addEdge(n1, other);
-	} 
-	BOOST_FOREACH(Node *other, pred) {
-		addEdge(other, n1);
-	}
-
-	const TempList &tlist = tn2->getTemp();
-	BOOST_FOREACH(Temp *t, tlist) {
-		//replace TempNode
-		std::map<Temp*, TempNode*>::iterator it;
-		it = temp2nodeMap.find(t);
-		assert(it != temp2nodeMap.end());
-		it->second = tn1; 
-	
-		tn1->addTemp(t);
-	}
-}
-
 
 void 
 InterferenceGraph::show() const

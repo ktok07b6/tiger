@@ -81,7 +81,7 @@ Color::simplify()
 {
 	assert(!simplifyWorkList.empty());
 
-	Node *n = simplifyWorkList.pop_front();
+	Node *n = simplifyWorkList.pop_back();
 	selectStack.push_back(n);
 
 	NodeList adj = adjacent(n);
@@ -233,14 +233,15 @@ Color::nodeMoves(Node *n)
 	moves += activeMoves;
 	moves += workListMoves;
 	moves.unique();
-	moves = moves.intersection(moveList[n]);
+	//moves = moves.intersection(moveList[n]);
 	return moves;
 }
 
 bool
 Color::isMoveRelated(Node *n)
 {
-	return igraph.isMove(n) && (activeMoves.contain(n) || workListMoves.contain(n));
+	//return igraph.isMove(n) && (activeMoves.contain(n) || workListMoves.contain(n));
+	return false;
 }
 
 std::string 

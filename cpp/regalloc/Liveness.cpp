@@ -75,7 +75,7 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 				//add move relative
 				Node *nuse = igraph->temp2node(use);
 				if (nuse && ndef) {
-					igraph->addMove(InterferenceGraph::NodePair(nuse, ndef));
+					igraph->addMoveEdge(nuse, ndef);
 				}
 			}
 		} else {
@@ -208,12 +208,19 @@ Liveness::makeInterferenceGraph()
 				  std::insert_iterator< std::set<Temp*> >(temps, temps.end()));
 	}
 
-	//create nodes for temps
+	//create nodes for temps,
 	BOOST_FOREACH(Temp *t, temps) {
 		DBG("newNode %s", t->toString().c_str());
 		igraph->newNode(t);
 	}
 
+	//we assign nid to each node
+	int nid = 0;
+	const NodeList &nodes = igraph->getNodes(); 
+	BOOST_FOREACH(Node *n, nodes) {
+		n->setTag(nid);
+		++nid;
+	}
 }
 
 }//namespace regalloc

@@ -22,6 +22,8 @@ class List
 	T *back();
 	T *front() const;
 	T *back() const;
+	T *at(int idx);
+	T *at(int idx) const;
 
 	void push_front(T *);
 	void push_back(T *);
@@ -33,7 +35,8 @@ class List
 	void clear();
 	void remove(T *);
 
-	iterator find(T *) const;
+	iterator find(T *);
+	const_iterator find(T *) const;
 	bool contain(T *) const;
 	void unique();
 	List<T> intersection(const List<T> &);
@@ -124,6 +127,25 @@ List<T>::back() const
 }
 
 template<class T>
+T *
+List<T>::at(int idx)
+{
+	iterator it = begin();
+	std::advance(it, idx);
+	return *it;
+}
+
+template<class T>
+T *
+List<T>::at(int idx) const
+{
+	const_iterator it = begin();
+	std::advance(it, idx);
+	return *it;
+}
+
+
+template<class T>
 void
 List<T>::push_front(T *p)
 {
@@ -203,8 +225,15 @@ List<T>::remove(T *n)
 }
 
 template<class T>
-typename List<T>::iterator
+typename List<T>::const_iterator
 List<T>::find(T *n) const
+{
+	return std::find(li.begin(), li.end(), n);
+}
+
+template<class T>
+typename List<T>::iterator
+List<T>::find(T *n)
 {
 	return std::find(li.begin(), li.end(), n);
 }

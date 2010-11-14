@@ -32,6 +32,19 @@ Bitmap::Bitmap(unsigned int size, unsigned int *initd)
 	}
 }
 
+Bitmap::Bitmap(const Bitmap &other)
+: maxbit (other.maxbit)
+, capacity(other.capacity) 
+{
+	if (capacity > 1) {
+		d.bits = new unsigned int [capacity];
+		memcpy(d.bits, other.d.bits, capacity);
+	} else {
+		d.bit32 = other.d.bit32;
+	}
+}
+
+
 Bitmap::~Bitmap() 
 {
 	if (capacity > 1) {

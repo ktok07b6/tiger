@@ -3,14 +3,14 @@
 
 #include "Object.h"
 #include <string>
-#include "List.h"
+#include "Vector.h"
 
 namespace graph {
 
 class Graph;
 class Node;
 
-typedef List<Node> NodeList;
+typedef Vector<Node> NodeList;
 
 class Node : public Object
 {
@@ -27,12 +27,16 @@ public:
 	bool goesTo(Node *n) const;
 	bool comesFrom(Node *n) const;
 	bool adj(Node *n) const;
+
+	void setTag(int tag);
+	int getTag() const;
 	virtual std::string toString() const;
 
 private:
 	Graph *graph;
 	NodeList successors;
 	NodeList predecessors;
+	int tag;
 	mutable NodeList adjacencies;
 	friend class Graph;
 };

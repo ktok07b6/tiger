@@ -15,49 +15,42 @@ class AsmFlowGraph;
 class InterferenceGraph : public Graph
 {
 public:
-	typedef std::pair<Node*, Node*> NodePair;
-	typedef std::list<NodePair> NodePairList;
+	typedef std::map<Node *, NodeList> MoveList;
+	typedef std::pair<Node *, Node *> NodePair;
+	typedef std::vector<NodePair> Moves;
 
 	InterferenceGraph();
 	void newNode(Temp *t);
 	Node *temp2node(Temp *t);
 	const TempList &node2temp(Node *n);
 	int node2nid(Node *n);
+	Node *nid2node(int nid);
 
-	const NodePairList &moves();
-	void addMove(const NodePair &nodes);
-	bool isMove(Node *node);
+	void addMoveEdge(Node *n1, Node *n2);
+	const Moves &getMoves() const;
 
-	void coalesce(Node *n1, Node *n2);
 	virtual void show() const;
 
  private:
+	void addMoveEdge_(Node *from, Node *to);
+
 	class TempNode : public Node
 	{
 	public:
-	TempNode(InterferenceGraph *g, Temp *t) : Node(g), ismove(false) {
+	TempNode(InterferenceGraph *g, Temp *t) : Node(g) {
 			addTemp(t);
 		}
 		const TempList &getTemp() const { return temps; }
 		void addTemp(Temp *t) {
 			temps.push_back(t);
 		}
-		void setMove(bool b) {
-			ismove = b;
-		}
-		bool isMove() const {
-			return ismove;
-		}
-
 	virtual std::string toString() const;
 	private:
 		TempList temps;
-		bool ismove;
 	};
-
-
-	NodePairList movedNodes;
+	
 	std::map<Temp *, TempNode *> temp2nodeMap;
+	Moves moves;
 };
 
 }//namespace graph

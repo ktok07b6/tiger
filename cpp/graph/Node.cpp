@@ -67,6 +67,18 @@ Node::adj(Node *n) const
 	return goesTo(n) || comesFrom(n);
 }
 
+void
+Node::setTag(int t)
+{
+	tag = t;
+}
+
+int
+Node::getTag() const
+{
+	return tag;
+}
+
 std::string 
 Node::toString() const
 {

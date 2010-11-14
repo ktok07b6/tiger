@@ -4,12 +4,12 @@
 #include <set>
 #include <string>
 #include "Object.h"
-#include "List.h"
+#include "Vector.h"
 
 namespace graph {
 
 class Node;
-typedef List<Node> NodeList;
+typedef Vector<Node> NodeList;
 
 class Graph : public Object
 {
@@ -20,6 +20,7 @@ public:
 	void addEdge(Node *from, Node *to);
 	void rmEdge(Node *from, Node *to);
 
+	size_t size() const;
 	virtual void rmNode(Node *n);
 	virtual void show() const;
 protected:

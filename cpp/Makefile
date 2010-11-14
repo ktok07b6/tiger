@@ -48,6 +48,7 @@ SOURCES_LIBCORE= \
 	InterferenceGraph.cpp \
 	Liveness.cpp \
 	Color.cpp \
+	Color2.cpp \
 	ARMFrame.cpp ARMCodeGen.cpp \
 	$(NULL)
 

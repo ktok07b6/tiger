@@ -9,6 +9,7 @@ public:
 	Bitmap(unsigned int size);
 	Bitmap(unsigned int size, unsigned int initd);
 	Bitmap(unsigned int size, unsigned int *initd);
+	Bitmap(const Bitmap &other);
 	~Bitmap();
 
 	unsigned int right();
@@ -21,10 +22,16 @@ public:
 
 	void flip();
 
+	Bitmap &operator=(const Bitmap &other);
+
 	Bitmap operator|(const Bitmap &other) const;
 	Bitmap operator &(const Bitmap &other) const;
 	Bitmap operator ~() const;
 	bool operator[](unsigned int index) const;
+
+	void operator|=(unsigned int index);
+	void operator-=(unsigned int index);
+	void operator&=(unsigned int index);
 
 	void operator|=(const Bitmap &other);
 	void operator-=(const Bitmap &other);
@@ -46,7 +53,7 @@ inline unsigned int
 Bitmap::right()
 {
 	//TODO: improvement perfomance
-	for (int i = 0; i < maxbit; ++i) {
+	for (unsigned int i = 0; i < maxbit; ++i) {
 		if (d.bit32 & (1 << i)) {
 			return i;
 		}
@@ -99,6 +106,18 @@ Bitmap::flip()
 	d.bit32 = ~d.bit32;
 }
 
+
+inline Bitmap &
+Bitmap::operator=(const Bitmap &other)
+{
+	if (capacity == 1) {
+		d.bit32 = other.d.bit32;
+	} else {
+		//TODO:
+	}
+	return *this;
+}
+
 inline Bitmap 
 Bitmap::operator|(const Bitmap &other) const
 {
@@ -124,6 +143,24 @@ Bitmap::operator[](unsigned int index) const
 }
 
 inline void 
+Bitmap::operator|=(unsigned int index)
+{
+	d.bit32 |= (1 << index);
+}
+
+inline void 
+Bitmap::operator-=(unsigned int index)
+{
+	d.bit32 &= ~(1 << index);
+}
+
+inline void 
+Bitmap::operator&=(unsigned int index)
+{
+	d.bit32 &= (1 << index);
+}
+
+inline void 
 Bitmap::operator|=(const Bitmap &other)
 {
 	d.bit32 |= other.d.bit32;
@@ -145,7 +182,7 @@ inline std::string
 Bitmap::toString() const
 {
 	std::string s;
-	for (int i = 0; i < maxbit; ++i) {
+	for (unsigned int i = 0; i < maxbit; ++i) {
 		if (get(i)) {
 			s = "1" + s;
 		} else {

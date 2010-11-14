@@ -72,6 +72,12 @@ Graph::rmEdge(Node *from, Node *to)
 	to->predecessors.remove(from);
 }
 
+size_t 
+Graph::size() const
+{
+	return nodes.size();
+}
+
 void 
 Graph::show() const
 {
