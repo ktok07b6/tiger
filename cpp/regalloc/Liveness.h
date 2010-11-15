@@ -3,6 +3,7 @@
 
 #include "Temp.h"
 #include <vector>
+#include "Bitmap.h"
 
 namespace graph {
 class Node;
@@ -24,23 +25,25 @@ public:
 
 private:
 	void calcLives();
-	TempList tempListSub(const TempList &liveout, const TempList &def);
-	TempList getAllLiveinsAtSuccessors(int n);
-	const TempList &getLivein(const graph::Node *node);
-	bool isContinuing(int n, const TempList &oldLivein, const TempList &oldLiveout);
-	void makeInterferenceGraph();
+	Bitmap getAllLiveinsAtSuccessors(int n);
+	Bitmap *getLivein(const graph::Node *node);
 
+	Bitmap tempList2bitmap(const TempList &tlist);
+	TempList bitmap2tempList(const Bitmap &bm);
+
+	void makeInterferenceGraph();
+	void printBitmap(const Bitmap &bm);
 	struct LiveInfo
 	{
-		TempList def;
-		TempList use;
-		TempList livein;
-		TempList liveout;
+		Bitmap *def;
+		Bitmap *use;
+		Bitmap *livein;
+		Bitmap *liveout;
 		graph::Node *node;
 	};
 	typedef std::vector<LiveInfo*> LiveInfoVec;
 	LiveInfoVec info;
-
+	TempList temps;
 	graph::InterferenceGraph *igraph;
 };
 }//namespace regalloc

@@ -23,18 +23,47 @@ void printTempList(const TempList &li)
 	DBG("%s", result.c_str());
 }
 
+void 
+Liveness::printBitmap(const Bitmap &bm)
+{
+	std::string result;
+
+	for (unsigned int i = 0; i < bm.size(); ++i) {
+		if (bm.get(i)) {
+			result += temps[i]->toString();
+			result += " ";
+		}
+	}
+	DBG("%s", result.c_str());
+}
+
 
 Liveness::Liveness(const graph::FlowGraph &flow)
 {
 	flow.show();
 	const NodeList &flowNodes = flow.getNodes();
 	BOOST_FOREACH(Node *n, flowNodes) {
+		TempList def = flow.def(n);
+		std::copy(def.begin(), def.end(), std::back_inserter(temps));
+		TempList use = flow.use(n);
+		std::copy(def.begin(), def.end(), std::back_inserter(temps));
+	}
+	std::sort(temps.begin(), temps.end());
+	temps.erase(std::unique(temps.begin(), temps.end()), temps.end());
+
+	BOOST_FOREACH(Node *n, flowNodes) {
 		LiveInfo *li = new LiveInfo();//TODO: delete
-		li->def = flow.def(n);
-		li->use = flow.use(n);
+		li->def = new Bitmap(temps.size());
+		li->use = new Bitmap(temps.size());
+		li->livein = new Bitmap(temps.size());
+		li->liveout = new Bitmap(temps.size());
+
+		*li->def = tempList2bitmap(flow.def(n));
+		*li->use = tempList2bitmap(flow.use(n));
 		li->node = n;
 		info.push_back(li);
 	}
+
 	calcLives();
 
 #if 1
@@ -44,13 +73,13 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 		DBG("============================= %d", ii);
 		DBG("%s", inst->getInst()->toString().c_str());
 		DBG("def:");
-		printTempList(info[ii]->def);
+		printBitmap(*info[ii]->def);
 		DBG("use:");
-		printTempList(info[ii]->use);
+		printBitmap(*info[ii]->use);
 		DBG("livein:");
-		printTempList(info[ii]->livein);
+		printBitmap(*info[ii]->livein);
 		DBG("liveout:");
-		printTempList(info[ii]->liveout);
+		printBitmap(*info[ii]->liveout);
 		++ii;
 	}
 #endif
@@ -65,7 +94,8 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 			Temp *def = mv->getDst();
 			Node *ndef = igraph->temp2node(def);
 			//add edge
-			BOOST_FOREACH(Temp *liveout, info[i]->liveout) {
+			TempList liveoutList = bitmap2tempList(*info[i]->liveout);
+			BOOST_FOREACH(Temp *liveout, liveoutList) {
 				if (liveout != use && liveout != def && ndef) {
 					Node *nliveout = igraph->temp2node(liveout);
 					igraph->addEdge(nliveout, ndef);
@@ -80,7 +110,8 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 			}
 		} else {
 			TempList def = inst->getInst()->def();
-			BOOST_FOREACH(Temp *liveout, info[i]->liveout) {
+			TempList liveoutList = bitmap2tempList(*info[i]->liveout);
+			BOOST_FOREACH(Temp *liveout, liveoutList) {
 				Node *nliveout = igraph->temp2node(liveout);
 				BOOST_FOREACH(Temp *d, def) {
 					Node *ndef = igraph->temp2node(d);
@@ -98,6 +129,15 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 Liveness::~Liveness()
 {
 	delete igraph;
+
+	BOOST_FOREACH(LiveInfo *li, info) {
+		delete li->def; 
+		delete li->use; 
+		delete li->livein; 
+		delete li->liveout;
+		delete li;
+	}
+
 }
 
 void
@@ -107,19 +147,17 @@ Liveness::calcLives()
  retry:
 	bool continuing = false;
 	for (int n = info.size()-1; 0 <= n; --n) {
-		TempList oldLivein = info[n]->livein;
-		TempList oldLiveout = info[n]->liveout;
+		Bitmap oldLivein = *info[n]->livein;
+		Bitmap oldLiveout = *info[n]->liveout;
 		
-		info[n]->liveout = getAllLiveinsAtSuccessors(n);
+		*info[n]->liveout = getAllLiveinsAtSuccessors(n);
 
-		//info[n]->livein = info[n]->use + (info[n]->liveout - info[n]->def);
-		TempList tmp = tempListSub(info[n]->liveout, info[n]->def);
-		std::copy(info[n]->use.begin(), info[n]->use.end(), std::back_inserter(tmp));
-		std::sort(tmp.begin(), tmp.end());
-		tmp.erase(std::unique(tmp.begin(), tmp.end()), tmp.end());
-		info[n]->livein = tmp;
+		*info[n]->livein = *info[n]->use | (*info[n]->liveout - *info[n]->def);
 		
-		continuing |= isContinuing(n, oldLivein, oldLiveout);
+		if ((*info[n]->livein != oldLivein) || 
+			(*info[n]->liveout != oldLiveout) ) {
+			continuing = true;
+		}
 	}
 	if (continuing) {
 		DBG("continue liveness calculation");
@@ -127,39 +165,23 @@ Liveness::calcLives()
 	}
 }
 
-TempList
-Liveness::tempListSub(const TempList &liveout, const TempList &def)
-{
-	TempList result;
-	result = liveout;
-	BOOST_FOREACH(const Temp *t, def) {
-		result.erase(std::remove(result.begin(), result.end(), t), result.end());
-		if(result.empty()) {
-			break;
-		}
-	}
-	return result;
-}
-
-TempList
+Bitmap
 Liveness::getAllLiveinsAtSuccessors(int n)
 {
-	TempList liveins;
+	Bitmap liveins;
 	Node *node = info[n]->node;
 	const NodeList &successors = node->succ();
 		
 	BOOST_FOREACH(Node *succ, successors) {
-		const TempList &livein = getLivein(succ);
-		std::copy(livein.begin(), livein.end(), std::back_inserter(liveins));
+		Bitmap *livein = getLivein(succ);
+		if (livein) {
+			liveins |= *livein;
+		}
 	}
-
-	std::sort(liveins.begin(), liveins.end());
-	liveins.erase(std::unique(liveins.begin(), liveins.end()), liveins.end());
-
 	return liveins;
 }
 
-const TempList &
+Bitmap *
 Liveness::getLivein(const Node *node)
 {
 	//TODO: imporove performance
@@ -171,45 +193,51 @@ Liveness::getLivein(const Node *node)
 		}
 		++it;
 	}
-	assert(0);
-	return TempList();
+	return NULL;
 }
 
-bool 
-Liveness::isContinuing(int n, const TempList &oldLivein, const TempList &oldLiveout)
+
+Bitmap 
+Liveness::tempList2bitmap(const TempList &tlist)
 {
-	const TempList &livein = info[n]->livein;
-	const TempList &liveout = info[n]->liveout;
-	//DBG("%s %d ========================", __FUNCTION__, n);
-	//DBG("livein");printTempList(livein);
-	//DBG("oldlivein");printTempList(oldLivein);
-	//DBG("liveout");printTempList(liveout);
-	//DBG("oldliveout");printTempList(oldLiveout);
-
-	if (livein.size() == oldLivein.size() &&
-		liveout.size() == oldLiveout.size()) {
-		return std::equal(livein.begin(), livein.end(), oldLivein.begin()) == false ||
-			std::equal(liveout.begin(), liveout.end(), oldLiveout.begin()) == false;
+	Bitmap bm(temps.size());
+	int idx = 0;
+	BOOST_FOREACH(Temp *t, temps) {
+		if (std::find(tlist.begin(), tlist.end(), t) != tlist.end()) {
+			bm.set(idx);
+		}
+		++idx;
 	}
-	return true;
+	return bm;
 }
+
+TempList 
+Liveness::bitmap2tempList(const Bitmap &bm)
+{
+	TempList tlist;
+	for (unsigned int i = 0; i < bm.size(); ++i) {
+		if (bm.get(i)) {
+			tlist.push_back(temps[i]);
+		}
+	}
+	return tlist;
+}
+
 
 void
 Liveness::makeInterferenceGraph()
 {
 	igraph = new InterferenceGraph();
 
-	//enumerate all temps
-	std::set<Temp*> temps;
+	//enumerate all live temps
+	Bitmap liveouts;
 	BOOST_FOREACH(LiveInfo *li, info) {
-		TempList &liveout = li->liveout; 
-		std::copy(liveout.begin(),
-				  liveout.end(),
-				  std::insert_iterator< std::set<Temp*> >(temps, temps.end()));
+		liveouts |= *li->liveout; 
 	}
+	TempList liveTemps = bitmap2tempList(liveouts);
 
 	//create nodes for temps,
-	BOOST_FOREACH(Temp *t, temps) {
+	BOOST_FOREACH(Temp *t, liveTemps) {
 		DBG("newNode %s", t->toString().c_str());
 		igraph->newNode(t);
 	}

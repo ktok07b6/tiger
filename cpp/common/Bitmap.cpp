@@ -1,6 +1,14 @@
 #include "Bitmap.h"
 #include <string.h>
 
+
+Bitmap::Bitmap()
+: maxbit (32)
+, capacity(1) 
+{
+	d.bit32 = 0;
+}
+
 Bitmap::Bitmap(unsigned int size)
 : maxbit (size)
 , capacity((maxbit-1) / 32 + 1) 

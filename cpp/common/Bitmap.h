@@ -2,16 +2,19 @@
 #define BITMAP_H
 
 #include <string>
+#include <assert.h>
 
 class Bitmap
 {
 public:
+	Bitmap();
 	Bitmap(unsigned int size);
 	Bitmap(unsigned int size, unsigned int initd);
 	Bitmap(unsigned int size, unsigned int *initd);
 	Bitmap(const Bitmap &other);
 	~Bitmap();
 
+	void setSize(unsigned int size);
 	unsigned int right();
 	void set(unsigned int index);
 	void reset(unsigned int index);
@@ -25,9 +28,13 @@ public:
 	Bitmap &operator=(const Bitmap &other);
 
 	Bitmap operator|(const Bitmap &other) const;
+	Bitmap operator-(const Bitmap &other) const;
 	Bitmap operator &(const Bitmap &other) const;
 	Bitmap operator ~() const;
 	bool operator[](unsigned int index) const;
+
+	bool operator==(const Bitmap &other) const;
+	bool operator!=(const Bitmap &other) const;
 
 	void operator|=(unsigned int index);
 	void operator-=(unsigned int index);
@@ -45,9 +52,16 @@ private:
 		unsigned int *bits;
 	} d;
 
-	const unsigned int maxbit;
-	const unsigned int capacity;
+	unsigned int maxbit;
+	unsigned int capacity;
 };
+
+inline void
+Bitmap::setSize(unsigned int size)
+{
+	//TODO:
+	maxbit = size;
+}
 
 inline unsigned int
 Bitmap::right()
@@ -110,6 +124,8 @@ Bitmap::flip()
 inline Bitmap &
 Bitmap::operator=(const Bitmap &other)
 {
+	assert(capacity == other.capacity);
+	assert(maxbit == other.maxbit);
 	if (capacity == 1) {
 		d.bit32 = other.d.bit32;
 	} else {
@@ -122,6 +138,12 @@ inline Bitmap
 Bitmap::operator|(const Bitmap &other) const
 {
 	return Bitmap(maxbit, d.bit32 | other.d.bit32);
+}
+
+inline Bitmap 
+Bitmap::operator-(const Bitmap &other) const
+{
+	return Bitmap(maxbit, d.bit32 & (~other.d.bit32));
 }
 
 inline Bitmap 
@@ -140,6 +162,18 @@ inline bool
 Bitmap::operator[](unsigned int index) const
 {
 	return get(index);
+}
+
+inline bool 
+Bitmap::operator==(const Bitmap &other) const
+{
+	return d.bit32 == other.d.bit32;
+}
+
+inline bool 
+Bitmap::operator!=(const Bitmap &other) const
+{
+	return !this->operator==(other);
 }
 
 inline void 
