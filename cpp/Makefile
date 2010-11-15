@@ -67,6 +67,7 @@ tiger: libcore.a $(OBJECTS_TIGER)
 	$(CXX) $(LDFLAGS) $(LIBS) $(OBJECTS_TIGER) -lcore -o tiger
 
 libcore.a: $(DEPS_LIBCORE) $(OBJECTS_LIBCORE)
+	-@rm libcore.a
 	$(AR) -q libcore.a $(OBJECTS_LIBCORE)
 
 parse/parser.cpp: parse/tiger.y
@@ -81,6 +82,6 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 clean:
-	-@echo -@rm obj/* $(TARGET)
+	-@echo -@rm obj/* $(TARGET) libcore.a
 	-@rm obj/* $(TARGET) 
 	-@rm parse/*.cpp

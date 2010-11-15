@@ -228,6 +228,7 @@ void codegenPhase2(assem::InstructionList &instList, Frame *frame)
 	igraph->show();
 
 	TempList regs = frame->registers().all;
+	/*
 	regalloc::Color color(*igraph, regs);
 
 	assem::InstructionList proc2;
@@ -240,6 +241,7 @@ void codegenPhase2(assem::InstructionList &instList, Frame *frame)
 		DBG("%s", s.c_str());
 		++it;
 	}
+	*/
 	
 
 }

@@ -13,6 +13,7 @@ namespace regalloc {
 
 void printTempList(const TempList &li)
 {
+	DBG("print temp list %d", li.size());
 	std::string result;
 
 	BOOST_FOREACH(Temp *t, li) {
@@ -83,6 +84,7 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 		++ii;
 	}
 #endif
+
 	makeInterferenceGraph();
 	//add interference edges
 	int i = 0;
@@ -168,7 +170,7 @@ Liveness::calcLives()
 Bitmap
 Liveness::getAllLiveinsAtSuccessors(int n)
 {
-	Bitmap liveins;
+	Bitmap liveins(temps.size());
 	Node *node = info[n]->node;
 	const NodeList &successors = node->succ();
 		
@@ -227,6 +229,7 @@ Liveness::bitmap2tempList(const Bitmap &bm)
 void
 Liveness::makeInterferenceGraph()
 {
+	DBG("%s", __FUNCTION__);
 	igraph = new InterferenceGraph();
 
 	//enumerate all live temps
@@ -236,13 +239,17 @@ Liveness::makeInterferenceGraph()
 	}
 	TempList liveTemps = bitmap2tempList(liveouts);
 
+	DBG("#");
+	printTempList(liveTemps);
+	DBG("#");
+
 	//create nodes for temps,
 	BOOST_FOREACH(Temp *t, liveTemps) {
 		DBG("newNode %s", t->toString().c_str());
 		igraph->newNode(t);
 	}
 
-	//we assign nid to each node
+	//we must assign node id to each node
 	int nid = 0;
 	const NodeList &nodes = igraph->getNodes(); 
 	BOOST_FOREACH(Node *n, nodes) {
