@@ -12,6 +12,26 @@ Graph::Graph()
 {
 }
 
+Graph::Graph(const Graph &other)
+{
+	BOOST_FOREACH(Node *n, other.nodes) {
+		n->graph = this;//replace node's parent
+		nodes.push_back(n);
+	}
+}
+
+Graph &
+Graph::operator=(const Graph &other)
+{
+	nodes.clear();
+	BOOST_FOREACH(Node *n, other.nodes) {
+		n->graph = this;//replace node's parent
+		nodes.push_back(n);
+	}
+	return *this;
+}
+
+
 const NodeList & 
 Graph::getNodes() const
 {
@@ -43,6 +63,9 @@ Graph::rmNode(Node *n)
 void 
 Graph::addEdge(Node *from, Node *to)
 {
+	VDBG("addEdge from=%s(%p) :: to=%s(%p)", 
+		from->toString().c_str(), from, 
+		to->toString().c_str(), to);
 	assert(from->graph == this);
 	assert(to->graph == this);
 	assert(from != to);

@@ -184,13 +184,16 @@ ARMFrame::badSub()
 assem::InstructionList
 ARMFrame::procEntryExit2(const assem::InstructionList &body)
 {
-	assem::InstructionList newbody = body;
-
 	TempList alive_regs;
 	alive_regs.push_back(rv());
 	std::copy(regs.calleeSaves.begin(), regs.calleeSaves.end(), std::back_inserter(alive_regs));
-	assem::OPER *sink = gcnew(assem::OPER, ("", alive_regs, TempList()));
-	newbody.push_back(sink);
+	assem::OPER *sink1 = gcnew(assem::OPER, ("", alive_regs, TempList()));
+	assem::OPER *sink2 = gcnew(assem::OPER, ("", TempList(), alive_regs));
+
+	assem::InstructionList newbody;
+	newbody.push_back(sink1);
+	std::copy(body.begin(), body.end(), std::back_inserter(newbody));
+	newbody.push_back(sink2);
 	return newbody;
 }
 

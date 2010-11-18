@@ -51,6 +51,8 @@ private:
 
 	void freezeMoves(int nid);
 	bool adj(int n1, int n2);
+
+	void show();
 	enum {
 		//TODO: Do not depend on a specific target
 		K = 16

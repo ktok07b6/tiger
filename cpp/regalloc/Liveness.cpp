@@ -25,10 +25,12 @@ void printTempList(const TempList &li)
 }
 
 void 
-Liveness::printBitmap(const Bitmap &bm)
+Liveness::printBitmap(const Bitmap &bm, const char *prefix)
 {
 	std::string result;
-
+	if (prefix) {
+		result += prefix;
+	}
 	for (unsigned int i = 0; i < bm.size(); ++i) {
 		if (bm.get(i)) {
 			result += temps[i]->toString();
@@ -53,7 +55,7 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 	temps.erase(std::unique(temps.begin(), temps.end()), temps.end());
 
 	BOOST_FOREACH(Node *n, flowNodes) {
-		LiveInfo *li = new LiveInfo();//TODO: delete
+		LiveInfo *li = new LiveInfo();
 		li->def = new Bitmap(temps.size());
 		li->use = new Bitmap(temps.size());
 		li->livein = new Bitmap(temps.size());
@@ -72,15 +74,11 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 	BOOST_FOREACH(Node *n, flowNodes) {
 		const AsmFlowGraph::InstNode *inst = (AsmFlowGraph::InstNode*)n;
 		DBG("============================= %d", ii);
-		DBG("%s", inst->getInst()->toString().c_str());
-		DBG("def:");
-		printBitmap(*info[ii]->def);
-		DBG("use:");
-		printBitmap(*info[ii]->use);
-		DBG("livein:");
-		printBitmap(*info[ii]->livein);
-		DBG("liveout:");
-		printBitmap(*info[ii]->liveout);
+		DBG("instruction(%s)", inst->getInst()->toString().c_str());
+		printBitmap(*info[ii]->def,     "def    :");
+		printBitmap(*info[ii]->use,     "use    :");
+		printBitmap(*info[ii]->livein,  "livein :");
+		printBitmap(*info[ii]->liveout, "liveout:");
 		++ii;
 	}
 #endif
@@ -245,7 +243,6 @@ Liveness::makeInterferenceGraph()
 
 	//create nodes for temps,
 	BOOST_FOREACH(Temp *t, liveTemps) {
-		DBG("newNode %s", t->toString().c_str());
 		igraph->newNode(t);
 	}
 
@@ -254,6 +251,7 @@ Liveness::makeInterferenceGraph()
 	const NodeList &nodes = igraph->getNodes(); 
 	BOOST_FOREACH(Node *n, nodes) {
 		n->setTag(nid);
+		DBG("%s: nid = %d", n->toString().c_str(), nid);
 		++nid;
 	}
 }

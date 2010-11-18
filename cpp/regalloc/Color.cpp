@@ -1,9 +1,11 @@
+#define ENABLE_FUNCLOG
 #include <boost/foreach.hpp>
 #include "Color.h"
 #include "InterferenceGraph.h"
 #include "tiger.h"
 #include <algorithm>
 
+#define ENABLE_COALESCE
 using namespace graph;
 
 namespace regalloc {
@@ -32,23 +34,33 @@ Color::coloring()
 {
 	build();
 	makeWorkList();
+	int i = 0;
 	do {
+		DBG("===== coloring iteration %d =====", i);
+		++i;
+
 		if (!simplifyWorkList.none()) {
 			simplify();
 		}
+#ifdef ENABLE_COALESCE
 		else if (!workListMoves.empty()) {
 			coalesce();
 		}
 		else if (!freezeWorkList.none()) {
 			freeze();
 		}
+#endif
 		else if (!spillWorkList.none()) {
 			selectSpill();
 		}
+		show();
 	} while (!simplifyWorkList.none() ||
+#ifdef ENABLE_COALESCE
 			 !workListMoves.empty() ||
 			 !freezeWorkList.none() ||
-			 !spillWorkList.none());
+#endif
+			 !spillWorkList.none()
+			 );
 
 	assignColors();
 
@@ -60,11 +72,12 @@ Color::coloring()
 void 
 Color::build()
 {
+	FUNCLOG;
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
 		int nid = igraph.node2nid(n);
 		degreeMap[nid] = n->degree();
-		aliasMap[nid] = -1;
+		aliasMap[nid] = nid;
 		color[nid] = -1;
 	}
 	//precolor
@@ -101,15 +114,18 @@ Color::build()
 void 
 Color::makeWorkList()
 {
+	FUNCLOG;
 	int i = 0;
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
 		if (K <= n->degree()) {
 			spillWorkList.set(i);
 		}
+#ifdef ENABLE_COALESCE
 		else if (isMoveRelated(i)) {
 			freezeWorkList.set(i);
 		}
+#endif
 		else {
 			simplifyWorkList.set(i);
 		} 
@@ -120,10 +136,15 @@ Color::makeWorkList()
 void 
 Color::simplify()
 {
+	FUNCLOG;
 	assert(!simplifyWorkList.none());
 
 	int nid = simplifyWorkList.right();
-	selectStack.push_back(igraph.nid2node(nid));
+	simplifyWorkList.reset(nid);
+
+	Node *n = igraph.nid2node(nid);
+	DBG("selectStack.push %d(%p)", nid, n);
+	selectStack.push_back(n);
 
 	Bitmap adj = adjacent(nid);
 	for (unsigned int i = 0; i < adj.size(); ++i) {
@@ -211,7 +232,8 @@ Color::isConservative(const Bitmap &nodes)
 
 void
 Color::coalesce() 
-{ 
+{
+	FUNCLOG; 
 	assert(!workListMoves.empty());
 	
 	NidPair mv = workListMoves.back();
@@ -249,7 +271,9 @@ Color::coalesce()
 		if ((precolored.get(u) && ok) || 
 			(!precolored.get(u) && isConservative(adju | adjv))) {
 			coalescedMoves.push_back(mv);
+			//TODO: 合併済みノードの合併
 			combine(u, v);
+			DBG("aliasMap %d=>%d", v, aliasMap[v]);
 			addWorkList(u);
 		} else {
 			activeMoves.push_back(mv);
@@ -260,6 +284,7 @@ Color::coalesce()
 void 
 Color::combine(int nid1, int nid2)
 {
+	DBG("combine %d %d", nid1, nid2);
 	if (freezeWorkList.get(nid2)) {
 		freezeWorkList.reset(nid2);
 	} else {
@@ -278,8 +303,10 @@ Color::combine(int nid1, int nid2)
 		if (!adj2.get(a)) {
 			continue;
 		}
-
-		igraph.addEdge(igraph.nid2node(a), igraph.nid2node(nid1));
+		DBG("%d adjacent = %d", nid2, a);
+		Node *n1 = igraph.nid2node(a);
+		Node *n2 = igraph.nid2node(nid1);
+		igraph.addEdge(n1, n2);
 		decrementDegree(a);
 	}
 	if (degreeMap[nid1] >= K && freezeWorkList.get(nid1)) {
@@ -292,7 +319,7 @@ int
 Color::getAlias(int nid)
 {
 	if (coalescedNodes.get(nid)) {
-		getAlias(aliasMap[nid]);
+		return getAlias(aliasMap[nid]);
 	} else {
 		return nid;
 	}
@@ -301,6 +328,7 @@ Color::getAlias(int nid)
 void
 Color::freeze()
 {
+	FUNCLOG;
 	int nid = freezeWorkList.right();
 	freezeWorkList.reset(nid);
 	simplifyWorkList.set(nid);
@@ -337,6 +365,7 @@ Color::freezeMoves(int nid)
 void
 Color::selectSpill()
 {
+	FUNCLOG;
 	//FIXME:
 	int nid = spillWorkList.right();
 	spillWorkList.reset(nid);
@@ -347,6 +376,7 @@ Color::selectSpill()
 void
 Color::assignColors() 
 { 
+	FUNCLOG;
 	while (!selectStack.empty()) {
 		Node *n = selectStack.pop_back();
 		Bitmap okColors(K);
@@ -449,6 +479,24 @@ Color::adj(int nid1, int nid2)
 	Node *n1 = igraph.nid2node(nid1);
 	Node *n2 = igraph.nid2node(nid2);
 	return n1->adj(n2);
+}
+
+void
+Color::show()
+{
+	DBG("===== show begin =====");
+	int maxid = igraph.getNodes().size();
+	for (int i = 0; i < maxid; ++i) {
+		int ai = getAlias(i);
+		Node *n = igraph.nid2node(i);
+		Node *an = igraph.nid2node(ai);
+		DBG("alias: %d(%s) => %d(%s)", 
+			i, n->toString().c_str(),
+			ai, an->toString().c_str());
+	}
+	Bitmap stk = nodes2bitmap(selectStack);
+	DBG("selectStack: %s", stk.toString().c_str());
+	DBG("===== show end =====");
 }
 
 }//namespace regalloc

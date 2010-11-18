@@ -32,7 +32,7 @@ private:
 	TempList bitmap2tempList(const Bitmap &bm);
 
 	void makeInterferenceGraph();
-	void printBitmap(const Bitmap &bm);
+	void printBitmap(const Bitmap &bm, const char *prefix = NULL);
 	struct LiveInfo
 	{
 		Bitmap *def;
@@ -45,6 +45,8 @@ private:
 	LiveInfoVec info;
 	TempList temps;
 	graph::InterferenceGraph *igraph;
+
+	friend class LivenessTest;
 };
 }//namespace regalloc
 
