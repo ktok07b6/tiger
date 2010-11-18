@@ -44,6 +44,9 @@ public:
 	void operator-=(const Bitmap &other);
 	void operator&=(const Bitmap &other);
 
+	operator const char *() {
+		return this->toString().c_str();
+	}
 	std::string toString() const;
 
 private:

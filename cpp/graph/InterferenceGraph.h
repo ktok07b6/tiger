@@ -22,7 +22,7 @@ public:
 	InterferenceGraph();
 	void newNode(Temp *t);
 	Node *temp2node(Temp *t);
-	const TempList &node2temp(Node *n);
+	Temp *node2temp(Node *n);
 	int node2nid(Node *n);
 	Node *nid2node(int nid);
 
@@ -37,16 +37,13 @@ public:
 	class TempNode : public Node
 	{
 	public:
-	TempNode(InterferenceGraph *g, Temp *t) : Node(g) {
-			addTemp(t);
+	TempNode(InterferenceGraph *g, Temp *t) : Node(g), temp(t) 
+		{
 		}
-		const TempList &getTemp() const { return temps; }
-		void addTemp(Temp *t) {
-			temps.push_back(t);
-		}
+		Temp *getTemp() const { return temp; }
 	virtual std::string toString() const;
 	private:
-		TempList temps;
+		Temp *temp;
 	};
 	
 	std::map<Temp *, TempNode *> temp2nodeMap;

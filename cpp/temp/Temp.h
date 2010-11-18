@@ -18,6 +18,10 @@ class Temp : public Object
 	}
 
 	~Temp() {FUNCLOG;}
+
+	operator const char *() {
+		return this->toString().c_str();
+	}
 	std::string toString() const {
 		std::string s;
 		if (specialName.empty()) {

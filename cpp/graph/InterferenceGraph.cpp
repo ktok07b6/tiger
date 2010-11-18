@@ -32,7 +32,7 @@ InterferenceGraph::temp2node(Temp *t)
 	return NULL;
 }
 
-const TempList &
+Temp *
 InterferenceGraph::node2temp(Node *n)
 {
 	assert(n);
@@ -49,7 +49,7 @@ InterferenceGraph::node2nid(Node *n)
 Node *
 InterferenceGraph::nid2node(int nid)
 {
-	assert(0 <= nid && nid < nodes.size());
+	assert(0 <= nid && nid < (int)nodes.size());
 	Node *n = nodes.at(nid);
 	assert(n->getTag() == nid);
 	return n;
@@ -89,11 +89,7 @@ InterferenceGraph::show() const
 std::string 
 InterferenceGraph::TempNode::toString() const
 {
-	std::string str;
-	BOOST_FOREACH(Temp *t, temps) {
-		str += t->toString() + " ";
-	}
-	return str;
+	return temp->toString();
 }
 
 }//namespace graph

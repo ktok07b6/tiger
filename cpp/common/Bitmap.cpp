@@ -11,7 +11,7 @@ Bitmap::Bitmap()
 
 Bitmap::Bitmap(unsigned int size)
 : maxbit (size)
-, capacity((maxbit-1) / 32 + 1) 
+, capacity(size==0 ? 1 : ((maxbit-1) / 32 + 1)) 
 {
 	if (capacity > 1) {
 		d.bits = new unsigned int [capacity];
@@ -30,7 +30,7 @@ Bitmap::Bitmap(unsigned int size, unsigned int initd)
 
 Bitmap::Bitmap(unsigned int size, unsigned int *initd)
 : maxbit (size)
-, capacity((maxbit-1) / 32 + 1) 
+, capacity(size==0 ? 1 : ((maxbit-1) / 32 + 1))
 {
 	if (capacity > 1) {
 		d.bits = new unsigned int [capacity];

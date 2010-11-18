@@ -1,4 +1,4 @@
-#define ENABLE_FUNCLOG
+//#define ENABLE_FUNCLOG
 #include <boost/foreach.hpp>
 #include "Color.h"
 #include "InterferenceGraph.h"
@@ -34,6 +34,7 @@ Color::coloring()
 {
 	build();
 	makeWorkList();
+	show();
 	int i = 0;
 	do {
 		DBG("===== coloring iteration %d =====", i);
@@ -72,7 +73,6 @@ Color::coloring()
 void 
 Color::build()
 {
-	FUNCLOG;
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
 		int nid = igraph.node2nid(n);
@@ -114,7 +114,6 @@ Color::build()
 void 
 Color::makeWorkList()
 {
-	FUNCLOG;
 	int i = 0;
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
@@ -136,14 +135,13 @@ Color::makeWorkList()
 void 
 Color::simplify()
 {
-	FUNCLOG;
 	assert(!simplifyWorkList.none());
 
 	int nid = simplifyWorkList.right();
 	simplifyWorkList.reset(nid);
 
 	Node *n = igraph.nid2node(nid);
-	DBG("selectStack.push %d(%p)", nid, n);
+	DBG("selectStack.push %d(%s)", nid, (const char*)(*n));
 	selectStack.push_back(n);
 
 	Bitmap adj = adjacent(nid);
@@ -233,7 +231,6 @@ Color::isConservative(const Bitmap &nodes)
 void
 Color::coalesce() 
 {
-	FUNCLOG; 
 	assert(!workListMoves.empty());
 	
 	NidPair mv = workListMoves.back();
@@ -273,7 +270,6 @@ Color::coalesce()
 			coalescedMoves.push_back(mv);
 			//TODO: 合併済みノードの合併
 			combine(u, v);
-			DBG("aliasMap %d=>%d", v, aliasMap[v]);
 			addWorkList(u);
 		} else {
 			activeMoves.push_back(mv);
@@ -284,7 +280,10 @@ Color::coalesce()
 void 
 Color::combine(int nid1, int nid2)
 {
-	DBG("combine %d %d", nid1, nid2);
+	DBG("combine %d(%s) => %d(%s)", 
+		nid2, igraph.nid2node(nid2)->toString().c_str(),
+		nid1, igraph.nid2node(nid1)->toString().c_str());
+
 	if (freezeWorkList.get(nid2)) {
 		freezeWorkList.reset(nid2);
 	} else {
@@ -303,7 +302,6 @@ Color::combine(int nid1, int nid2)
 		if (!adj2.get(a)) {
 			continue;
 		}
-		DBG("%d adjacent = %d", nid2, a);
 		Node *n1 = igraph.nid2node(a);
 		Node *n2 = igraph.nid2node(nid1);
 		igraph.addEdge(n1, n2);
@@ -328,8 +326,8 @@ Color::getAlias(int nid)
 void
 Color::freeze()
 {
-	FUNCLOG;
 	int nid = freezeWorkList.right();
+	DBG("freeze %d(%s)", nid, (const char*)(*igraph.nid2node(nid)));
 	freezeWorkList.reset(nid);
 	simplifyWorkList.set(nid);
 	freezeMoves(nid);
@@ -495,8 +493,13 @@ Color::show()
 			ai, an->toString().c_str());
 	}
 	Bitmap stk = nodes2bitmap(selectStack);
-	DBG("selectStack: %s", stk.toString().c_str());
-	DBG("===== show end =====");
+	DBG("simplifyWorkList: %s", (const char*)simplifyWorkList);
+	DBG("freezeWorkList  : %s", (const char*)freezeWorkList);
+	DBG("spillWorkList   : %s", (const char*)spillWorkList);
+	DBG("spilledNodes    : %s", (const char*)spilledNodes);
+	DBG("coalescedNodes  : %s", (const char*)coalescedNodes);
+	DBG("selectStack     : %s", (const char*)stk);
+	DBG("===== show end =====\n");
 }
 
 }//namespace regalloc

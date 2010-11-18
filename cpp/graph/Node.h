@@ -4,6 +4,7 @@
 #include "Object.h"
 #include <string>
 #include "Vector.h"
+#include "debug.h"
 
 namespace graph {
 
@@ -30,6 +31,10 @@ public:
 
 	void setTag(int tag);
 	int getTag() const;
+
+	operator const char*() {
+		return toString().c_str();
+	}
 	virtual std::string toString() const;
 
 private:
