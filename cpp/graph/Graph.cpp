@@ -41,6 +41,7 @@ Graph::getNodes() const
 void
 Graph::addNode(Node *n)
 {
+	VDBG("addNode %s", (const char*)*n);
 	assert(n->graph == this);
 	nodes.push_back(n);
 }

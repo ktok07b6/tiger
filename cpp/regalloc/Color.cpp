@@ -101,6 +101,7 @@ Color::build()
 		int nidx = igraph.node2nid(x);
 		int nidy = igraph.node2nid(y);
 		NidPair mv = std::make_pair(nidx, nidy);
+		DBG("workListMoves.push %d:%d", nidx, nidy);
 		workListMoves.push_back(mv);
 		Moves &movesx = moveList[nidx];
 		movesx.push_back(mv);
@@ -184,11 +185,13 @@ Color::enableMoves(const Bitmap &nodes)
 void
 Color::enableMoves(int nid)
 {
+	FUNCLOG;
 	Moves moves = nodeMoves(nid);
 	BOOST_FOREACH(NidPair mv, moves) {
 		Moves::iterator it = std::find(activeMoves.begin(), activeMoves.end(), mv);
 		if (it != activeMoves.end()) {
 			activeMoves.erase(it);
+			DBG("workListMoves.push %d:%d", it->first, it->second);
 			workListMoves.push_back(*it);
 		}
 	}
@@ -233,9 +236,10 @@ Color::coalesce()
 {
 	assert(!workListMoves.empty());
 	
+	DBG("workListMoves.size() = %u", workListMoves.size());
 	NidPair mv = workListMoves.back();
 	workListMoves.pop_back();
-	workListMoves.erase(workListMoves.end()-1);
+	//workListMoves.erase(workListMoves.end()-1);
 
 	int x = getAlias(mv.first);
 	int y = getAlias(mv.second);
@@ -451,6 +455,9 @@ Color::tempMap(Temp *temp)
 {
 	//TODO: Do not depend on a specific target
 	Node *n = igraph.temp2node(temp);
+	if (!n) {
+		return "";
+	}
 	int nid = igraph.node2nid(n);
 	int regnum = color[nid];
 	if (regnum == -1) {

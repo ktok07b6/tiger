@@ -83,10 +83,6 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	regs.calleeSaves.push_back(regs.all[5]);
 	regs.calleeSaves.push_back(regs.all[6]);
 	regs.calleeSaves.push_back(regs.all[7]);
-	regs.calleeSaves.push_back(regs.all[8]);
-	regs.calleeSaves.push_back(regs.all[9]);
-	regs.calleeSaves.push_back(regs.all[10]);
-	regs.calleeSaves.push_back(regs.all[11]);//fp
 }
 
 ARMFrame::~ARMFrame()
@@ -191,9 +187,22 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 	assem::OPER *sink2 = gcnew(assem::OPER, ("", TempList(), alive_regs));
 
 	assem::InstructionList newbody;
+
 	newbody.push_back(sink1);
 	std::copy(body.begin(), body.end(), std::back_inserter(newbody));
+
+	//insert end label
+	assem::Instruction *jmp_to_end_label = body.back();
+	LabelList ll = jmp_to_end_label->jumps();
+	assert(ll.size() == 1);
+	Label *end_label = ll.front();
+
+	std::string assem = format("%s:", end_label->toString().c_str());
+	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, end_label));
+	newbody.push_back(end_lab);
+
 	newbody.push_back(sink2);
+
 	return newbody;
 }
 
@@ -251,19 +260,8 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 
 	//body//////////////
 	std::copy(body.begin(), body.end(), std::back_inserter(proc));
-	
-	assem::InstructionList::const_iterator it2 = body.begin();
-	std::advance(it2, body.size()-2);
-	assem::Instruction *jmp_to_end_label = *it2;
-	LabelList ll = jmp_to_end_label->jumps();
-	assert(!ll.empty());
-	Label *end_label = ll.front();
 
 	//epilogue//////////
-	assem = format("%s:", end_label->toString().c_str());
-	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, end_label));
-	proc.push_back(end_lab);
-
 	assem = "add sp, fp, #4";
 	assem::OPER *rewind_sp = gcnew(assem::OPER, (assem, TempList(), TempList()));
 	proc.push_back(rewind_sp);
