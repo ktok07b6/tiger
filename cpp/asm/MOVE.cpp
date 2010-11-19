@@ -2,6 +2,18 @@
 
 namespace assem {
 
+MOVE::MOVE(const std::string &opcode, 
+		   const std::string &operands,
+		   Temp *dst, 
+		   Temp *src,
+		   const std::string &comment,
+		   int sourceLine)
+	: Instruction(opcode, operands, comment, sourceLine)
+	, dst(dst)
+	, src(src)
+{
+}
+
 MOVE::MOVE(const std::string &assem, Temp *dst, Temp *src)
 	: Instruction(assem)
 	, dst(dst)

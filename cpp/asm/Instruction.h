@@ -14,7 +14,10 @@ namespace assem {
 class Instruction : public Object
 {
  public:
-	Instruction(const std::string &assem);
+	Instruction(const std::string &opcode, 
+				const std::string &operands = "",
+				const std::string &comment = "",
+				int sourceLine = -1);
 	virtual ~Instruction() {}
 
 	virtual TempList use() = 0;
@@ -25,10 +28,20 @@ class Instruction : public Object
 	virtual bool isLABEL() {return false;}
 	std::string format(TempMap *m);
 	std::string toString() {
-		return assem;
+		std::string result = opcode + "\t" + operands;
+		if (!comment.empty()) {
+			result += "\t" + comment;
+		}
+		return result;
+	}
+	const std::string &getOpcode() const {
+		return opcode;
 	}
  protected:
-	std::string assem;
+	std::string opcode;
+	std::string operands;
+	std::string comment;
+	int sourceLine;
 };
 
 typedef std::vector<Instruction*> InstructionList;
@@ -37,12 +50,19 @@ typedef std::vector<Instruction*> InstructionList;
 class OPER : public Instruction
 {
  public:
+	OPER(const std::string &opcode, 
+		 const std::string &operands,
+		 const TempList &dst, 
+		 const TempList &src,
+		 const std::string &comment = "",
+		 int sourceLine = -1);
+
 	OPER(const std::string &assem, const TempList &dst, const TempList &src);
 	OPER(const std::string &assem, const TempList &dst, const TempList &src, const LabelList &jmps);
-
 	virtual TempList use();
 	virtual TempList def();
 	virtual LabelList jumps();
+	void setJumpTargets(const LabelList &jmps);
 private:
 	TempList dst;
 	TempList src;
@@ -52,6 +72,13 @@ private:
 class MOVE : public Instruction
 {
  public:
+	MOVE(const std::string &opcode, 
+		 const std::string &operands,
+		 Temp *dst, 
+		 Temp *src,
+		 const std::string &comment = "",
+		 int sourceLine = -1);
+
 	MOVE(const std::string &assem, Temp *dst, Temp *src);
 
 	virtual TempList use();

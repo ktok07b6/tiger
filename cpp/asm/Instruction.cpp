@@ -5,20 +5,28 @@ using namespace std;
 
 namespace assem {
 
-Instruction::Instruction(const string &assem)
-	: assem(assem)
+Instruction::Instruction(const std::string &opcode, 
+						 const std::string &operands,
+						 const std::string &comment,
+						 int sourceLine)
+	: opcode(opcode)
+	, operands(operands)
+	, comment(comment)
+	, sourceLine(sourceLine)
 {
 }
+
 
 string 
 Instruction::format(TempMap *m)
 {
 	string result;
-	string::iterator it = assem.begin();
+	result = opcode + "\t";
+	string::iterator it = operands.begin();
 	TempList uses = use();
 	TempList defs = def();
 	LabelList jmps = jumps();
-	while (it != assem.end()) {
+	while (it != operands.end()) {
 		char c = *it;
 		if (c == '$') {
 			//assert(distance(it, assem.end() > 2));
@@ -51,6 +59,9 @@ Instruction::format(TempMap *m)
 	}
 	//DBG("                          old assem = %s", assem.c_str());
 	//DBG("new assem = %s", result.c_str());
+	if (!comment.empty()) {
+		result += "\t# " + comment;
+	}
 	return result;
 }
 
