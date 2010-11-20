@@ -102,7 +102,7 @@ Bitmap::clear()
 inline bool 
 Bitmap::get(unsigned int index) const
 {
-	return d.bit32 & (1<<index);
+	return (d.bit32 & (1<<index)) != 0;
 }
 
 inline bool 

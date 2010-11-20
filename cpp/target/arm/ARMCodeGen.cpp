@@ -45,7 +45,6 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 	tree::BINOP *binop;
 	tree::CONST *konst;
 	tree::TEMP *temp;
-	tree::TEMP *temp2;
 
 	if (_M1(MEM_T, mem, _M0(BINOP_T, binop)) == dst) {
 		if (binop->op == tree::BINOP::oPLUS) {

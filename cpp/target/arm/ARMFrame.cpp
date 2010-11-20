@@ -2,6 +2,7 @@
 #include "HeapManager.h"
 #include "Instruction.h"
 #include "ARMCodeGen.h"
+#include "tiger.h"
 #include <iterator>
 
 /*
@@ -62,7 +63,7 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	std::vector<int>::const_iterator it;
 	it = f.begin();
 	while (it != f.end()) {
-		bool escape = (*it);
+		int escape = (*it);
 		if (escape) {
 			formals.push_back(allocLocal(true));
 		} else {

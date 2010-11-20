@@ -4,33 +4,19 @@
 #include "Object.h"
 #include <string>
 #include <vector>
-#include "debug.h"
-#include "tiger.h"
 
 class Label : public Object
 {
- public:
-	Label()
-		:name(){
-		name = format("L%d", count++);
-	}
- Label(const std::string &name)
-		: name(name) {
-	}
-
-	~Label() {FUNCLOG;}
+public:
+	Label();
+	Label(const std::string &name);
+	~Label();
 	const std::string &toString() const;
 
- private:
+private:
 	std::string name;
 	static int count;
 };
-
-inline const std::string & 
-Label::toString() const
-{
-	return name;
-}
 
 typedef std::vector<Label*> LabelList;
 
