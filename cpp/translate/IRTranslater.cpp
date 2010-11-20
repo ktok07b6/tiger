@@ -694,11 +694,16 @@ IRTranslater::visit(FunDec *dec)
 	while (it != dec->params->end()) {
 		TypeField *f = *it;
 		Level::Access *accArg = *it2;
-		Level::Access *accTmp = currentLevel->allocLocal(false);
-		tree::Exp *arg = accArg->simpleVar(currentLevel);
-		tree::Exp *tmp = accTmp->simpleVar(currentLevel);
-		f->symInfo->access = accTmp;
-		sm.add(_MOVE(tmp, arg));
+		if (!f->escape) {
+			Level::Access *accTmp = currentLevel->allocLocal(false);
+			f->symInfo->access = accTmp;
+
+			tree::Exp *arg = accArg->simpleVar(currentLevel);
+			tree::Exp *tmp = accTmp->simpleVar(currentLevel);			
+			sm.add(_MOVE(tmp, arg));
+		} else {
+			f->symInfo->access = accArg;
+		}
 		++it;
 		++it2;
 	}
