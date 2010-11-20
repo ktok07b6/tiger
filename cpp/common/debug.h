@@ -41,38 +41,38 @@ inline void __DBG(const char *format, ...)
 #define LOG_MASK (ERROR_ON | WARN_ON | INFO_ON | DEBUG_ON)
 #endif
 
-#define _DBG(use_timestamps, fmt, args...)		\
+#define _DBG(use_timestamps, fmt, ...)		\
 	do {										\
-		__DBG(fmt "\n", ##args);				\
+		__DBG(fmt "\n", ##__VA_ARGS__);				\
 	} while (0)
 
-#define FATAL(fmt, args...) __FATAL(LOG_TAG fmt "\n", ##args)
+#define FATAL(fmt, ...) __FATAL(LOG_TAG fmt "\n", ##__VA_ARGS__)
 
 #ifdef DEBUG
 
 #ifdef DEBUG_LONG_FORMAT
-#define _LOG(use_timestamps, level, prefix, file, line, func, fmt, args...) \
+#define _LOG(use_timestamps, level, prefix, file, line, func, fmt, ...) \
 	if (LOG_MASK & level) {												\
-		_DBG(use_timestamps, LOG_TAG prefix "%s:%d(%s): " fmt, file, line, func, ##args); \
+		_DBG(use_timestamps, LOG_TAG prefix "%s:%d(%s): " fmt, file, line, func, ##__VA_ARGS__); \
 	}
 #else
-#define _LOG(use_timestamps, level, prefix, file, line, func, fmt, args...) \
+#define _LOG(use_timestamps, level, prefix, file, line, func, fmt, ...) \
 	if (LOG_MASK & level) {												\
-		_DBG(use_timestamps, LOG_TAG prefix fmt, ##args);			\
+		_DBG(use_timestamps, LOG_TAG prefix fmt, ##__VA_ARGS__);			\
 	}
 #endif
 
 #else
-#define _LOG(level, fmt, args...)
+#define _LOG(level, fmt, ...)
 #endif //DEBUG
 
-#define ERROR(fmt, args...) _LOG(USE_TIMESTAMPS, 0x1, "ERR: ", __FILE__, __LINE__, __func__, fmt, ##args)
-#define WARN(fmt, args...) _LOG(USE_TIMESTAMPS, 0x2, "WRN: ", __FILE__, __LINE__, __func__, fmt, ##args)
-#define INFO(fmt, args...) _LOG(USE_TIMESTAMPS, 0x4, "INF: ", __FILE__, __LINE__, __func__, fmt, ##args)
-#define DBG(fmt, args...) _LOG(USE_TIMESTAMPS, 0x8, "DBG: ", __FILE__, __LINE__, __func__, fmt, ##args)
-#define VDBG(fmt, args...) _LOG(USE_TIMESTAMPS, 0x10, "VDBG: ", __FILE__, __LINE__, __func__, fmt, ##args)
-#define PARSER_DBG(fmt, args...) _LOG(USE_TIMESTAMPS, 0x20, "DBG: ", __FILE__, __LINE__, __func__, fmt, ##args)
-#define LOG(level, fmt, args...) _LOG(USE_TIMESTAMPS, level, "", __FILE__, __LINE__, __func__, fmt, ##args)
+#define ERROR(fmt, ...) _LOG(USE_TIMESTAMPS, 0x1, "ERR: ", __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define WARN(fmt, ...) _LOG(USE_TIMESTAMPS, 0x2, "WRN: ", __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define INFO(fmt, ...) _LOG(USE_TIMESTAMPS, 0x4, "INF: ", __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define DBG(fmt, ...) _LOG(USE_TIMESTAMPS, 0x8, "DBG: ", __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define VDBG(fmt, ...) _LOG(USE_TIMESTAMPS, 0x10, "VDBG: ", __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define PARSER_DBG(fmt, ...) _LOG(USE_TIMESTAMPS, 0x20, "DBG: ", __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define LOG(level, fmt, ...) _LOG(USE_TIMESTAMPS, level, "", __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
 
 
 struct Funclog

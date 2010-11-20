@@ -2,6 +2,7 @@
 #include "HeapManager.h"
 #include "Instruction.h"
 #include "ARMCodeGen.h"
+#include <iterator>
 
 /*
   ::registers::

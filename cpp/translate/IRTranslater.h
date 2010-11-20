@@ -10,7 +10,7 @@
 
 class Frame;
 class Level;
-class Symbol;
+struct Symbol;
 
 struct IRTranslater : AbsynVisitor
 {

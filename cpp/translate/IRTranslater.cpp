@@ -1,4 +1,4 @@
-#include <cassert>
+﻿#include <cassert>
 #include "IRTranslater.h"
 #include "Absyn.h"
 #include "Level.h"
@@ -693,9 +693,12 @@ IRTranslater::visit(FunDec *dec)
 	it2++;//skip static chain
 	while (it != dec->params->end()) {
 		TypeField *f = *it;
-		f->symInfo->access = *it2;
-		//f->accept(this);
-		//texp ? sm.add(texp->unNx()) : (void)(0);
+		Level::Access *accArg = *it2;
+		Level::Access *accTmp = currentLevel->allocLocal(false);
+		tree::Exp *arg = accArg->simpleVar(currentLevel);
+		tree::Exp *tmp = accTmp->simpleVar(currentLevel);
+		f->symInfo->access = accTmp;
+		sm.add(_MOVE(tmp, arg));
 		++it;
 		++it2;
 	}

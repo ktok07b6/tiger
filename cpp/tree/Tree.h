@@ -8,7 +8,7 @@
 #include "HeapManager.h"
 #include "debug.h"
 #include "P2V.h"
-#include "TreeList.h"
+#include "List.h"
 
 namespace tree {
 
@@ -109,8 +109,8 @@ inline bool Tree::isSEQ_T()
 
 class Exp;
 class Stm;
-typedef TreeList<Exp> ExpList;
-typedef TreeList<Stm> StmList;
+typedef List<Exp> ExpList;
+typedef List<Stm> StmList;
 
 class Exp : public Tree 
 {

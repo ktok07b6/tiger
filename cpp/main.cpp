@@ -1,6 +1,6 @@
 #include <string.h>
 #include <errno.h>
-
+#include <iterator>
 #include "Absyn.h"
 #include "parser.hpp"
 #include "AbsynPrinter.h"
@@ -87,8 +87,8 @@ bool typeCheckPhase()
 
 	Symbol *ints = Symbol::symbol("int");
 	Symbol *strs = Symbol::symbol("string");
-	typeTable.put(ints, new class IntT());
-	typeTable.put(strs, new class StrT());
+	typeTable.put(ints, new struct IntT());
+	typeTable.put(strs, new struct StrT());
 
 	//-----------------------
 	bool ok = typeCheck();
