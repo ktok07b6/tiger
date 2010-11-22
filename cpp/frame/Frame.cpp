@@ -1,15 +1,14 @@
 #include "Frame.h"
-#include "tiger.h"
 
 Frame::Frame()
-	: name(NULL), endLabel(NULL)
+	: name(NULL)
+	, endFuncLabel(NULL)
 {
-	endLabel = gcnew(Label, (END_FUNCTION_LABEL_NAME));
 }
 
 Label *
-Frame::getEndLabel()
+Frame::getEndFuncLabel()
 {
-	return endLabel;
+	return endFuncLabel;
 }
 

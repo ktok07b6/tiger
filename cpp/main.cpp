@@ -121,7 +121,7 @@ void printSymbols()
 void translatePhase(FragmentList &fragments)
 {
 	std::vector<int> formals;
-	Frame *frame = Frame::newFrame(NULL, formals);
+	Frame *frame = Frame::newFrame(Symbol::symbol(ENTRY_POINT_LABEL_NAME), formals);
 	IRTranslater translater(frame);
 	absyn->accept(&translater);
 	fragments = translater.getFragments();
@@ -142,9 +142,9 @@ void translatePhase(FragmentList &fragments)
 #endif
 }
 
-void codegenPhase2(assem::InstructionList &instList, Frame *frame);
+void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::string *out);
 
-void codegenPhase(const FragmentList &frags)
+void codegenPhase(const FragmentList &frags, std::string *out)
 {
 	printSource();
 
@@ -165,7 +165,7 @@ void codegenPhase(const FragmentList &frags)
 		
 #endif
 			Frame *frame = proc->getFrame();
-			BasicBlocks bb(stms, frame->getEndLabel());
+			BasicBlocks bb(stms, frame->getEndFuncLabel());
 #if 0
 			DBG("Basic Blocks=========================");
 			std::list< tree::StmList >::const_iterator i1 = bb.blocks.begin();
@@ -197,17 +197,19 @@ void codegenPhase(const FragmentList &frags)
 				std::copy(ilist->begin(), ilist->end(), std::back_inserter(instList));
 				++it;
 			}
-			codegenPhase2(instList, frame);
+			codegenPhase2(instList, frame, out);
 		} else {
 			assert(frag->isData());
 			DataFragment *data = (DataFragment*)frag;
+			*out += data->toString();
+			*out += "\n";
 			DBG("%d", data->toString().c_str());
 		}
 		++it;
 	}
 }
 
-void codegenPhase2(assem::InstructionList &instList, Frame *frame)
+void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::string *out)
 {
 	assem::InstructionList proc;
 	proc = frame->procEntryExit2(instList);
@@ -234,17 +236,17 @@ void codegenPhase2(assem::InstructionList &instList, Frame *frame)
 
 	assem::InstructionList proc2;
 	proc2 = frame->procEntryExit3(proc);
-	
 	it = proc2.begin();
 	while (it != proc2.end()) {
 		assem::Instruction *inst = *it;
 		std::string s = inst->format(&color);
-		DBG("%s", s.c_str());
+		if (!s.empty()) {
+			*out += s;
+			*out += "\n";
+		}
 		++it;
 	}
-	
-	
-
+	*out += "\n\n";
 }
 
 
@@ -276,7 +278,9 @@ int main(int argc, char **argv)
 	FragmentList frags;
 	translatePhase(frags);
 
-	codegenPhase(frags);
+	std::string out;
+	codegenPhase(frags, &out);
+	DBG("\n%s", out.c_str());
 
 	//HeapManager::instance()->dump();
 	HeapManager::instance()->clean();

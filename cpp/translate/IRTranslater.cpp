@@ -815,6 +815,9 @@ IRTranslater::getExp()
 const FragmentList &
 IRTranslater::getFragments()
 {
+	tree::Stm *stm = texp->unNx();
+	tree::Stm *global_body = currentLevel->getFrame()->procEntryExit1(stm);
+	texp = gcnew(translate::Nx, (global_body));
 	procEntryExit(texp);
 	assert(currentLevel == NULL);
 

@@ -21,7 +21,14 @@ string
 Instruction::format(TempMap *m)
 {
 	string result;
-	result = opcode + "\t";
+	if (opcode.empty()) {
+		return "";
+	}
+	if (!isLABEL()) {
+		result = "\t" + opcode + "\t";
+	} else {
+		result = opcode;
+	}
 	string::iterator it = operands.begin();
 	TempList uses = use();
 	TempList defs = def();

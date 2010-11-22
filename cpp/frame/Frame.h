@@ -51,13 +51,13 @@ public:
 	virtual assem::InstructionList procEntryExit3(const assem::InstructionList &body) = 0;
 	virtual assem::InstructionList *codegen(tree::Stm *stm) = 0;
 	virtual const Registers &registers() = 0;
-	Label *getEndLabel();
+	Label *getEndFuncLabel();
 protected:
 	Frame();
 	Symbol *name;
 	std::vector<Access*> formals;	
 	Registers regs;
-	Label *endLabel;
+	Label *endFuncLabel;
 
 	friend class Level;
 };

@@ -31,10 +31,17 @@ Frame::newFrame(Symbol *name, const std::vector<int> &formals)
 	return gcnew(ARMFrame, (name, formals));
 }
 
+int
+ARMFrame::frameCount;
+
 ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	: frameOffset(0)
 {
-	this->name = n;
+	Frame::name = n;
+	std::string end = format("end_of_%s", name->name.c_str());
+	Frame::endFuncLabel = gcnew(Label, (end));
+	frameCount++;
+
 	//Access *access;
 
 	//size_t num = f.size();
@@ -192,14 +199,17 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 	assem::OPER *sink2 = gcnew(assem::OPER, ("", TempList(), alive_regs));
 
 	assem::InstructionList newbody;
+	assem::Instruction *funcLabel = body.front();
+	assert(funcLabel->isLABEL());
+	newbody.push_back(funcLabel);
 
 	newbody.push_back(sink1);
-	std::copy(body.begin(), body.end(), std::back_inserter(newbody));
+	std::copy(body.begin()+1, body.end(), std::back_inserter(newbody));
 
 	//insert end label
-	assert(endLabel);
-	std::string assem = format("%s:", endLabel->toString().c_str());
-	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endLabel));
+	assert(endFuncLabel);
+	std::string assem = format("%s:", endFuncLabel->toString().c_str());
+	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
 	newbody.push_back(end_lab);
 
 	newbody.push_back(sink2);
@@ -247,27 +257,30 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	//calleeSaveStr += "fp,";
 
 	//prologue//////////
-	assem = format("stmfd sp!, {%s lr}", calleeSaveStr.c_str());
-	assem::OPER *stmfd = gcnew(assem::OPER, (assem, TempList(), TempList()));
+	assem::Instruction *funcLabel = body.front();
+	assert(funcLabel->isLABEL());
+	proc.push_back(funcLabel);
+	
+	assem = format("sp!, {%s lr}", calleeSaveStr.c_str());
+	assem::OPER *stmfd = gcnew(assem::OPER, ("stmfd", assem, TempList(), TempList()));
 	proc.push_back(stmfd);
-	assem = "sub fp, sp, #4";
-	assem::OPER *set_fp = gcnew(assem::OPER, (assem, TempList(), TempList()));
+
+	assem::OPER *set_fp = gcnew(assem::OPER, ("sub", "fp, sp, #4", TempList(), TempList()));
 	proc.push_back(set_fp);
 
-	assem = format("sub sp, sp, #%d", frameOffset);
-	assem::OPER *set_sp = gcnew(assem::OPER, (assem, TempList(), TempList()));
+	assem = format("sp, sp, #%d", frameOffset);
+	assem::OPER *set_sp = gcnew(assem::OPER, ("sub", assem, TempList(), TempList()));
 	proc.push_back(set_sp);
 
 	//body//////////////
-	std::copy(body.begin(), body.end(), std::back_inserter(proc));
+	std::copy(body.begin()+1, body.end(), std::back_inserter(proc));
 
 	//epilogue//////////
-	assem = "add sp, fp, #4";
-	assem::OPER *rewind_sp = gcnew(assem::OPER, (assem, TempList(), TempList()));
+	assem::OPER *rewind_sp = gcnew(assem::OPER, ("add", "sp, fp, #4", TempList(), TempList()));
 	proc.push_back(rewind_sp);
 	
-	assem = format("ldmfd sp!, {%s pc}", calleeSaveStr.c_str());
-	assem::OPER *ldmfd = gcnew(assem::OPER, (assem, TempList(), TempList()));
+	assem = format("sp!, {%s pc}", calleeSaveStr.c_str());
+	assem::OPER *ldmfd = gcnew(assem::OPER, ("ldmfd", assem, TempList(), TempList()));
 	proc.push_back(ldmfd);
 
 	return proc;

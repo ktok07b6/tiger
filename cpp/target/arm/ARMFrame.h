@@ -31,6 +31,7 @@ class ARMFrame : public Frame
 	int frameOffset;
 	ARMCodeGen *generator;
 	assem::InstructionList instList;
+	static int frameCount;
 };
 
 
