@@ -33,14 +33,12 @@ Level::Level(Frame *f)
 Level *
 Level::newLevel(Level *p, Symbol *name, bool isLeaf, std::vector<int> escapes)
 {
-	DBG("newLevel");
 	return gcnew(Level, (p, name, escapes));
 }
 
 Level *
 Level::newLevel(Frame *f)
 {
-	DBG("newLevel");
 	return gcnew(Level, (f));
 }
 
@@ -48,7 +46,6 @@ Level::newLevel(Frame *f)
 Level::Access *
 Level::allocLocal(bool escape)
 {
-	DBG("allocLocal");
 	return gcnew(Level::Access, (this, frame->allocLocal(escape)));
 }
 

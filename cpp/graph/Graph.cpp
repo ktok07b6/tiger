@@ -72,14 +72,14 @@ Graph::addEdge(Node *from, Node *to)
 	assert(from != to);
 	if (!from->successors.contain(to)) {
 		if (to->successors.contain(from)) {
-			WARN(">>>>>> edge is crossover <<<<<<");
+			//WARN(">>>>>> edge is crossover <<<<<<");
 			return;
 		}
 		from->successors.push_back(to);
 	}
 	if (!to->predecessors.contain(from)) {
 		if (from->predecessors.contain(to)) {
-			WARN(">>>>>> edge is crossover <<<<<<");
+			//WARN(">>>>>> edge is crossover <<<<<<");
 			return;
 		}
 		to->predecessors.push_back(from);

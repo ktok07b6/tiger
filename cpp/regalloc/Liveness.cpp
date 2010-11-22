@@ -43,22 +43,23 @@ Liveness::printBitmap(const Bitmap &bm, const char *prefix)
 
 Liveness::Liveness(const graph::FlowGraph &flow)
 {
-	flow.show();
+	//flow.show();
 	const NodeList &flowNodes = flow.getNodes();
 	BOOST_FOREACH(Node *n, flowNodes) {
 		TempList def = flow.def(n);
 		std::copy(def.begin(), def.end(), std::back_inserter(temps));
 		TempList use = flow.use(n);
-		std::copy(def.begin(), def.end(), std::back_inserter(temps));
+		std::copy(use.begin(), use.end(), std::back_inserter(temps));
 	}
 	std::sort(temps.begin(), temps.end());
 	temps.erase(std::unique(temps.begin(), temps.end()), temps.end());
-
+	/*
 	int ti = 0;
 	BOOST_FOREACH(Temp *t, temps) {
 		DBG("%d:%s", ti, (const char*)*t);
 		++ti;
 	}
+	*/
 	BOOST_FOREACH(Node *n, flowNodes) {
 		LiveInfo *li = new LiveInfo();
 		li->def = new Bitmap(temps.size());
@@ -74,7 +75,7 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 
 	calcLives();
 
-#if 1
+#if 0
 	int ii = 0;
 	BOOST_FOREACH(Node *n, flowNodes) {
 		const AsmFlowGraph::InstNode *inst = (AsmFlowGraph::InstNode*)n;
@@ -128,7 +129,6 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 		}
 		++i;
 	}
-
 }
 
 Liveness::~Liveness()
@@ -166,7 +166,7 @@ Liveness::calcLives()
 	}
 	
 	if (continuing) {
-		DBG("continue liveness calculation");
+		VDBG("continue liveness calculation");
 		goto retry;
 	}
 }
@@ -233,7 +233,7 @@ Liveness::bitmap2tempList(const Bitmap &bm)
 void
 Liveness::makeInterferenceGraph()
 {
-	DBG("%s", __FUNCTION__);
+	VDBG("%s", __FUNCTION__);
 	igraph = new InterferenceGraph();
 
 	//enumerate all live temps
@@ -243,7 +243,7 @@ Liveness::makeInterferenceGraph()
 	}
 	TempList liveTemps = bitmap2tempList(liveouts);
 
-	printTempList(liveTemps);
+	//printTempList(liveTemps);
 
 	//create nodes for temps,
 	BOOST_FOREACH(Temp *t, liveTemps) {

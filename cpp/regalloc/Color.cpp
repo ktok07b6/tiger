@@ -34,10 +34,10 @@ Color::coloring()
 {
 	build();
 	makeWorkList();
-	show();
+	//show();
 	int i = 0;
 	do {
-		DBG("===== coloring iteration %d =====", i);
+		//DBG("===== coloring iteration %d =====", i);
 		++i;
 
 		if (!simplifyWorkList.none()) {
@@ -54,7 +54,7 @@ Color::coloring()
 		else if (!spillWorkList.none()) {
 			selectSpill();
 		}
-		show();
+		//show();
 	} while (!simplifyWorkList.none() ||
 #ifdef ENABLE_COALESCE
 			 !workListMoves.empty() ||
@@ -86,13 +86,25 @@ Color::build()
 		Node *regnode = igraph.temp2node(r);
 		if (regnode) {
 			int regnode_id = igraph.node2nid(regnode);
-			//DBG("%s is precolored on %p %d", r->toString().c_str(), n, i);
+			DBG("%s(r[%d]:%d) is precolored", r->toString().c_str(), regnum, regnode_id);
 			precolored.set(regnode_id);
 			color[regnode_id] = regnum;
 		}
 		++regnum;
 	}
-
+	/*
+	for (unsigned int i = 0; i < precolored.size(); ++i) {
+		if (precolored.get(i)) {
+			for (unsigned int j = 0; j < precolored.size(); ++j) {
+				if (precolored.get(j) && (i != j)) {
+					Node *n1 = igraph.nid2node(i);
+					Node *n2 = igraph.nid2node(j);
+					igraph.addEdge(n1, n2);
+				}
+			}
+		}
+	}
+	*/
 	const InterferenceGraph::Moves &moves = igraph.getMoves();
 	InterferenceGraph::Moves::const_iterator it = moves.begin();
 	while (it != moves.end()) {
@@ -101,7 +113,7 @@ Color::build()
 		int nidx = igraph.node2nid(x);
 		int nidy = igraph.node2nid(y);
 		NidPair mv = std::make_pair(nidx, nidy);
-		DBG("workListMoves.push %d:%d", nidx, nidy);
+		VDBG("workListMoves.push %d:%d", nidx, nidy);
 		workListMoves.push_back(mv);
 		Moves &movesx = moveList[nidx];
 		movesx.push_back(mv);
@@ -142,7 +154,7 @@ Color::simplify()
 	simplifyWorkList.reset(nid);
 
 	Node *n = igraph.nid2node(nid);
-	DBG("selectStack.push %d(%s)", nid, (const char*)(*n));
+	VDBG("selectStack.push %d(%s)", nid, (const char*)(*n));
 	selectStack.push_back(n);
 
 	Bitmap adj = adjacent(nid);
@@ -191,7 +203,7 @@ Color::enableMoves(int nid)
 		Moves::iterator it = std::find(activeMoves.begin(), activeMoves.end(), mv);
 		if (it != activeMoves.end()) {
 			activeMoves.erase(it);
-			DBG("workListMoves.push %d:%d", it->first, it->second);
+			VDBG("workListMoves.push %d:%d", it->first, it->second);
 			workListMoves.push_back(*it);
 		}
 	}
@@ -236,7 +248,7 @@ Color::coalesce()
 {
 	assert(!workListMoves.empty());
 	
-	DBG("workListMoves.size() = %u", workListMoves.size());
+	VDBG("workListMoves.size() = %u", workListMoves.size());
 	NidPair mv = workListMoves.back();
 	workListMoves.pop_back();
 	//workListMoves.erase(workListMoves.end()-1);
@@ -284,7 +296,7 @@ Color::coalesce()
 void 
 Color::combine(int nid1, int nid2)
 {
-	DBG("combine %d(%s) => %d(%s)", 
+	VDBG("combine %d(%s) => %d(%s)", 
 		nid2, igraph.nid2node(nid2)->toString().c_str(),
 		nid1, igraph.nid2node(nid1)->toString().c_str());
 
@@ -331,7 +343,7 @@ void
 Color::freeze()
 {
 	int nid = freezeWorkList.right();
-	DBG("freeze %d(%s)", nid, (const char*)(*igraph.nid2node(nid)));
+	VDBG("freeze %d(%s)", nid, (const char*)(*igraph.nid2node(nid)));
 	freezeWorkList.reset(nid);
 	simplifyWorkList.set(nid);
 	freezeMoves(nid);
@@ -406,6 +418,13 @@ Color::assignColors()
 			continue;
 		}
 		color[nid] = color[getAlias(nid)];
+	}
+	ColorMap::iterator it = color.begin();
+	while (it != color.end()) {
+		int nid = it->first;
+		int color = it->second;
+		DBG("%d color is %d", nid, color);
+		++it;
 	}
 }
 

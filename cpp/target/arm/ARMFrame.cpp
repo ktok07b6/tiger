@@ -62,13 +62,17 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	int i = 0;
 	std::vector<int>::const_iterator it;
 	it = f.begin();
+	DBG("new frame %s", name ? name->name.c_str() : "");
 	while (it != f.end()) {
 		int escape = (*it);
+		Access *acc;
 		if (escape) {
-			formals.push_back(allocLocal(true));
+			acc = allocLocal(true);
 		} else {
-			formals.push_back(gcnew(InReg, (regs.all[i-1])));
+			acc = gcnew(InReg, (regs.all[i]));
 		}
+		DBG("%d:%s", i, acc->toString().c_str());
+		formals.push_back(acc);
 		++i;
 		++it;
 	}
@@ -85,6 +89,7 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	regs.calleeSaves.push_back(regs.all[5]);
 	regs.calleeSaves.push_back(regs.all[6]);
 	regs.calleeSaves.push_back(regs.all[7]);
+	regs.calleeSaves.push_back(regs.all[11]);
 }
 
 ARMFrame::~ARMFrame()
@@ -303,7 +308,7 @@ ARMFrame::registers()
 std::string 
 InFrame::toString()
 {
-	return "";
+	return format("m[%d]", offset);
 }
 
 tree::Exp *
@@ -320,7 +325,7 @@ InFrame::exp(tree::Exp *fp)
 std::string 
 InReg::toString()
 {
-	return "";
+	return temp->toString();
 }
 
 tree::Exp *

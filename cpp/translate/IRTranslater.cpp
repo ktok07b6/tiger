@@ -1,4 +1,4 @@
-﻿#include <cassert>
+#include <cassert>
 #include "IRTranslater.h"
 #include "Absyn.h"
 #include "Level.h"
@@ -32,8 +32,8 @@ IRTranslater::visit(SimpleVar *var)
 {
 	FUNCLOG;
 	//
-	DBG("var symbol.name = %s", var->sym->name.c_str());
-	DBG("var->symInfo = %p", var->symInfo);
+	VDBG("var symbol.name = %s", var->sym->name.c_str());
+	VDBG("var->symInfo = %p", var->symInfo);
 	assert(var->symInfo->access);
 	texp = gcnew(translate::Ex, (var->symInfo->access->simpleVar(currentLevel)));
 }
@@ -43,7 +43,7 @@ IRTranslater::visit(FieldVar *var)
 {
 	FUNCLOG;
 	var->var->accept(this);
-	DBG("##### %s", var->symInfo->type->toString().c_str());
+	VDBG("##### %s", var->symInfo->type->toString().c_str());
 	RecordT *rec_t = NULL;
 	if (var->symInfo->type->isRecordT()) {
 		rec_t = (RecordT*)var->symInfo->type;
@@ -516,7 +516,7 @@ IRTranslater::visit(ForExp *exp)
 	//TODO:
 	//LetExpへの変換
 	Level::Access *access = currentLevel->allocLocal(exp->escape);
-	DBG("exp->symInfo = %p", exp->symInfo);
+	VDBG("exp->symInfo = %p", exp->symInfo);
 	exp->symInfo->access = access;
 	tree::Exp *var = access->simpleVar(currentLevel);
 
@@ -578,14 +578,13 @@ IRTranslater::visit(LetExp *exp)
 	FUNCLOG;
 	
 	tree::SEQMaker sm;
-	DBG("exp->decs->size() = %u", exp->decs->size());
+	VDBG("exp->decs->size() = %u", exp->decs->size());
 	if (!exp->decs->empty()) {
 		DecList::iterator it;
 		it = exp->decs->begin();
 
 		while (it != exp->decs->end()) {
 			Dec *d = *it;
-			DBG("accept dec");
 			d->accept(this);
 
 			//If d is function decl, it is not added.
@@ -598,7 +597,6 @@ IRTranslater::visit(LetExp *exp)
 		}
 	}
  
-	DBG("accept body");
 	exp->body->accept(this);
 
 	//letも値を返す
@@ -676,7 +674,7 @@ IRTranslater::visit(FunDec *dec)
 	it = dec->params->begin();
 	while (it != dec->params->end()) {
 		TypeField *f = *it;
-		DBG("typefield %s escape %d", (const char*)f->name, f->escape);
+		VDBG("typefield %s escape %d", (const char*)f->name, f->escape);
 		formals.push_back(f->escape);
 		++it;
 	}
@@ -699,7 +697,7 @@ IRTranslater::visit(FunDec *dec)
 			f->symInfo->access = accTmp;
 
 			tree::Exp *arg = accArg->simpleVar(currentLevel);
-			tree::Exp *tmp = accTmp->simpleVar(currentLevel);			
+			tree::Exp *tmp = accTmp->simpleVar(currentLevel);
 			sm.add(_MOVE(tmp, arg));
 		} else {
 			f->symInfo->access = accArg;
@@ -750,7 +748,7 @@ IRTranslater::visit(VarDec *dec)
 {
 	FUNCLOG;
 	Level::Access *access = currentLevel->allocLocal(dec->escape);
-	DBG("dec->symInfo = %p", dec->symInfo);
+	VDBG("dec->symInfo = %p", dec->symInfo);
 	dec->symInfo->access = access;
 
 	tree::Exp *var = access->simpleVar(currentLevel);
