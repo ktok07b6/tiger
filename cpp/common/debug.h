@@ -36,6 +36,7 @@ inline void __DBG(const char *format, ...)
 #define WARN_ON 0x2
 #define INFO_ON 0x4
 #define DEBUG_ON 0x8
+#define VERBOSE_ON 0x10
 
 #ifndef LOG_MASK
 #define LOG_MASK (ERROR_ON | WARN_ON | INFO_ON | DEBUG_ON)

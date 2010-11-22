@@ -213,7 +213,7 @@ void codegenPhase2(assem::InstructionList &instList, Frame *frame)
 	proc = frame->procEntryExit2(instList);
 
 	assem::InstructionList::iterator it;
-#if 1
+#if 0
 	it = proc.begin();
 	while (it != proc.end()) {
 		assem::Instruction *inst = *it;
@@ -225,7 +225,7 @@ void codegenPhase2(assem::InstructionList &instList, Frame *frame)
 	const graph::AsmFlowGraph flow(proc);
 	const regalloc::Liveness liveness(flow);
 	const graph::InterferenceGraph *igraph = liveness.getInterferenceGraph();
-	igraph->show();
+	//igraph->show();
 
 	TempList regs = frame->registers().all;
 	

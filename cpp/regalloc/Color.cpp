@@ -1,4 +1,5 @@
 //#define ENABLE_FUNCLOG
+//#define LOG_MASK (ERROR_ON | WARN_ON | INFO_ON | DEBUG_ON | VERBOSE_ON)
 #include <boost/foreach.hpp>
 #include "Color.h"
 #include "InterferenceGraph.h"
@@ -86,7 +87,7 @@ Color::build()
 		Node *regnode = igraph.temp2node(r);
 		if (regnode) {
 			int regnode_id = igraph.node2nid(regnode);
-			DBG("%s(r[%d]:%d) is precolored", r->toString().c_str(), regnum, regnode_id);
+			//DBG("%s(r[%d]:%d) is precolored", r->toString().c_str(), regnum, regnode_id);
 			precolored.set(regnode_id);
 			color[regnode_id] = regnum;
 		}
@@ -408,7 +409,9 @@ Color::assignColors()
 		int nid = igraph.node2nid(n);
 		if (!okColors.none() && okColors.right() < 10) {
 			coloredNodes.set(nid);
-			color[nid] = okColors.right();
+			if (!precolored.get(nid)) {
+				color[nid] = okColors.right();
+			}
 		} else {
 			spilledNodes.set(nid);
 		}
@@ -419,6 +422,7 @@ Color::assignColors()
 		}
 		color[nid] = color[getAlias(nid)];
 	}
+	/*
 	ColorMap::iterator it = color.begin();
 	while (it != color.end()) {
 		int nid = it->first;
@@ -426,6 +430,7 @@ Color::assignColors()
 		DBG("%d color is %d", nid, color);
 		++it;
 	}
+	*/
 }
 
 Bitmap
