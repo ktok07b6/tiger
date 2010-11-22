@@ -4,6 +4,7 @@
 #include "Tree.h"
 #include <list>
 #include "Temp.h"
+#include "Vector.h"
 
 namespace assem {
 

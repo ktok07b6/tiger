@@ -67,7 +67,7 @@ Instruction::format(TempMap *m)
 	//DBG("                          old assem = %s", assem.c_str());
 	//DBG("new assem = %s", result.c_str());
 	if (!comment.empty()) {
-		result += "\t# " + comment;
+		result += "\t" + comment;
 	}
 	return result;
 }

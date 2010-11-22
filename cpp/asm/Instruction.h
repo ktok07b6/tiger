@@ -6,6 +6,7 @@
 #include "Label.h"
 #include <string>
 #include <vector>
+#include "Vector.h"
 
 class TempMap;
 

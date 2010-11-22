@@ -8,6 +8,7 @@
 #include "Tree.h"
 #include <vector>
 #include <string>
+#include "Vector.h"
 
 class Stm;
 class Label;

@@ -192,27 +192,38 @@ ARMFrame::staticChain(tree::Exp *fp)
 assem::InstructionList
 ARMFrame::procEntryExit2(const assem::InstructionList &body)
 {
-	TempList alive_regs;
-	alive_regs.push_back(rv());
-	std::copy(regs.calleeSaves.begin(), regs.calleeSaves.end(), std::back_inserter(alive_regs));
-	assem::OPER *sink1 = gcnew(assem::OPER, ("", alive_regs, TempList()));
-	assem::OPER *sink2 = gcnew(assem::OPER, ("", TempList(), alive_regs));
-
 	assem::InstructionList newbody;
-	assem::Instruction *funcLabel = body.front();
-	assert(funcLabel->isLABEL());
-	newbody.push_back(funcLabel);
+	bool isGlobal = (name == Symbol::symbol("_start"));
+	if (isGlobal) {
+		std::copy(body.begin(), body.end(), std::back_inserter(newbody));
+		//insert end label
+		assert(endFuncLabel);
+		std::string assem = format("%s:", endFuncLabel->toString().c_str());
+		assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
+		newbody.push_back(end_lab);
 
-	newbody.push_back(sink1);
-	std::copy(body.begin()+1, body.end(), std::back_inserter(newbody));
+	} else {
+		TempList alive_regs;
+		alive_regs.push_back(rv());
+		std::copy(regs.calleeSaves.begin(), regs.calleeSaves.end(), std::back_inserter(alive_regs));
+		assem::OPER *sink1 = gcnew(assem::OPER, ("", alive_regs, TempList()));
+		assem::OPER *sink2 = gcnew(assem::OPER, ("", TempList(), alive_regs));
+	
+		assem::Instruction *funcLabel = body.front();
+		assert(funcLabel->isLABEL());
+		newbody.push_back(funcLabel);
+	
+		newbody.push_back(sink1);
+		std::copy(body.begin()+1, body.end(), std::back_inserter(newbody));
+	
+		//insert end label
+		assert(endFuncLabel);
+		std::string assem = format("%s:", endFuncLabel->toString().c_str());
+		assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
+		newbody.push_back(end_lab);
 
-	//insert end label
-	assert(endFuncLabel);
-	std::string assem = format("%s:", endFuncLabel->toString().c_str());
-	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
-	newbody.push_back(end_lab);
-
-	newbody.push_back(sink2);
+		newbody.push_back(sink2);
+	}
 
 	return newbody;
 }
@@ -243,9 +254,25 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	  XXXX003C |--------------|
 	       ...  higher address
 	 */
-
 	assem::InstructionList proc;
 	std::string assem;
+
+	if (name == Symbol::symbol("_start")) {
+		assem::Instruction *funcLabel = body.front();
+		assert(funcLabel->isLABEL());
+		proc.push_back(funcLabel);
+
+		assem::OPER *set_fp = gcnew(assem::OPER, ("mov", "fp, sp", TempList(), TempList()));
+		proc.push_back(set_fp);
+
+		std::copy(body.begin()+1, body.end(), std::back_inserter(proc));
+
+		//add "exit" syscall
+		assem::OPER *syscall_exit = gcnew(assem::OPER, ("swi", "#0x900001", TempList(), TempList(), "@ sys_exit"));
+		proc.push_back(syscall_exit);
+		return proc;
+	}
+
 	std::string calleeSaveStr;//TODO:
 	TempList::const_iterator it = regs.calleeSaves.begin();
 	while (it != regs.calleeSaves.end()) {

@@ -279,6 +279,10 @@ int main(int argc, char **argv)
 	translatePhase(frags);
 
 	std::string out;
+	out += ".text\n";
+	out += "\t.align\t2\n";
+	out += "\t.global\t_start\n";
+
 	codegenPhase(frags, &out);
 	DBG("\n%s", out.c_str());
 
