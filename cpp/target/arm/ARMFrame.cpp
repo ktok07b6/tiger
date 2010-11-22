@@ -148,7 +148,7 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 	tree::SEQMaker sm;
 	sm.add(l);
 
-	if (formals.size() < 4) {
+	if (formals.size() <= 4) {
 		int i = 0;
 		std::vector<Access*>::iterator it = formals.begin();
 		while (it != formals.end()) {
