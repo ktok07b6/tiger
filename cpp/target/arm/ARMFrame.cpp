@@ -62,7 +62,6 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	int i = 0;
 	std::vector<int>::const_iterator it;
 	it = f.begin();
-	DBG("new frame %s", name ? name->name.c_str() : "");
 	while (it != f.end()) {
 		int escape = (*it);
 		Access *acc;
@@ -71,7 +70,6 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 		} else {
 			acc = gcnew(InReg, (regs.all[i]));
 		}
-		DBG("%d:%s", i, acc->toString().c_str());
 		formals.push_back(acc);
 		++i;
 		++it;
@@ -149,6 +147,21 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 	tree::LABEL *l = _LABEL(fname);
 	tree::SEQMaker sm;
 	sm.add(l);
+
+	if (formals.size() < 4) {
+		int i = 0;
+		std::vector<Access*>::iterator it = formals.begin();
+		while (it != formals.end()) {
+			tree::Exp *r = _TEMP(regs.all[i]);
+			tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
+			sm.add(_MOVE(tmp, r));
+			++it;
+			++i;
+		}
+	} else {
+		//TODO:
+		assert(0);
+	}
 	sm.add(body);
 	return sm.make();
 }
@@ -241,7 +254,6 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	 */
 
 	assem::InstructionList proc;
-	int localVarCount = 0;//TODO:
 	std::string assem;
 	std::string calleeSaveStr;//TODO:
 	TempList::const_iterator it = regs.calleeSaves.begin();
@@ -261,7 +273,7 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	assem::OPER *set_fp = gcnew(assem::OPER, (assem, TempList(), TempList()));
 	proc.push_back(set_fp);
 
-	assem = format("sub sp, sp, #%d", localVarCount * WORD_SIZE);
+	assem = format("sub sp, sp, #%d", frameOffset);
 	assem::OPER *set_sp = gcnew(assem::OPER, (assem, TempList(), TempList()));
 	proc.push_back(set_sp);
 
