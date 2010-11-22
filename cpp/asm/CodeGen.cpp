@@ -63,6 +63,8 @@ CodeGen::munchExp(tree::Exp *e)
 		return munchTEMP((tree::TEMP*)e);
 	} else if (e->isCALL_T()) {
 		return munchCALL((tree::CALL*)e);
+	} else if (e->isNAME_T()) {
+		return munchNAME((tree::NAME*)e);
 	}
 	assert(0);
 	return NULL;

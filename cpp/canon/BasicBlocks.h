@@ -2,11 +2,12 @@
 #define BASIC_BLOCKS_H
 
 #include "Tree.h"
+class Label;
 
 class BasicBlocks
 {
 public:
-	BasicBlocks(tree::StmList stms);
+	BasicBlocks(tree::StmList stms, Label *);
 
 	std::list<tree::StmList> blocks;
 	Label *done;

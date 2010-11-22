@@ -164,8 +164,8 @@ void codegenPhase(const FragmentList &frags)
 			DBG("======================================");
 		
 #endif
-			
-			BasicBlocks bb(stms);
+			Frame *frame = proc->getFrame();
+			BasicBlocks bb(stms, frame->getEndLabel());
 #if 0
 			DBG("Basic Blocks=========================");
 			std::list< tree::StmList >::const_iterator i1 = bb.blocks.begin();
@@ -187,7 +187,7 @@ void codegenPhase(const FragmentList &frags)
 #endif
 
 			DBG("CodeGen=========================");
-			Frame *frame = proc->getFrame();
+			
 			stms = trace.traced;
 			assem::InstructionList instList;
 			tree::StmList::iterator it = stms.begin();

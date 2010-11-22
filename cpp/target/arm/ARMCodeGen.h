@@ -22,6 +22,7 @@ class ARMCodeGen : public assem::CodeGen
 	virtual Temp *munchCALL(tree::CALL *c);
 	virtual Temp *munchCONST(tree::CONST *c);
 	virtual Temp *munchTEMP(tree::TEMP *t);
+	virtual Temp *munchNAME(tree::NAME *n);
 
 	virtual bool isMove(assem::Instruction *inst);
 	virtual bool isJump(assem::Instruction *inst);

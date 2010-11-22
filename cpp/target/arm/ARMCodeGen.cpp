@@ -144,6 +144,9 @@ ARMCodeGen::munchJUMP(Label *lab)
 	LabelList targets;
 	targets.push_back(lab);
 	assem::OPER *op = gcnew(assem::OPER, ("b", "$j0", TempList(), TempList()));
+	if (lab->toString() == END_FUNCTION_LABEL_NAME) {
+		
+	}
 	op->setJumpTargets(targets);
 	emit(op);
 }
@@ -378,6 +381,13 @@ Temp *
 ARMCodeGen::munchTEMP(tree::TEMP *t)
 {
 	return t->temp;
+}
+
+Temp *
+ARMCodeGen::munchNAME(tree::NAME *n)
+{
+	//TODO
+	return gcnew(Temp, ());
 }
 
 bool 

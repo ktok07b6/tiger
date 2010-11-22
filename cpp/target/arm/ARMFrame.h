@@ -17,8 +17,6 @@ class ARMFrame : public Frame
 	virtual tree::Stm *procEntryExit1(tree::Stm *body);
 	virtual std::string string(Label *label, const std::string &value);
 	virtual tree::Exp *staticChain(tree::Exp *fp);
-	virtual Label *badPtr();
-	virtual Label *badSub();
 	virtual assem::InstructionList procEntryExit2(const assem::InstructionList &body);
 	virtual assem::InstructionList procEntryExit3(const assem::InstructionList &body);
 	virtual std::string tempMap(Temp *temp);

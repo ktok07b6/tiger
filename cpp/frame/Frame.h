@@ -19,7 +19,7 @@ typedef std::vector<Instruction*> InstructionList;
 
 class Frame : public Object, public TempMap
 {
- public:
+public:
 	virtual ~Frame() {}
 	static Frame *newFrame(Symbol *name, const std::vector<int> &formals);
 
@@ -47,16 +47,19 @@ class Frame : public Object, public TempMap
 	virtual tree::Stm *procEntryExit1(tree::Stm *body) = 0;
 	virtual std::string string(Label *label, const std::string &value) = 0;
 	virtual tree::Exp *staticChain(tree::Exp *fp) = 0;
-	virtual Label *badPtr() = 0;
-	virtual Label *badSub() = 0;
 	virtual assem::InstructionList procEntryExit2(const assem::InstructionList &body) = 0;
 	virtual assem::InstructionList procEntryExit3(const assem::InstructionList &body) = 0;
 	virtual assem::InstructionList *codegen(tree::Stm *stm) = 0;
 	virtual const Registers &registers() = 0;
+	Label *getEndLabel();
+protected:
+	Frame();
 	Symbol *name;
 	std::vector<Access*> formals;	
- protected:
 	Registers regs;
+	Label *endLabel;
+
+	friend class Level;
 };
 
 #endif //FRAME_H

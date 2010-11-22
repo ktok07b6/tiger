@@ -140,15 +140,12 @@ ARMFrame::rv()
 tree::Stm *
 ARMFrame::procEntryExit1(tree::Stm *body)
 {
-	//TODO:
-	//prolog
-	//epilog
 	Label *fname = gcnew(Label, (name->name));
 	tree::LABEL *l = _LABEL(fname);
 	tree::SEQMaker sm;
 	sm.add(l);
 
-	if (formals.size() <= 4) {
+	if (formals.size() < 4) {
 		int i = 0;
 		std::vector<Access*>::iterator it = formals.begin();
 		while (it != formals.end()) {
@@ -185,18 +182,6 @@ ARMFrame::staticChain(tree::Exp *fp)
 	return mem;
 }
 
-Label *
-ARMFrame::badPtr()
-{
-	return NULL;
-}
-
-Label *
-ARMFrame::badSub()
-{
-	return NULL;
-}
-
 assem::InstructionList
 ARMFrame::procEntryExit2(const assem::InstructionList &body)
 {
@@ -212,13 +197,9 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 	std::copy(body.begin(), body.end(), std::back_inserter(newbody));
 
 	//insert end label
-	assem::Instruction *jmp_to_end_label = body.back();
-	LabelList ll = jmp_to_end_label->jumps();
-	assert(ll.size() == 1);
-	Label *end_label = ll.front();
-
-	std::string assem = format("%s:", end_label->toString().c_str());
-	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, end_label));
+	assert(endLabel);
+	std::string assem = format("%s:", endLabel->toString().c_str());
+	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endLabel));
 	newbody.push_back(end_lab);
 
 	newbody.push_back(sink2);
@@ -315,6 +296,7 @@ ARMFrame::registers()
 {
 	return regs;
 }
+
 
 //------------------------------------------------------
 std::string 

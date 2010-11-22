@@ -1,8 +1,9 @@
 #include "BasicBlocks.h"
-   
-BasicBlocks::BasicBlocks(tree::StmList stms) 
+ #include "tiger.h"
+
+BasicBlocks::BasicBlocks(tree::StmList stms, Label *l) 
 {
-	done = gcnew(Label, ("end_of_function"));
+	done = l;
 	mkBlocks(stms);
 }
 

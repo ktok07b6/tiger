@@ -33,6 +33,7 @@ class CodeGen
 	virtual Temp *munchCALL(tree::CALL *c) = 0;
 	virtual Temp *munchCONST(tree::CONST *c) = 0;
 	virtual Temp *munchTEMP(tree::TEMP *t) = 0;
+	virtual Temp *munchNAME(tree::NAME *n) = 0;
 
 	virtual bool isMove(Instruction *inst) = 0;
 	virtual bool isJump(Instruction *inst) = 0;

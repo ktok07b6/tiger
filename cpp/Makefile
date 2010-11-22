@@ -25,6 +25,7 @@ SOURCES_LIBCORE= \
 	FindEscape.cpp \
 	Temp.cpp \
 	Label.cpp \
+	Frame.cpp \
 	Level.cpp \
 	Tree.cpp \
 	IRTranslater.cpp \
