@@ -1,0 +1,8 @@
+let
+		var x := 100
+		var y := 100
+in
+		if (x = 100) & (y = 100)
+		   then 100
+		   else 200
+end

@@ -1,0 +1,5 @@
+let
+		var a := 10
+in
+		if a < 20 then a := a+1
+end

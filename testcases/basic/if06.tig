@@ -1,0 +1,9 @@
+let
+		var x := 100
+		var y := 100
+		var z := 0
+in
+		z := if (x = 100) | (y = 100)
+		   	 	then 10
+		   	 	else 20
+end
