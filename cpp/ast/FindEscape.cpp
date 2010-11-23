@@ -113,7 +113,9 @@ FindEscape::visit(IfExp *exp)
 {
 	exp->test->accept(this);
 	exp->thenexp->accept(this);
-	exp->elseexp->accept(this);
+	if (exp->elseexp) {
+		exp->elseexp->accept(this);
+	}
 }
 
 void
