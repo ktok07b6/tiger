@@ -281,7 +281,7 @@ int main(int argc, char **argv)
 	std::string out;
 	out += ".text\n";
 	out += "\t.align\t2\n";
-	out += "\t.global\t_start\n";
+	out += "\t.global\t__tigermain\n";
 
 	codegenPhase(frags, &out);
 	DBG("\n%s", out.c_str());

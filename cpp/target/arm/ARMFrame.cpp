@@ -194,7 +194,8 @@ assem::InstructionList
 ARMFrame::procEntryExit2(const assem::InstructionList &body)
 {
 	assem::InstructionList newbody;
-	bool isGlobal = (name == Symbol::symbol("_start"));
+	bool isGlobal = (name == Symbol::symbol("__tigermain"));
+	/*
 	if (isGlobal) {
 		std::copy(body.begin(), body.end(), std::back_inserter(newbody));
 		//insert end label
@@ -203,7 +204,9 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 		assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
 		newbody.push_back(end_lab);
 
-	} else {
+	} else 
+	*/
+	{
 		TempList alive_regs;
 		alive_regs.push_back(rv());
 		TempList used = findRegsInBody(body);
@@ -296,7 +299,7 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	assem::InstructionList proc;
 	std::string assem;
 
-	if (name == Symbol::symbol("_start")) {
+	if (false /*name == Symbol::symbol("__tigermain")*/ ) {
 		assem::Instruction *funcLabel = body.front();
 		assert(funcLabel->isLABEL());
 		proc.push_back(funcLabel);
