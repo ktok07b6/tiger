@@ -28,6 +28,8 @@ class ARMFrame : public Frame
 		MAX_REG = 16
 	};
  private:
+	TempList findRegsInBody(const assem::InstructionList &body);
+
 	int frameOffset;
 	ARMCodeGen *generator;
 	assem::InstructionList instList;

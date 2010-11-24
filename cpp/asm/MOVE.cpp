@@ -14,13 +14,6 @@ MOVE::MOVE(const std::string &opcode,
 {
 }
 
-MOVE::MOVE(const std::string &assem, Temp *dst, Temp *src)
-	: Instruction(assem)
-	, dst(dst)
-	, src(src)
-{
-}
-
 TempList 
 MOVE::use()
 {

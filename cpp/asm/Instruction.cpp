@@ -22,7 +22,7 @@ Instruction::format(TempMap *m)
 {
 	string result;
 	if (opcode.empty()) {
-		return "";
+		return "\t" + comment;
 	}
 	if (!isLABEL()) {
 		result = "\t" + opcode + "\t";
@@ -56,7 +56,7 @@ Instruction::format(TempMap *m)
 			if (s.empty()) {
 				//If a temp of instruction is not used,
 				//this instruction is ignored.
-				return "";
+				return "\t" + comment;
 			}
 			result += s;
 		} else {

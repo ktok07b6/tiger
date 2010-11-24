@@ -13,23 +13,6 @@ OPER::OPER(const std::string &opcode,
 {
 }
 
-
-OPER::OPER(const std::string &assem, const TempList &dst, const TempList &src)
-	: Instruction(assem)
-	, dst(dst)
-	, src(src)
-{
-}
-
-OPER::OPER(const std::string &assem, const TempList &dst, const TempList &src, const LabelList &jmps)
-	: Instruction(assem)
-	, dst(dst)
-	, src(src)
-	, targets(jmps)
-{
-}
-
-
 TempList 
 OPER::use()
 {

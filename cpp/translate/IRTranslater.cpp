@@ -495,7 +495,6 @@ end:
 	Label *labelS = gcnew(Label, ());
 	Label *labelE = gcnew(Label, ());
 	
-	//TODO:
 	exp->test->accept(this);
 
 	tree::CJUMP *cjump;

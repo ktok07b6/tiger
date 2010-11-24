@@ -58,8 +58,6 @@ class OPER : public Instruction
 		 const std::string &comment = "",
 		 int sourceLine = -1);
 
-	OPER(const std::string &assem, const TempList &dst, const TempList &src);
-	OPER(const std::string &assem, const TempList &dst, const TempList &src, const LabelList &jmps);
 	virtual TempList use();
 	virtual TempList def();
 	virtual LabelList jumps();
@@ -79,8 +77,6 @@ class MOVE : public Instruction
 		 Temp *src,
 		 const std::string &comment = "",
 		 int sourceLine = -1);
-
-	MOVE(const std::string &assem, Temp *dst, Temp *src);
 
 	virtual TempList use();
 	virtual TempList def();

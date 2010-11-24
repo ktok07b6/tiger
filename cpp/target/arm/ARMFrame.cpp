@@ -4,6 +4,7 @@
 #include "ARMCodeGen.h"
 #include "tiger.h"
 #include <iterator>
+#include <boost/foreach.hpp>
 
 /*
   ::registers::
@@ -205,9 +206,20 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 	} else {
 		TempList alive_regs;
 		alive_regs.push_back(rv());
-		std::copy(regs.calleeSaves.begin(), regs.calleeSaves.end(), std::back_inserter(alive_regs));
-		assem::OPER *sink1 = gcnew(assem::OPER, ("", alive_regs, TempList()));
-		assem::OPER *sink2 = gcnew(assem::OPER, ("", TempList(), alive_regs));
+		TempList used = findRegsInBody(body);
+		std::copy(used.begin(), used.end(), std::back_inserter(alive_regs));
+		std::sort(alive_regs.begin(), alive_regs.end());
+		alive_regs.erase(std::unique(alive_regs.begin(), alive_regs.end()), alive_regs.end());
+
+		std::string comment;
+#if 1
+		BOOST_FOREACH(Temp *r, alive_regs) {
+			comment += r->toString();
+			comment += " ";
+		}
+#endif		
+		assem::OPER *sink1 = gcnew(assem::OPER, ("", "", alive_regs, TempList(), "@def " + comment));
+		assem::OPER *sink2 = gcnew(assem::OPER, ("", "", TempList(), alive_regs, "@use " + comment));
 	
 		assem::Instruction *funcLabel = body.front();
 		assert(funcLabel->isLABEL());
@@ -226,6 +238,33 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 	}
 
 	return newbody;
+}
+
+TempList
+ARMFrame::findRegsInBody(const assem::InstructionList &body)
+{
+	TempList used;
+	BOOST_FOREACH(assem::Instruction *inst, body) {
+		TempList def = inst->def();
+		BOOST_FOREACH(Temp *t, def) {
+			for (int i = 0; i < MAX_REG; ++i) {
+				if (t == regs.all[i]) {
+					used.push_back(t);
+				}
+			}
+		}
+		TempList use = inst->use();
+		BOOST_FOREACH(Temp *t, use) {
+			for (int i = 0; i < MAX_REG; ++i) {
+				if (t == regs.all[i]) {
+					used.push_back(t);
+				}
+			}
+		}
+	}
+	std::sort(used.begin(), used.end());
+	used.erase(std::unique(used.begin(), used.end()), used.end());
+	return used;
 }
 
 assem::InstructionList
@@ -273,7 +312,10 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 		return proc;
 	}
 
-	std::string calleeSaveStr;//TODO:
+	std::string calleeSaveStr;
+#if 1 //FIXME
+	calleeSaveStr += "fp,";
+#else
 	TempList::const_iterator it = regs.calleeSaves.begin();
 	while (it != regs.calleeSaves.end()) {
 		Temp *r = *it;
@@ -281,7 +323,8 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 		calleeSaveStr += ",";
 		++it;
 	}
-	//calleeSaveStr += "fp,";
+#endif
+	
 
 	//prologue//////////
 	assem::Instruction *funcLabel = body.front();
