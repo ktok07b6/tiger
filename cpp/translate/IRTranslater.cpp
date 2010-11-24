@@ -432,6 +432,7 @@ IRTranslater::visit(IfExp *exp)
 	if (texp->is(translate::Exp::CX)) {
 		cjump = texp->unCx(labelT, labelF);
 	} else {
+		assert(texp->is(translate::Exp::EX));
 		tree::Exp *boolean = texp->unEx();
 		tree::CONST *const_0 = _CONST(0);
 		cjump = _CJUMP(tree::CJUMP::oNE, boolean, const_0, labelT, labelF);
@@ -481,14 +482,6 @@ void
 IRTranslater::visit(WhileExp *exp)
 {
 	FUNCLOG;
-	
-	//TODO:
-	exp->test->accept(this);
-	tree::Exp *test = texp->unEx();
-
-	exp->body->accept(this);
-	tree::Stm *body = texp->unNx();
-
 	/*
 	  if test then jmp start
               else jmp end
@@ -498,17 +491,35 @@ start:
             else jmp end
 end:
 	 */
+
 	Label *labelS = gcnew(Label, ());
 	Label *labelE = gcnew(Label, ());
+	
+	//TODO:
+	exp->test->accept(this);
+
+	tree::CJUMP *cjump;
+	if (texp->is(translate::Exp::CX)) {
+		cjump = texp->unCx(labelS, labelE);
+	} else {
+		assert(texp->is(translate::Exp::EX));
+		tree::Exp *boolean = texp->unEx();
+		tree::CONST *const_0 = _CONST(0);
+		cjump = _CJUMP(tree::CJUMP::oNE, boolean, const_0, labelS, labelE);
+	}
+
+	currentLoopExit = labelE;
+
+	exp->body->accept(this);
+	tree::Stm *body = texp->unNx();
+
 	tree::LABEL *l_S = _LABEL(labelS);
 	tree::LABEL *l_E = _LABEL(labelE);
-	tree::CONST *const0 = _CONST(0);
-	tree::CJUMP *cmp = _CJUMP(tree::CJUMP::oNE, test, const0, labelS, labelE); 
 	tree::SEQMaker sm;
-	sm.add(cmp);
+	sm.add(cjump);
 	sm.add(l_S);
 	sm.add(body);
-	sm.add(cmp);
+	sm.add(cjump);
 	sm.add(l_E);
 	tree::SEQ *seq = sm.make();//makeSEQ(cmp, l_S, body, cmp, l_E);
 
@@ -521,19 +532,6 @@ IRTranslater::visit(ForExp *exp)
 	FUNCLOG;
 	//TODO:
 	//LetExpへの変換
-	Level::Access *access = currentLevel->allocLocal(exp->escape);
-	VDBG("exp->symInfo = %p", exp->symInfo);
-	exp->symInfo->access = access;
-	tree::Exp *var = access->simpleVar(currentLevel);
-
-	//exp->var->name;
-	//exp->escape;
-	exp->lo->accept(this);
-	tree::Exp *lo = texp->unEx();
-	exp->hi->accept(this);
-	tree::Exp *hi = texp->unEx();
-	exp->body->accept(this);
-	tree::Stm *body = texp->unNx();
 	/*
 	i = lo
     if i < hi then jmp start
@@ -545,15 +543,26 @@ start:
                else jmp end
 end:
 	 */
-		 /*
-	Temp *tmp = gcnew(Temp, ());
-	tree::TEMP *i = gcnew(tree::TEMP, (tmp));
-		 */
+
+	Level::Access *access = currentLevel->allocLocal(exp->escape);
+	VDBG("exp->symInfo = %p", exp->symInfo);
+	exp->symInfo->access = access;
+	tree::Exp *var = access->simpleVar(currentLevel);
 	Label *labelS = gcnew(Label, ());
 	Label *labelE = gcnew(Label, ());
+
+	exp->lo->accept(this);
+	tree::Exp *lo = texp->unEx();
+	exp->hi->accept(this);
+	tree::Exp *hi = texp->unEx();
+
+	currentLoopExit = labelE;
+
+	exp->body->accept(this);
+	tree::Stm *body = texp->unNx();
+
 	tree::LABEL *l_S = _LABEL(labelS);
 	tree::LABEL *l_E = _LABEL(labelE);
-
 	tree::MOVE *var_init = _MOVE(var, lo);
 	tree::CONST *const_1 = _CONST(1);
 	tree::BINOP *var_inc = _BINOP(tree::BINOP::oPLUS, var, const_1);
@@ -576,6 +585,8 @@ void
 IRTranslater::visit(BreakExp *exp)
 {
 	FUNCLOG;
+	tree::JUMP *jmp = _JUMP(currentLoopExit);
+	texp = gcnew(translate::Nx, (jmp));
 }
 
 void
