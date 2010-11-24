@@ -427,9 +427,15 @@ IRTranslater::visit(IfExp *exp)
 	tree::LABEL *l_F = _LABEL(labelF);
 
 	exp->test->accept(this);
-	tree::Exp *boolean = texp->unEx();
-	tree::CONST *const_0 = _CONST(0);
-	tree::CJUMP *cjump = _CJUMP(tree::CJUMP::oNE, boolean, const_0, labelT, labelF);
+
+	tree::CJUMP *cjump;
+	if (texp->is(translate::Exp::CX)) {
+		cjump = texp->unCx(labelT, labelF);
+	} else {
+		tree::Exp *boolean = texp->unEx();
+		tree::CONST *const_0 = _CONST(0);
+		cjump = _CJUMP(tree::CJUMP::oNE, boolean, const_0, labelT, labelF);
+	}
 	if (exp->elseexp) {
 		Temp *tmp = gcnew(Temp, ());
 		tree::TEMP *r = _TEMP(tmp);

@@ -13,11 +13,17 @@ namespace tree {
 namespace translate {
 class Exp : public Object
 {
- public:
+public:
+	enum Type { EX, NX, CX };
+ Exp(Type t) : type(t) {}
 	virtual ~Exp() {}
 	virtual tree::Exp *unEx() = 0;
 	virtual tree::Stm *unNx() = 0;
 	virtual tree::CJUMP *unCx(Label *t, Label *f) = 0;
+
+	bool is(Type t) { return type == t; }
+ protected:
+	const Type type;
 };
 
 }//namespace translate

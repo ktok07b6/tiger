@@ -6,7 +6,7 @@
 namespace translate{
 
 Ex::Ex(tree::Exp *e)
-	: exp(e)
+	: Exp(EX), exp(e)
 {
 }
 

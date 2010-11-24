@@ -6,7 +6,7 @@
 namespace translate{
 
 Nx::Nx(tree::Stm *s)
-	: stm(s)
+	: Exp(NX), stm(s)
 {
 }
 

@@ -5,7 +5,8 @@
 namespace translate{
 
 Cx::Cx(tree::CJUMP::RelOp o, tree::Exp *l, tree::Exp *r)
-	: op(o)
+	: Exp(CX)
+	, op(o)
 	, left(l)
 	, right(r)
 {
