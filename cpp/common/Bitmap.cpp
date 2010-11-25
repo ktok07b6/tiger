@@ -140,14 +140,14 @@ Bitmap::get(unsigned int index) const
 bool 
 Bitmap::none() const
 {
-	return d.bit32 == 0;
-	assert(capacity != 0);
-	if (capacity == 1) {
+	if (capacity == 0) {
+		return true;
+	} else if (capacity == 1) {
 		return d.bit32 == 0;
 	} else {
 		unsigned int bits = 0;
 		for (unsigned int n = 0; n < capacity; ++n) {
-			return bits |= d.bits[n];
+			bits |= d.bits[n];
 		}
 		return bits == 0;
 	}
@@ -174,7 +174,10 @@ Bitmap::flip()
 Bitmap 
 Bitmap::operator|(const Bitmap &other) const
 {
-	if (capacity == 1) {
+	assert(capacity == other.capacity);
+	if (capacity == 0) {
+		return Bitmap();
+	} else if (capacity == 1) {
 		return Bitmap(maxbit, d.bit32 | other.d.bit32);
 	} else {
 		unsigned int *bits = new unsigned int[capacity];
@@ -190,7 +193,10 @@ Bitmap::operator|(const Bitmap &other) const
 Bitmap 
 Bitmap::operator-(const Bitmap &other) const
 {
-	if (capacity == 1) {
+	assert(capacity == other.capacity);
+	if (capacity == 0) {
+		return Bitmap();
+	} else if (capacity == 1) {
 		return Bitmap(maxbit, d.bit32 & (~other.d.bit32));
 	} else {
 		unsigned int *bits = new unsigned int[capacity];
@@ -206,7 +212,10 @@ Bitmap::operator-(const Bitmap &other) const
 Bitmap 
 Bitmap::operator &(const Bitmap &other) const
 {
-	if (capacity == 1) {
+	assert(capacity == other.capacity);
+	if (capacity == 0) {
+		return Bitmap();
+	} else if (capacity == 1) {
 		return Bitmap(maxbit, d.bit32 & other.d.bit32);
 	} else {
 		unsigned int *bits = new unsigned int[capacity];
@@ -222,7 +231,9 @@ Bitmap::operator &(const Bitmap &other) const
 Bitmap 
 Bitmap::operator ~() const
 {
-	if (capacity == 1) {
+	if (capacity == 0) {
+		return Bitmap();
+	} else if (capacity == 1) {
 		return Bitmap(maxbit, ~d.bit32);
 	} else {
 		unsigned int *bits = new unsigned int[capacity];
@@ -246,7 +257,10 @@ Bitmap::operator[](unsigned int index)
 bool 
 Bitmap::operator==(const Bitmap &other) const
 {
-	if (capacity == 1) {
+	assert(capacity == other.capacity);
+	if (capacity == 0) {
+		return true;
+	} else if (capacity == 1) {
 		return d.bit32 == other.d.bit32;
 	} else {
 		for (unsigned int n = 0; n < capacity; ++n) {
