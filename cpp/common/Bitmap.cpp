@@ -3,8 +3,8 @@
 
 
 Bitmap::Bitmap()
-: maxbit (32)
-, capacity(1) 
+: maxbit (0)
+, capacity(0) 
 {
 	d.bit32 = 0;
 }

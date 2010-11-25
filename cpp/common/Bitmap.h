@@ -14,7 +14,6 @@ public:
 	Bitmap(const Bitmap &other);
 	~Bitmap();
 
-	void setSize(unsigned int size);
 	unsigned int right();
 	void set(unsigned int index);
 	void reset(unsigned int index);
@@ -36,10 +35,6 @@ public:
 	bool operator==(const Bitmap &other) const;
 	bool operator!=(const Bitmap &other) const;
 
-	void operator|=(unsigned int index);
-	void operator-=(unsigned int index);
-	void operator&=(unsigned int index);
-
 	void operator|=(const Bitmap &other);
 	void operator-=(const Bitmap &other);
 	void operator&=(const Bitmap &other);
@@ -59,56 +54,97 @@ private:
 	unsigned int capacity;
 };
 
-inline void
-Bitmap::setSize(unsigned int size)
-{
-	//TODO:
-	maxbit = size;
-}
 
 inline unsigned int
 Bitmap::right()
 {
 	//TODO: improvement perfomance
-	for (unsigned int i = 0; i < maxbit; ++i) {
-		if (d.bit32 & (1 << i)) {
-			return i;
+	if (capacity == 1) {
+		for (unsigned int i = 0; i < maxbit; ++i) {
+			if (d.bit32 & (1 << i)) {
+				return i;
+			}
+		}
+	} else {
+		//FIXME
+		for (unsigned int n = 0; n < capacity; ++n) {
+			for (unsigned int i = 0; i < 32; ++i) {
+				if (d.bits[n] & (1 << i)) {
+					return capacity * 32 + i;
+				}
+			}
 		}
 	}
+
 	return -1;
 }
 
 inline void 
 Bitmap::set(unsigned int index) 
 {
+	assert(capacity != 0);
+	assert(index < maxbit);
 	if (capacity == 1) {
 		d.bit32 |= (1<<index);
 	} else {
+		int n = index / 32;
+		int idx = index % 32;
+		d.bits[n] |= (1<<idx);
 	}
 }
 
 inline void 
 Bitmap::reset(unsigned int index) 
 {
-	d.bit32 &= ~(1<<index);
+	assert(capacity != 0);
+	assert(index < maxbit);
+	if (capacity == 1) {
+		d.bit32 &= ~(1<<index);
+	} else {
+		int n = index / 32;
+		int idx = index % 32;
+		d.bits[n] &= ~(1<<idx);
+	}
 }
 
 inline void 
 Bitmap::clear() 
 {
-	d.bit32 = 0;
+	if (capacity == 1) {
+		d.bit32 = 0;
+	} else {
+		memset(d.bits, 0, capacity * sizeof(int));
+	}
 }
 	
 inline bool 
 Bitmap::get(unsigned int index) const
 {
-	return (d.bit32 & (1<<index)) != 0;
+	assert(capacity != 0);
+	assert(index < maxbit);
+	if (capacity == 1) {
+		return (d.bit32 & (1<<index)) != 0;
+	} else {
+		int n = index / 32;
+		int idx = index % 32;
+		return (d.bits[n] & (1<<idx)) != 0;
+	}
 }
 
 inline bool 
 Bitmap::none() const
 {
 	return d.bit32 == 0;
+	assert(capacity != 0);
+	if (capacity == 1) {
+		return d.bit32 == 0;
+	} else {
+		unsigned int bits = 0;
+		for (unsigned int n = 0; n < capacity; ++n) {
+			return bits |= d.bits[n];
+		}
+		return bits == 0;
+	}
 }
 
 inline size_t 
@@ -120,19 +156,33 @@ Bitmap::size() const
 inline void 
 Bitmap::flip()
 {
-	d.bit32 = ~d.bit32;
+	if (capacity == 0) {
+		d.bit32 = ~d.bit32;
+	} else {
+		for (unsigned int n = 0; n < capacity; ++n) {
+			d.bits[n] = ~d.bits[n];
+		}
+	}
 }
 
 
 inline Bitmap &
 Bitmap::operator=(const Bitmap &other)
 {
+	if (capacity == 0) {
+		if (other.capacity > 1) {
+			d.bits = new unsigned int [capacity];
+		}
+		capacity = other.capacity;
+		maxbit = other.maxbit;
+	}
 	assert(capacity == other.capacity);
 	assert(maxbit == other.maxbit);
+	
 	if (capacity == 1) {
 		d.bit32 = other.d.bit32;
 	} else {
-		//TODO:
+		memcpy(d.bits, other.d.bits, capacity * sizeof(int));
 	}
 	return *this;
 }
@@ -140,37 +190,86 @@ Bitmap::operator=(const Bitmap &other)
 inline Bitmap 
 Bitmap::operator|(const Bitmap &other) const
 {
-	return Bitmap(maxbit, d.bit32 | other.d.bit32);
+	if (capacity == 1) {
+		return Bitmap(maxbit, d.bit32 | other.d.bit32);
+	} else {
+		unsigned int *bits = new unsigned int[capacity];
+		for (unsigned int n = 0; n < capacity; ++n) {
+			bits[n] = d.bits[n] | other.d.bits[n];
+		}
+		Bitmap b(maxbit, bits);
+		delete [] bits;
+		return b;
+	}
 }
 
 inline Bitmap 
 Bitmap::operator-(const Bitmap &other) const
 {
-	return Bitmap(maxbit, d.bit32 & (~other.d.bit32));
+	if (capacity == 1) {
+		return Bitmap(maxbit, d.bit32 & (~other.d.bit32));
+	} else {
+		unsigned int *bits = new unsigned int[capacity];
+		for (unsigned int n = 0; n < capacity; ++n) {
+			bits[n] = d.bits[n] & ~(other.d.bits[n]);
+		}
+		Bitmap b(maxbit, bits);
+		delete [] bits;
+		return b;
+	}
 }
 
 inline Bitmap 
 Bitmap::operator &(const Bitmap &other) const
 {
-	return Bitmap(maxbit, d.bit32 & other.d.bit32);
+	if (capacity == 1) {
+		return Bitmap(maxbit, d.bit32 & other.d.bit32);
+	} else {
+		unsigned int *bits = new unsigned int[capacity];
+		for (unsigned int n = 0; n < capacity; ++n) {
+			bits[n] = d.bits[n] & other.d.bits[n];
+		}
+		Bitmap b(maxbit, bits);
+		delete [] bits;
+		return b;
+	}
 }
 	
 inline Bitmap 
 Bitmap::operator ~() const
 {
-	return Bitmap(maxbit, ~d.bit32);
+	if (capacity == 1) {
+		return Bitmap(maxbit, ~d.bit32);
+	} else {
+		unsigned int *bits = new unsigned int[capacity];
+		for (unsigned int n = 0; n < capacity; ++n) {
+			bits[n] = ~(d.bits[n]);
+		}
+		Bitmap b(maxbit, bits);
+		delete [] bits;
+		return b;
+	}
 }
 
 inline bool 
 Bitmap::operator[](unsigned int index) const
 {
+	assert(capacity != 0);
+	assert(index < maxbit);
 	return get(index);
 }
 
 inline bool 
 Bitmap::operator==(const Bitmap &other) const
 {
-	return d.bit32 == other.d.bit32;
+	if (capacity == 1) {
+		return d.bit32 == other.d.bit32;
+	} else {
+		for (unsigned int n = 0; n < capacity; ++n) {
+			if (d.bits[n] != other.d.bits[n]) return false;
+		}
+		return true;
+	}
 }
 
 inline bool 
@@ -180,39 +279,39 @@ Bitmap::operator!=(const Bitmap &other) const
 }
 
 inline void 
-Bitmap::operator|=(unsigned int index)
-{
-	d.bit32 |= (1 << index);
-}
-
-inline void 
-Bitmap::operator-=(unsigned int index)
-{
-	d.bit32 &= ~(1 << index);
-}
-
-inline void 
-Bitmap::operator&=(unsigned int index)
-{
-	d.bit32 &= (1 << index);
-}
-
-inline void 
 Bitmap::operator|=(const Bitmap &other)
 {
-	d.bit32 |= other.d.bit32;
+	if (capacity == 1) {
+		d.bit32 |= other.d.bit32;
+	} else {
+		for (unsigned int n = 0; n < capacity; ++n) {
+			d.bits[n] |= other.d.bits[n];
+		}
+	}
 }
 
 inline void 
 Bitmap::operator-=(const Bitmap &other)
 {
-	d.bit32 &= ~other.d.bit32;
+	if (capacity == 1) {
+		d.bit32 &= ~other.d.bit32;
+	} else {
+		for (unsigned int n = 0; n < capacity; ++n) {
+			d.bits[n] &= ~other.d.bits[n];
+		}
+	}
 }
 
 inline void 
 Bitmap::operator&=(const Bitmap &other)
 {
-	d.bit32 &= other.d.bit32;
+	if (capacity == 1) {
+		d.bit32 &= other.d.bit32;
+	} else {
+		for (unsigned int n = 0; n < capacity; ++n) {
+			d.bits[n] &= other.d.bits[n];
+		}
+	}
 }
 
 inline std::string 
