@@ -1,0 +1,12 @@
+let
+	var z:int := 0
+	function f(x:int):int = 
+	let
+		function g(y:int):int = x * y 
+	in
+		g(20)
+	end
+in
+	z := f(10);
+	z
+end

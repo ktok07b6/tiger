@@ -1,11 +1,8 @@
 let
-	var x:int := 0 
-	function f():int = g()
-		let
-			function g():int = x * x
-		in
-			g()
-		end
+	var x:int := 10 
+	var y:int := 20
+	function f():int = x * y
 in
-	f()
+	y := f();
+	y
 end
