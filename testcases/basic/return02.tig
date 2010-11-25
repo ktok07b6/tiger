@@ -1,7 +1,7 @@
 let
 		type arr = array of int
-		function retarr(a:arr):arr = arr[10] of 3
-		var z:arr := nil
+		function retarr():arr = arr[10] of 3
+		var z:arr := arr[10] of 0
 in
 		z := retarr()
 end
