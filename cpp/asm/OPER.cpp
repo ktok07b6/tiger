@@ -13,6 +13,24 @@ OPER::OPER(const std::string &opcode,
 {
 }
 
+OPER::OPER(const std::string &opcode, 
+		   const std::string &operands,
+		   Temp *d, 
+		   Temp *s,
+		   const std::string &comment,
+		   int sourceLine)
+	: Instruction(opcode, operands, comment, sourceLine)
+	, dst()
+	, src()
+{
+	if (d) {
+		dst.push_back(d);
+	}
+	if (s) {
+		src.push_back(s);
+	}
+}
+
 TempList 
 OPER::use()
 {

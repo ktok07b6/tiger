@@ -143,7 +143,7 @@ ARMCodeGen::munchJUMP(Label *lab)
 {
 	LabelList targets;
 	targets.push_back(lab);
-	assem::OPER *op = gcnew(assem::OPER, ("b", "$j0", TempList(), TempList()));
+	assem::OPER *op = gcnew(assem::OPER, ("b", "$j0", NULL, NULL));
 	if (lab->toString() == END_FUNCTION_LABEL_NAME) {
 		
 	}
@@ -180,7 +180,7 @@ ARMCodeGen::munchCJUMP(tree::CJUMP *cj)
 	targets.push_back(cj->truelab);
 	targets.push_back(cj->falselab);
 	assem = format("b%s", cond[cj->relop]);
-	assem::OPER *op = gcnew(assem::OPER, (assem, "$j0", TempList(), TempList()));
+	assem::OPER *op = gcnew(assem::OPER, (assem, "$j0", NULL, NULL));
 	op->setJumpTargets(targets);
 	emit(op);
 }
@@ -205,31 +205,51 @@ void
 ARMCodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 {
 	const Frame::Registers &regs = frame->registers();
-	if (exps.size() <= regs.args.size()) {
-		tree::CONST *konst;
-		tree::ExpList::const_iterator it;
-		TempList::const_iterator arg_reg;
-		it = exps.begin();
-		arg_reg = regs.args.begin();
-		while (it != exps.end()) {
-			tree::Exp *e = *it;
-			Temp *dst = *arg_reg;
+	tree::ExpList::const_iterator exp;
+	tree::CONST *konst;
+	if (regs.args.size() < exps.size()) {
+		exp = exps.begin();
+		std::advance(exp, exps.size() - regs.args.size());
+		int offset = 0;
+		while (exp != exps.end()) {
+			tree::Exp *e = *exp;
+			Temp *tmp = gcnew(Temp, ());
 			if (_M0(CONST_T, konst) == e) {
-				std::string arg_reg_str = frame->tempMap(dst);
-				std::string assem = format("%s, #%d", arg_reg_str.c_str(), konst->value);
-				emit(gcnew(assem::MOVE, ("mov", assem, dst, NULL)));
+				std::string assem = format("$d1, #%d", konst->value);
+				emit(gcnew(assem::MOVE, ("mov", assem, tmp, NULL)));
+				//FIXME:
+				assem = format("$s1, [sp, #%d]", offset);
+				emit(gcnew(assem::OPER, ("str", assem, regs.all[13], tmp)));
 			} else {
 				Temp *src = munchExp(e);
-				std::string arg_reg_str = frame->tempMap(dst);
-				std::string assem = format("%s, $s0", arg_reg_str.c_str());
-				emit(gcnew(assem::MOVE, ("mov", assem, dst, src)));
+				emit(gcnew(assem::MOVE, ("mov", "$d1, $s1", tmp, src)));
+				std::string assem = format("$s1, [sp, #%d]", offset);
+				emit(gcnew(assem::OPER, ("str", assem, regs.all[13], tmp)));
 			}
-			tsrc->push_back(dst);
-			++it;
-			++arg_reg;
+			++exp;
+			offset += frame->wordSize();
 		}
-	} else {
-		//TODO:
+	}
+
+	TempList::const_iterator arg_reg;
+	exp = exps.begin();
+	arg_reg = regs.args.begin();
+	while (arg_reg != regs.args.end()) {
+		tree::Exp *e = *exp;
+		Temp *dst = *arg_reg;
+		if (_M0(CONST_T, konst) == e) {
+			std::string arg_reg_str = frame->tempMap(dst);
+			std::string assem = format("%s, #%d", arg_reg_str.c_str(), konst->value);
+			emit(gcnew(assem::MOVE, ("mov", assem, dst, NULL)));
+		} else {
+			Temp *src = munchExp(e);
+			std::string arg_reg_str = frame->tempMap(dst);
+			std::string assem = format("%s, $s0", arg_reg_str.c_str());
+			emit(gcnew(assem::MOVE, ("mov", assem, dst, src)));
+		}
+		tsrc->push_back(dst);
+		++exp;
+		++arg_reg;
 	}
 }
 
@@ -251,10 +271,10 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 				assert(0);
 			}
 			Temp *r = gcnew(Temp, ());
-			TempList tdst, tsrc;
-			tdst.push_back(r);
-			tsrc.push_back(munchExp(binop->l));
-			emit(gcnew(assem::OPER, ("ldr", assem, tdst, tsrc)));
+			emit(gcnew(assem::OPER, ("ldr", 
+									 assem, 
+									 r, 
+									 munchExp(binop->l))));
 			return r;
 		}
 		if (_M0(CONST_T, konst) == binop->l) {
@@ -267,21 +287,21 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 				assert(0);
 			}
 			Temp *r = gcnew(Temp, ());
-			TempList tdst, tsrc;
-			tdst.push_back(r);
-			tsrc.push_back(munchExp(binop->r));
-			emit(gcnew(assem::OPER, ("ldr", assem, tdst, tsrc)));
+			emit(gcnew(assem::OPER, ("ldr", 
+									 assem, 
+									 r, 
+									 munchExp(binop->r))));
 			return r;
 		}
 	}
 
 	{
 		//(e1)
-		TempList tdst, tsrc;
 		Temp *r = gcnew(Temp, ());
-		tdst.push_back(r);
-		tsrc.push_back(munchExp(mem->exp));
-		emit(gcnew(assem::OPER, ("ldr", "$d0, [$s0]", tdst, tsrc)));
+		emit(gcnew(assem::OPER, ("ldr", 
+								 "$d0, [$s0]", 
+								 r, 
+								 munchExp(mem->exp))));
 		return r;
 	}
 }
@@ -315,10 +335,7 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 		std::string assem = format("$d0, $s0, #%d", konst->value);
 
 		Temp *r = gcnew(Temp, ());
-		TempList tdst, tsrc;
-		tdst.push_back(r);
-		tsrc.push_back(munchExp(binop->l));
-		emit(gcnew(assem::OPER, (opcode, assem, tdst, tsrc)));
+		emit(gcnew(assem::OPER, (opcode, assem, r, munchExp(binop->l))));
 		return r;
 	}
 	if (_M0(CONST_T, konst) == binop->l) {
@@ -326,10 +343,7 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 		std::string assem = format("$d0, $s0, #%d", konst->value);
 
 		Temp *r = gcnew(Temp, ());
-		TempList tdst, tsrc;
-		tdst.push_back(r);
-		tsrc.push_back(munchExp(binop->r));
-		emit(gcnew(assem::OPER, (opcode, assem, tdst, tsrc)));
+		emit(gcnew(assem::OPER, (opcode, assem, r, munchExp(binop->r))));
 		return r;
 	}
 		
@@ -371,9 +385,7 @@ ARMCodeGen::munchCONST(tree::CONST *c)
 	std::string assem = format("$d0, #%d", c->value);
 
 	Temp *r = gcnew(Temp, ());
-	TempList tdst;
-	tdst.push_back(r);
-	emit(gcnew(assem::OPER, ("mov", assem, tdst, TempList())));
+	emit(gcnew(assem::OPER, ("mov", assem, r, NULL)));
 	return r;
 }
 

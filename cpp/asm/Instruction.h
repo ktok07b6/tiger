@@ -58,6 +58,13 @@ class OPER : public Instruction
 		 const std::string &comment = "",
 		 int sourceLine = -1);
 
+	OPER(const std::string &opcode, 
+		 const std::string &operands,
+		 Temp *dst, 
+		 Temp *src,
+		 const std::string &comment = "",
+		 int sourceLine = -1);
+
 	virtual TempList use();
 	virtual TempList def();
 	virtual LabelList jumps();
