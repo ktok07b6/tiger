@@ -23,17 +23,16 @@ public:
 
 	void flip();
 
-	Bitmap &operator=(const Bitmap &other);
-
 	Bitmap operator|(const Bitmap &other) const;
 	Bitmap operator-(const Bitmap &other) const;
 	Bitmap operator &(const Bitmap &other) const;
 	Bitmap operator ~() const;
-	bool operator[](unsigned int index) const;
+	bool operator[](unsigned int index);
 
 	bool operator==(const Bitmap &other) const;
 	bool operator!=(const Bitmap &other) const;
 
+	Bitmap &operator=(const Bitmap &other);
 	void operator|=(const Bitmap &other);
 	void operator-=(const Bitmap &other);
 	void operator&=(const Bitmap &other);
@@ -44,6 +43,7 @@ public:
 	std::string toString() const;
 
 private:
+	void expandIfEmpty(const Bitmap &other);
 	union Data{
 		unsigned int bit32;
 		unsigned int *bits;

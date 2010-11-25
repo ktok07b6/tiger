@@ -162,35 +162,13 @@ Bitmap::size() const
 void 
 Bitmap::flip()
 {
-	if (capacity == 0) {
+	if (capacity == 1) {
 		d.bit32 = ~d.bit32;
 	} else {
 		for (unsigned int n = 0; n < capacity; ++n) {
 			d.bits[n] = ~d.bits[n];
 		}
 	}
-}
-
-
-Bitmap &
-Bitmap::operator=(const Bitmap &other)
-{
-	if (capacity == 0) {
-		if (other.capacity > 1) {
-			d.bits = new unsigned int [capacity];
-		}
-		capacity = other.capacity;
-		maxbit = other.maxbit;
-	}
-	assert(capacity == other.capacity);
-	assert(maxbit == other.maxbit);
-	
-	if (capacity == 1) {
-		d.bit32 = other.d.bit32;
-	} else {
-		memcpy(d.bits, other.d.bits, capacity * 4);
-	}
-	return *this;
 }
 
 Bitmap 
@@ -258,7 +236,7 @@ Bitmap::operator ~() const
 }
 
 bool 
-Bitmap::operator[](unsigned int index) const
+Bitmap::operator[](unsigned int index)
 {
 	assert(capacity != 0);
 	assert(index < maxbit);
@@ -284,9 +262,25 @@ Bitmap::operator!=(const Bitmap &other) const
 	return !this->operator==(other);
 }
 
+
+Bitmap &
+Bitmap::operator=(const Bitmap &other)
+{
+	expandIfEmpty(other);
+
+	if (capacity == 1) {
+		d.bit32 = other.d.bit32;
+	} else {
+		memcpy(d.bits, other.d.bits, capacity * 4);
+	}
+	return *this;
+}
+
 void 
 Bitmap::operator|=(const Bitmap &other)
 {
+	expandIfEmpty(other);
+
 	if (capacity == 1) {
 		d.bit32 |= other.d.bit32;
 	} else {
@@ -299,6 +293,8 @@ Bitmap::operator|=(const Bitmap &other)
 void 
 Bitmap::operator-=(const Bitmap &other)
 {
+	expandIfEmpty(other);
+
 	if (capacity == 1) {
 		d.bit32 &= ~other.d.bit32;
 	} else {
@@ -311,6 +307,8 @@ Bitmap::operator-=(const Bitmap &other)
 void 
 Bitmap::operator&=(const Bitmap &other)
 {
+	expandIfEmpty(other);
+
 	if (capacity == 1) {
 		d.bit32 &= other.d.bit32;
 	} else {
@@ -332,4 +330,18 @@ Bitmap::toString() const
 		}
 	}
 	return s;
+}
+
+void
+Bitmap::expandIfEmpty(const Bitmap &other)
+{
+	if (capacity == 0) {
+		if (other.capacity > 1) {
+			d.bits = new unsigned int [capacity];
+		}
+		capacity = other.capacity;
+		maxbit = other.maxbit;
+	}
+	assert(capacity == other.capacity);
+	assert(maxbit == other.maxbit);
 }
