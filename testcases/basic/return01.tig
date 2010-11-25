@@ -1,0 +1,6 @@
+let
+		function retstr():string = "hello"
+		var s:string := ""
+in
+		s := retstr()
+end

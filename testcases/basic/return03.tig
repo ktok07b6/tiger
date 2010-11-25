@@ -1,0 +1,7 @@
+let
+		type rec = {x:int, y:int}
+		function retrec():rec = rec{x = 10, y = 20}
+		var z:rec := nil
+in
+		z := retrec()
+end
