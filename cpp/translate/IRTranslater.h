@@ -50,7 +50,7 @@ struct IRTranslater : AbsynVisitor
 	tree::Exp *convertAndOp(tree::Exp *el, tree::Exp *er);
 	tree::Exp *convertOrOp(tree::Exp *el, tree::Exp *er);
 
-	tree::Exp *callMalloc(int);
+	tree::Exp *callAlloc(int);
 
 	translate::Exp *texp;
 	Level *currentLevel;

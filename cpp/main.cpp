@@ -64,11 +64,70 @@ bool parsePhase()
 
 void addPreInstallFuncs()
 {
-	Symbol *print = Symbol::symbol("print");
-	TypeList print_args;
-	print_args.push_back(StrT);
-	FuncEntry *fe = new FuncEntry(VoidT, print_args);
-	nameTable.put(print, fe);
+	TypeList arg_types;
+	//initArray
+	arg_types.push_back(IntT);
+	arg_types.push_back(IntT);
+	nameTable.put(Symbol::symbol("initArray"), gcnew(FuncEntry, (IntT, arg_types)));
+	arg_types.clear();
+
+	//alloc
+	arg_types.push_back(IntT);
+	nameTable.put(Symbol::symbol("alloc"), gcnew(FuncEntry, (IntT, arg_types)));
+	arg_types.clear();
+
+	//print
+	arg_types.push_back(StrT);
+	nameTable.put(Symbol::symbol("print"), gcnew(FuncEntry, (VoidT, arg_types)));
+	arg_types.clear();
+
+	//flush
+	nameTable.put(Symbol::symbol("flush"), gcnew(FuncEntry, (VoidT, arg_types)));
+	arg_types.clear();
+
+	//ord
+	arg_types.push_back(StrT);
+	nameTable.put(Symbol::symbol("ord"), gcnew(FuncEntry, (IntT, arg_types)));
+	arg_types.clear();
+
+	//chr
+	arg_types.push_back(IntT);
+	nameTable.put(Symbol::symbol("chr"), gcnew(FuncEntry, (StrT, arg_types)));
+	arg_types.clear();
+
+	//stringEqual
+	arg_types.push_back(StrT);
+	arg_types.push_back(StrT);
+	nameTable.put(Symbol::symbol("stringEqual"), gcnew(FuncEntry, (IntT, arg_types)));
+	arg_types.clear();
+
+	//stringLen
+	arg_types.push_back(StrT);
+	nameTable.put(Symbol::symbol("stringLen"), gcnew(FuncEntry, (IntT, arg_types)));
+	arg_types.clear();
+
+	//substring
+	arg_types.push_back(StrT);
+	arg_types.push_back(IntT);
+	arg_types.push_back(IntT);
+	nameTable.put(Symbol::symbol("substring"), gcnew(FuncEntry, (StrT, arg_types)));
+	arg_types.clear();
+
+	//stringConcat
+	arg_types.push_back(StrT);
+	arg_types.push_back(StrT);
+	nameTable.put(Symbol::symbol("stringConcat"), gcnew(FuncEntry, (StrT, arg_types)));
+	arg_types.clear();
+
+	//not
+	arg_types.push_back(IntT);
+	nameTable.put(Symbol::symbol("not"), gcnew(FuncEntry, (IntT, arg_types)));
+	arg_types.clear();
+
+	//getchar
+	nameTable.put(Symbol::symbol("getchar"), gcnew(FuncEntry, (StrT, arg_types)));
+	arg_types.clear();
+
 }
 
 bool typeCheckPhase()
@@ -104,7 +163,7 @@ void printSymbols()
 	Scopes<NameEntry>::ScopeMap::iterator it = nameScopes.dict.begin();
 	while (it != nameScopes.dict.end()){
 		Scopes<NameEntry>::ScopeMapEntry entry = (*it);
-		unsigned int id = entry.first;
+		//unsigned int id = entry.first;
 		Scopes<NameEntry>::List li = entry.second;
 		Scopes<NameEntry>::List::iterator i2 = li.begin();
 		while (i2 != li.end()) {
@@ -225,6 +284,7 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
 	}
 #endif
 	const graph::AsmFlowGraph flow(proc);
+	//flow.show();
 	const regalloc::Liveness liveness(flow);
 	const graph::InterferenceGraph *igraph = liveness.getInterferenceGraph();
 	//igraph->show();

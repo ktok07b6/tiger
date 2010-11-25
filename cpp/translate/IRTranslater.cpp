@@ -340,7 +340,7 @@ IRTranslater::visit(RecordExp *exp)
 	Temp *t = gcnew(Temp, ());
 	tree::TEMP *base = _TEMP(t);
 	int ws = currentLevel->getFrame()->wordSize();
-	tree::Exp *addr = callMalloc(exp->fields->size() * ws);
+	tree::Exp *addr = callAlloc(exp->fields->size() * ws);
 	tree::MOVE *mv = _MOVE(base, addr);
 
 	seq.add(mv);
@@ -805,13 +805,13 @@ IRTranslater::visit(ArrayTy *ty)
 }
 
 tree::Exp *
-IRTranslater::callMalloc(int size)
+IRTranslater::callAlloc(int size)
 {
 	tree::CONST *csize = _CONST(size);
 	tree::ExpList arg;
 	arg.push_back(csize);
-	tree::Exp *cmalloc = currentLevel->getFrame()->externalCall("malloc", arg);
-	return cmalloc;
+	tree::Exp *calloc = currentLevel->getFrame()->externalCall("alloc", arg);
+	return calloc;
 }
 
 void

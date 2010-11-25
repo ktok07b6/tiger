@@ -11,15 +11,11 @@ int *initArray(int size, int init)
 	return a;
 }
 
-int *allocRecord(int size)
+int *alloc(int size)
 {
-	int i;
-	int *p, *a;
-	p = a = (int *)malloc(size);
-	for (i = 0; i < size; i += sizeof(int)) {
-		*p++ = 0;
-	}
-	return a;
+	int *p;
+	p = (int *)calloc(size);
+	return p;
 }
 
 struct string 
@@ -27,19 +23,6 @@ struct string
 	int length; 
 	unsigned char chars[1];
 };
-
-int stringEqual(struct string *s, struct string *t)
-{
-	int i;
-	if (s == t) return 1;
-	if (s->length != t->length) return 0;
-	for (i = 0; i < s->length; i++) {
-		if (s->chars[i] != t->chars[i]) {
-			return 0;
-		}
-	}
-	return 1;
-}
 
 void print(struct string *s)
 {
@@ -82,7 +65,20 @@ struct string *chr(int i)
 	return consts+i;
 }
 
-int size(struct string *s)
+int stringEqual(struct string *s, struct string *t)
+{
+	int i;
+	if (s == t) return 1;
+	if (s->length != t->length) return 0;
+	for (i = 0; i < s->length; i++) {
+		if (s->chars[i] != t->chars[i]) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int stringLen(struct string *s)
 { 
 	return s->length;
 }
@@ -107,7 +103,7 @@ struct string *substring(struct string *s, int first, int n)
 	}
 }
 
-struct string *concat(struct string *a, struct string *b)
+struct string *stringConcat(struct string *a, struct string *b)
 {
 	if (a->length == 0) {
 		return b;
