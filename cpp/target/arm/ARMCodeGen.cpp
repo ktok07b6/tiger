@@ -206,10 +206,12 @@ ARMCodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 {
 	const Frame::Registers &regs = frame->registers();
 	tree::ExpList::const_iterator exp;
+	tree::ExpList::const_iterator exp_end = exps.end();
 	tree::CONST *konst;
 	if (regs.args.size() < exps.size()) {
 		exp = exps.begin();
 		std::advance(exp, exps.size() - regs.args.size());
+		exp_end = exp;
 		int offset = 0;
 		while (exp != exps.end()) {
 			tree::Exp *e = *exp;
@@ -234,7 +236,8 @@ ARMCodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 	TempList::const_iterator arg_reg;
 	exp = exps.begin();
 	arg_reg = regs.args.begin();
-	while (arg_reg != regs.args.end()) {
+	
+	while (exp != exp_end) {
 		tree::Exp *e = *exp;
 		Temp *dst = *arg_reg;
 		if (_M0(CONST_T, konst) == e) {
