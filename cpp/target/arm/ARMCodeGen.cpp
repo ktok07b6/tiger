@@ -2,7 +2,7 @@
 #include "Instruction.h"
 #include "TreeMatcher.h"
 #include "tiger.h"
-#include "Frame.h"
+#include "ARMFrame.h"
 
 /*
   ::instruction sufixes::
@@ -32,7 +32,7 @@ assem::CodeGen::create()
 }
 
 
-ARMCodeGen::ARMCodeGen(Frame *frame)
+ARMCodeGen::ARMCodeGen(ARMFrame *frame)
 	: frame(frame)
 {
 }
@@ -210,27 +210,28 @@ ARMCodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 	tree::CONST *konst;
 	if (regs.args.size() < exps.size()) {
 		exp = exps.begin();
-		std::advance(exp, exps.size() - regs.args.size());
+		std::advance(exp, regs.args.size());
 		exp_end = exp;
 		int offset = 0;
 		while (exp != exps.end()) {
 			tree::Exp *e = *exp;
 			Temp *tmp = gcnew(Temp, ());
 			if (_M0(CONST_T, konst) == e) {
-				std::string assem = format("$d1, #%d", konst->value);
+				std::string assem = format("$d0, #%d", konst->value);
 				emit(gcnew(assem::MOVE, ("mov", assem, tmp, NULL)));
 				//FIXME:
-				assem = format("$s1, [sp, #%d]", offset);
+				assem = format("$s0, [sp, #%d]", offset);
 				emit(gcnew(assem::OPER, ("str", assem, regs.all[13], tmp)));
 			} else {
 				Temp *src = munchExp(e);
-				emit(gcnew(assem::MOVE, ("mov", "$d1, $s1", tmp, src)));
-				std::string assem = format("$s1, [sp, #%d]", offset);
+				emit(gcnew(assem::MOVE, ("mov", "$d0, $s0", tmp, src)));
+				std::string assem = format("$s0, [sp, #%d]", offset);
 				emit(gcnew(assem::OPER, ("str", assem, regs.all[13], tmp)));
 			}
 			++exp;
 			offset += frame->wordSize();
 		}
+		frame->extraArgSize(offset);
 	}
 
 	TempList::const_iterator arg_reg;

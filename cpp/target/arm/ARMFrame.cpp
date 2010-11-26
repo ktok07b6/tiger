@@ -37,6 +37,7 @@ ARMFrame::frameCount;
 
 ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	: frameOffset(0)
+	, maxExtraArgSize(0)
 {
 	Frame::name = n;
 	std::string end = format("end_of_%s", name->name.c_str());
@@ -109,7 +110,7 @@ ARMFrame::allocLocal(bool escape)
 	Frame::Access *access = NULL;
 	if (escape) {
 		DBG("frameOffset %d", frameOffset);
-		access = gcnew(InFrame, (frameOffset));
+		access = gcnew(InFrame, (-frameOffset));
 		frameOffset += WORD_SIZE;
 	} else {
 		Temp *t = gcnew(Temp, ());
@@ -154,7 +155,7 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 	sm.add(l);
 
 	int i = 0;
-	int offset = 0;
+	int offset = 4;
 	std::vector<Access*>::iterator it = formals.begin();
 	while (it != formals.end()) {
 		if (i < 4) {
@@ -162,16 +163,16 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 			tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
 			sm.add(_MOVE(tmp, r));
 		} else {
-			tree::CONST *c = _CONST(offset);
-			tree::MEM *m = _MEM(c);
+			tree::CONST *offs = _CONST(offset);
+			tree::TEMP *base = _TEMP(fp());
+			tree::MEM *m = _MEM(_(base) + _(offs));
 			tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
 			sm.add(_MOVE(tmp, m));
-			offset += 4;
+			offset += WORD_SIZE;
 		}
 		++it;
 		++i;
 	}
-
 	sm.add(body);
 	return sm.make();
 }
@@ -346,7 +347,7 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	assem::OPER *set_fp = gcnew(assem::OPER, ("sub", "fp, sp, #4", TempList(), TempList()));
 	proc.push_back(set_fp);
 
-	assem = format("sp, sp, #%d", frameOffset);
+	assem = format("sp, sp, #%d", frameOffset + maxExtraArgSize);
 	assem::OPER *set_sp = gcnew(assem::OPER, ("sub", assem, TempList(), TempList()));
 	proc.push_back(set_sp);
 
@@ -388,6 +389,11 @@ ARMFrame::registers()
 	return regs;
 }
 
+void 
+ARMFrame::extraArgSize(int size)
+{
+	maxExtraArgSize = (maxExtraArgSize < size) ? size : maxExtraArgSize;
+}
 
 //------------------------------------------------------
 std::string 

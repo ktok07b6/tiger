@@ -3,12 +3,12 @@
 
 #include "Tree.h"
 #include "CodeGen.h"
-class Frame;
+class ARMFrame;
 
 class ARMCodeGen : public assem::CodeGen
 {
  public:
-	ARMCodeGen(Frame *frame);
+	ARMCodeGen(ARMFrame *frame);
 
 	virtual void munchMOVE(tree::Exp *dst, tree::Exp *src);
 	virtual void munchLABEL(Label *lab);
@@ -27,7 +27,7 @@ class ARMCodeGen : public assem::CodeGen
 	virtual bool isMove(assem::Instruction *inst);
 	virtual bool isJump(assem::Instruction *inst);
  private:
-	Frame *frame;
+	ARMFrame *frame;
 };
 
 
