@@ -173,7 +173,7 @@ Color::decrementDegree(int nid)
 	degreeMap[nid] = degree - 1;
 	if (degree == K) {
 		Bitmap adj = adjacent(nid);
-		adj |= nid;
+		adj.set(nid);
 		enableMoves(adj);
 		spillWorkList.reset(nid);
 		if (isMoveRelated(nid)) {

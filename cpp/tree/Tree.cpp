@@ -58,7 +58,9 @@ Exp *
 CALL::build(ExpList kids)
 {
 	FUNCLOG;
+	int s = kids.size();
 	Exp *f = kids.pop_front();
+	assert(kids.size() == s-1);
 	assert(f->isNAME_T());
 	return gcnew(CALL, ((NAME*)f, kids));
 }

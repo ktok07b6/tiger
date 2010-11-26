@@ -180,13 +180,16 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 std::string 
 ARMFrame::string(Label *label, const std::string &value)
 {
+	std::string assem;
+	assem = format("%s:\t.asciz\t%s", label->toString().c_str(), value.c_str());
+	assem += "\n\t.align 2";
+	return assem;
 	/* example
     str1:    .ascii      "mov\tr1, r2\n"
              .align 2
     str2:    .asciz      "New Line\n"
              .align 2
 	*/ 
-	return "";
 }
 
 tree::Exp *

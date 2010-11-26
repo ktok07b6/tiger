@@ -119,14 +119,47 @@ void
 IRTranslater::visit(StringExp *exp)
 {
 	FUNCLOG;
+	tree::SEQMaker sm;
+	Frame *f = currentLevel->getFrame();
+	//allocate memory for "string" structure
+	/*
+	  struct string 
+	  {
+	  int length; 
+	  unsigned char chars[1];
+	  };
 
+	  string *pstr = malloc(wordSize + strSize);
+	  pstr->length = strSize;
+	*/
+	int len_field_size = currentLevel->getFrame()->wordSize();
+	int string_field_size = exp->str.size();
+	tree::Exp *pstr = callAlloc(len_field_size + string_field_size);
+	tree::MEM *mem = _MEM(pstr);
+	tree::CONST *len = _CONST(string_field_size);
+	tree::MOVE *copy_str_len = _MOVE(mem, len);
+	sm.add(copy_str_len);
+
+	/*
+	  strcopy(pstr->chars, [address of string], strSize);
+	 */
 	Label *lab = gcnew(Label, ());
 	tree::NAME *name = _NAME(lab);
-	Frame *f = currentLevel->getFrame();
+
+	tree::ExpList arg;
+	arg.push_back(pstr);
+	arg.push_back(name);
+	arg.push_back(len);
+	tree::Exp *str_copy = f->externalCall("strcpy", arg);
+	tree::EXPR *stm_str_copy = _EXPR(str_copy);
+	sm.add(stm_str_copy);
+
+	//add DataFragment
 	std::string str_asm = f->string(lab, exp->str);
 	fragments.push_back(gcnew(DataFragment, (str_asm)));
 
-	texp = gcnew(translate::Ex, (name));
+	tree::ESEQ *eseq = _ESEQ(sm.make(), pstr);
+	texp = gcnew(translate::Ex, (eseq));
 }
 
 void
@@ -160,7 +193,8 @@ IRTranslater::visit(CallExp *exp)
 	while (it != exp->explist->end()) {
 		Exp *e = *it;
 		e->accept(this);
-		args.push_back(texp->unEx());
+		tree::Exp *arg = texp->unEx();
+		args.push_back(arg);
 		++it;
 	}
 

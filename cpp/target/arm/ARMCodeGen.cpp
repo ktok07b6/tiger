@@ -52,7 +52,7 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 				//(MEM(BINOP(PLUS,e1,CONST(i))), e2)
 				std::string assem;
 				if (konst->value < 4096) {
-					assem = format("$s1, [$s0, #+%d]", konst->value);
+					assem = format("$s1, [$s0, #%d]", konst->value);
 				} else {
 					//TODO:
 					assert(0);
@@ -66,7 +66,7 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 				//MEM(BINOP(PLUS,CONST(i),e1)),e2))
 				std::string assem;
 				if (konst->value < 4096) {
-					assem = format("$s1, [$s0, #+%d]", konst->value);
+					assem = format("$s1, [$s0, #%d]", konst->value);
 				} else {
 					//TODO:
 					assert(0);
@@ -144,9 +144,6 @@ ARMCodeGen::munchJUMP(Label *lab)
 	LabelList targets;
 	targets.push_back(lab);
 	assem::OPER *op = gcnew(assem::OPER, ("b", "$j0", NULL, NULL));
-	if (lab->toString() == END_FUNCTION_LABEL_NAME) {
-		
-	}
 	op->setJumpTargets(targets);
 	emit(op);
 }
@@ -269,7 +266,7 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 			//(BINOP(PLUS,e1,CONST(i)))
 			std::string assem;
 			if (konst->value < 4096) {
-				assem = format("$d0, [$s0, #+%d]", konst->value);
+				assem = format("$d0, [$s0, #%d]", konst->value);
 			} else {
 				//TODO:
 				assert(0);
@@ -285,7 +282,7 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 			//(BINOP(PLUS,CONST(i),e1))
 			std::string assem;
 			if (konst->value < 4096) {
-				assem = format("$d0, [$s0, #+%d]", konst->value);
+				assem = format("$d0, [$s0, #%d]", konst->value);
 			} else {
 				//TODO:
 				assert(0);
@@ -402,8 +399,10 @@ ARMCodeGen::munchTEMP(tree::TEMP *t)
 Temp *
 ARMCodeGen::munchNAME(tree::NAME *n)
 {
-	//TODO
-	return gcnew(Temp, ());
+	std::string assem = format("$d0, %s", n->label->toString().c_str());
+	Temp *r = gcnew(Temp, ());
+	emit(gcnew(assem::OPER, ("ldr", assem, r, NULL)));
+	return r;
 }
 
 bool 

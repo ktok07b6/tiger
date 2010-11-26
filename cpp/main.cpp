@@ -207,6 +207,7 @@ void codegenPhase(const FragmentList &frags, std::string *out)
 {
 	printSource();
 
+	std::string dataOut;
 	FragmentList::const_iterator it;
 	it = frags.begin();
 	while (it != frags.end()) {
@@ -260,12 +261,13 @@ void codegenPhase(const FragmentList &frags, std::string *out)
 		} else {
 			assert(frag->isData());
 			DataFragment *data = (DataFragment*)frag;
-			*out += data->toString();
-			*out += "\n";
+			dataOut += data->toString();
+			dataOut += "\n";
 			DBG("%d", data->toString().c_str());
 		}
 		++it;
 	}
+	*out += dataOut;
 }
 
 void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::string *out)
