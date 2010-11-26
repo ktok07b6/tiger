@@ -153,20 +153,25 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 	tree::SEQMaker sm;
 	sm.add(l);
 
-	if (formals.size() < 4) {
-		int i = 0;
-		std::vector<Access*>::iterator it = formals.begin();
-		while (it != formals.end()) {
+	int i = 0;
+	int offset = 0;
+	std::vector<Access*>::iterator it = formals.begin();
+	while (it != formals.end()) {
+		if (i < 4) {
 			tree::Exp *r = _TEMP(regs.all[i]);
 			tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
 			sm.add(_MOVE(tmp, r));
-			++it;
-			++i;
+		} else {
+			tree::CONST *c = _CONST(offset);
+			tree::MEM *m = _MEM(c);
+			tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
+			sm.add(_MOVE(tmp, m));
+			offset += 4;
 		}
-	} else {
-		//TODO:
-		assert(0);
+		++it;
+		++i;
 	}
+
 	sm.add(body);
 	return sm.make();
 }
