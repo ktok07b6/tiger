@@ -1,0 +1,6 @@
+let
+		function f5(a1:int, a2:int, a3:int, a4:int, a5:int):int =
+		a1 + a2 + a3 + a4 + a5
+in
+		f5(10, 20, 30, 40, 50)
+end
