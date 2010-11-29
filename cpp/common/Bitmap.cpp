@@ -76,7 +76,7 @@ Bitmap::right()
 		for (unsigned int n = 0; n < capacity; ++n) {
 			for (unsigned int i = 0; i < 32; ++i) {
 				if (d.bits[n] & (1 << i)) {
-					return capacity * 32 + i;
+					return n * 32 + i;
 				}
 			}
 		}
