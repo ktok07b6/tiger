@@ -134,7 +134,12 @@ IRTranslater::visit(StringExp *exp)
 	*/
 	int len_field_size = currentLevel->getFrame()->wordSize();
 	int string_field_size = exp->str.size();
-	tree::Exp *pstr = callAlloc(len_field_size + string_field_size);
+	Temp *t = gcnew(Temp, ());
+	tree::Exp *alloc = callAlloc(len_field_size + string_field_size);
+	tree::TEMP *pstr = _TEMP(t);
+	tree::MOVE *mv = _MOVE(pstr, alloc);
+	sm.add(mv);
+
 	tree::MEM *mem = _MEM(pstr);
 	tree::CONST *len = _CONST(string_field_size);
 	tree::MOVE *copy_str_len = _MOVE(mem, len);
@@ -146,10 +151,11 @@ IRTranslater::visit(StringExp *exp)
 	Label *lab = gcnew(Label, ());
 	tree::NAME *name = _NAME(lab);
 
+	tree::CONST *four = _CONST(4);
+	tree::BINOP *pstr_plus_4 = _(pstr) + _(four);
 	tree::ExpList arg;
-	arg.push_back(pstr);
+	arg.push_back(pstr_plus_4);
 	arg.push_back(name);
-	arg.push_back(len);
 	tree::Exp *str_copy = f->externalCall("strcpy", arg);
 	tree::EXPR *stm_str_copy = _EXPR(str_copy);
 	sm.add(stm_str_copy);
