@@ -1,0 +1,6 @@
+let
+		var i:=0
+in
+		while i < 10 do
+		i := i + 1
+end
