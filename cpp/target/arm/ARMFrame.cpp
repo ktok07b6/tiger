@@ -392,6 +392,31 @@ ARMFrame::registers()
 	return regs;
 }
 
+assem::InstructionList
+ARMFrame::spillTemp(const assem::InstructionList &proc, Temp *spill)
+{
+	assem::InstructionList result;
+	frameOffset += WORD_SIZE;
+	BOOST_FOREACH(assem::Instruction *inst, proc) {
+		TempList use = inst->use();
+		if (std::find(use.begin(), use.end(), spill) != use.end()) {
+			std::string operand = format("$d0, [fp, #%d]", -frameOffset);
+			assem::OPER *ldr = gcnew(assem::OPER, ("ldr", operand, spill, NULL));
+			result.push_back(ldr);
+		}
+
+		result.push_back(inst);
+
+		TempList def = inst->def();
+		if (std::find(def.begin(), def.end(), spill) != def.end()) {
+			std::string operand = format("$s0, [fp, #%d]", -frameOffset);
+			assem::OPER *str = gcnew(assem::OPER, ("str", operand, NULL, spill));
+			result.push_back(str);
+		}
+	}
+	return result;
+}
+
 void 
 ARMFrame::extraArgSize(int size)
 {

@@ -52,6 +52,7 @@ public:
 	virtual assem::InstructionList procEntryExit3(const assem::InstructionList &body) = 0;
 	virtual assem::InstructionList *codegen(tree::Stm *stm) = 0;
 	virtual const Registers &registers() = 0;
+	virtual assem::InstructionList spillTemp(const assem::InstructionList &body, Temp *spill) = 0;
 	Label *getEndFuncLabel();
 protected:
 	Frame();

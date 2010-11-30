@@ -22,6 +22,7 @@ class ARMFrame : public Frame
 	virtual std::string tempMap(Temp *temp);
 	virtual assem::InstructionList *codegen(tree::Stm *stm);
 	virtual const Registers &registers();
+	virtual assem::InstructionList spillTemp(const assem::InstructionList &body, Temp *spill);
 	void extraArgSize(int size);
 	enum {
 		WORD_SIZE = 4,

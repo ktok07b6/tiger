@@ -19,7 +19,8 @@ class Color : public TempMap
 public:
 	Color(const graph::InterferenceGraph &igraph, const TempList &regs);
 	virtual std::string tempMap(Temp *temp);
-	void coloring();
+	bool coloring();
+	Temp *getTempForSpill();
 private:
 
 	typedef std::pair<int, int> NidPair;
@@ -87,6 +88,7 @@ private:
 	MoveListMap moveList;
 	typedef std::map<int, int> ColorMap;
 	ColorMap color;
+	Temp *spillTemp;
 };
 
 } //namespace regalloc

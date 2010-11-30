@@ -27,10 +27,11 @@ Color::Color(const InterferenceGraph &ig, const TempList &regs)
 	, workListMoves()
 	, activeMoves()
 	, precolored(tempSize)
+	, spillTemp(NULL)
 {
 }
 
-void 
+bool
 Color::coloring()
 {
 	build();
@@ -67,8 +68,13 @@ Color::coloring()
 	assignColors();
 
 	if (!spilledNodes.none()) {
-		//TODO:
+		//TODO:select node
+		int nid = spilledNodes.right();
+		graph::Node *n = igraph.nid2node(nid);
+		spillTemp = igraph.node2temp(n);
+		return false;
 	}
+	return true;
 }
 
 void 
@@ -531,6 +537,12 @@ Color::show()
 	DBG("coalescedNodes  : %s", (const char*)coalescedNodes);
 	DBG("selectStack     : %s", (const char*)stk);
 	DBG("===== show end =====\n");
+}
+
+Temp *
+Color::getTempForSpill()
+{
+	return spillTemp;
 }
 
 }//namespace regalloc
