@@ -50,7 +50,8 @@ int main()
 		consts[i].length=1;
 		consts[i].chars[0]=i;
 	}
-	return __tigermain();
+	__tigermain();
+	return 0;
 }
 
 int ord(struct string *s)

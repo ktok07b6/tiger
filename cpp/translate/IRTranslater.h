@@ -51,6 +51,7 @@ struct IRTranslater : AbsynVisitor
 	tree::Exp *convertOrOp(tree::Exp *el, tree::Exp *er);
 
 	tree::Exp *callAlloc(int);
+	bool isBuiltinFunc(Symbol *f);
 
 	translate::Exp *texp;
 	Level *currentLevel;

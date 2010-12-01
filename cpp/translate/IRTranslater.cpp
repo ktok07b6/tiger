@@ -180,7 +180,6 @@ IRTranslater::visit(CallExp *exp)
 	lev->formals;
 	*/
 	tree::ExpList args;
-	
 	//FIXME
 	if (currentFuncName == exp->func) {
 		//In case of the recusive call, to pass the static link as first argument.
@@ -188,9 +187,11 @@ IRTranslater::visit(CallExp *exp)
 		tree::Exp *sl = currentLevel->getFrame()->staticChain(fp);
 		args.push_back(sl);
 	} else {
-		//To pass the frame pointer as first argument.
-		tree::TEMP *fp = _TEMP(currentLevel->getFrame()->fp());
-		args.push_back(fp);
+		if (!isBuiltinFunc(exp->func)) {
+			//To pass the frame pointer as first argument.
+			tree::TEMP *fp = _TEMP(currentLevel->getFrame()->fp());
+			args.push_back(fp);
+		}
 	}
 	
 
@@ -862,6 +863,7 @@ IRTranslater::getExp()
 {
 	return texp;
 }
+
 const FragmentList &
 IRTranslater::getFragments()
 {
@@ -874,3 +876,19 @@ IRTranslater::getFragments()
 	return fragments;
 }
 
+bool
+IRTranslater::isBuiltinFunc(Symbol *f)
+{
+	return (Symbol::symbol("initArray") == f) ||
+		(Symbol::symbol("alloc") == f) ||
+		(Symbol::symbol("print") == f) ||
+		(Symbol::symbol("flush") == f) ||
+		(Symbol::symbol("ord") == f) ||
+		(Symbol::symbol("chr") == f) ||
+		(Symbol::symbol("stringEqual") == f) ||
+		(Symbol::symbol("stringLen") == f) ||
+		(Symbol::symbol("substring") == f) ||
+		(Symbol::symbol("stringConcat") == f) ||
+		(Symbol::symbol("not") == f) ||
+		(Symbol::symbol("getch") == f);
+}

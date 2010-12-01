@@ -192,7 +192,8 @@ ARMCodeGen::munchEXPR(tree::Exp *exp)
 
 		LabelList targets;
 		targets.push_back(call->func->label);
-		assem::OPER *op = gcnew(assem::OPER, ("bl", "$j0", TempList(), tsrc));
+		//TODO: r0-r3 will be destoryed in c function
+		assem::OPER *op = gcnew(assem::OPER, ("bl", "$j0", frame->registers().args, tsrc));
 		op->setJumpTargets(targets);
 		emit(op);
 	}
@@ -368,12 +369,14 @@ ARMCodeGen::munchCALL(tree::CALL *c)
 	munchArgs(c->args, &tsrc);
 
 	assert(frame);
+
 	Temp *rv = frame->rv();
-	tdst.push_back(rv);
+	//tdst.push_back(rv);
 
 	LabelList targets;
 	targets.push_back(c->func->label);
-	assem::OPER *op = gcnew(assem::OPER, ("bl", "$j0", tdst, tsrc));
+	//TODO: r0-r3 will be destoryed in c function
+	assem::OPER *op = gcnew(assem::OPER, ("bl", "$j0", frame->registers().args, tsrc));
 	op->setJumpTargets(targets);
 	emit(op);
 	return rv;
