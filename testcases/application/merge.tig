@@ -1,7 +1,7 @@
 let 
 
  type any = {any : int}
- var buffer := getchar()
+ var buffer := getch()
 
 function readint(any: any) : int =
  let var i := 0
@@ -9,11 +9,11 @@ function readint(any: any) : int =
 		  ord(buffer)>=ord("0") & ord(buffer)<=ord("9")
      function skipto() =
        while buffer=" " | buffer="\n"
-         do buffer := getchar()
+         do buffer := getch()
   in skipto();
      any.any := isdigit(buffer);
      while isdigit(buffer)
-       do (i := i*10+ord(buffer)-ord("0"); buffer := getchar());
+       do (i := i*10+ord(buffer)-ord("0"); buffer := getch());
      i
  end
 
@@ -47,7 +47,7 @@ function readint(any: any) : int =
    else (printint(l.first); print(" "); printlist(l.rest))
 
    var list1 := readlist()
-   var list2 := (buffer:=getchar(); readlist())
+   var list2 := (buffer:=getch(); readlist())
 
 
   /* BODY OF MAIN PROGRAM */
