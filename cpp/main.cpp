@@ -40,6 +40,7 @@ Table<NameEntry> nameTable(nameScopes);
 Table<Type> typeTable(typeScopes);
 
 extern FILE *yyin;
+FILE *outStream = stdout;//TODO
 Absyn *absyn = NULL;
 translate::Exp *ir = NULL;
 
@@ -62,7 +63,7 @@ bool parsePhase()
 	return true;
 }
 
-void addPreInstallFuncs()
+void addBuiltinFuncs()
 {
 	TypeList arg_types;
 	//initArray
@@ -124,8 +125,8 @@ void addPreInstallFuncs()
 	nameTable.put(Symbol::symbol("not"), gcnew(FuncEntry, (IntT, arg_types)));
 	arg_types.clear();
 
-	//getchar
-	nameTable.put(Symbol::symbol("getchar"), gcnew(FuncEntry, (StrT, arg_types)));
+	//getch
+	nameTable.put(Symbol::symbol("getch"), gcnew(FuncEntry, (StrT, arg_types)));
 	arg_types.clear();
 
 }
@@ -142,7 +143,7 @@ bool typeCheckPhase()
 	nameTable.beginScope(0);
 	typeTable.beginScope(0);
 
-	addPreInstallFuncs();
+	addBuiltinFuncs();
 
 	Symbol *ints = Symbol::symbol("int");
 	Symbol *strs = Symbol::symbol("string");
@@ -337,7 +338,7 @@ int main(int argc, char **argv)
 	out += "\t.global\t__tigermain\n";
 
 	codegenPhase(frags, &out);
-	DBG("\n%s", out.c_str());
+    fprintf(outStream, "\n%s\n", out.c_str());
 
 	//HeapManager::instance()->dump();
 	HeapManager::instance()->clean();
@@ -387,7 +388,7 @@ void printSource()
 		//buf[n] = '\0';
 		//	printf("%s", buf);
 		buf[strlen(buf)-1] = '\0';
-		puts(buf);
+		fputs(buf, stderr);
 		/*if (n < 32) {
 			printf("\n");
 			break;

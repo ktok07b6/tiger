@@ -188,7 +188,8 @@ std::string
 ARMFrame::string(Label *label, const std::string &value)
 {
 	std::string assem;
-	assem = format("%s:\t.asciz\t%s", label->toString().c_str(), value.c_str());
+	const char *lab = label->toString().c_str();
+	assem = format("%s:\t.long\t%s_body\n%s_body:\t.asciz\t%s", lab, lab, lab, value.c_str());
 	assem += "\n\t.align 2";
 	return assem;
 	/* example

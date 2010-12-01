@@ -25,7 +25,7 @@ inline void __DBG(const char *format, ...)
 {
 	va_list ap;
 	va_start(ap, format);
-	vfprintf(stdout, format, ap);
+	vfprintf(stderr, format, ap);
 }
 
 #ifndef LOG_TAG

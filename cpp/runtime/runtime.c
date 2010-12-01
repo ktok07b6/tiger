@@ -1,5 +1,6 @@
-#undef __STDC__
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int *initArray(int size, int init)
 {
@@ -14,7 +15,8 @@ int *initArray(int size, int init)
 int *alloc(int size)
 {
 	int *p;
-	p = (int *)calloc(size);
+	p = (int *)malloc(size);
+	memset(p, 0, size);
 	return p;
 }
 
@@ -48,7 +50,7 @@ int main()
 		consts[i].length=1;
 		consts[i].chars[0]=i;
 	}
-	return __tigermain( /* static link!? */);
+	return __tigermain();
 }
 
 int ord(struct string *s)
@@ -128,9 +130,7 @@ int not(int i)
 	return !i;
 }
 
-#undef getchar
-
-struct string *getchar()
+struct string *getch()
 {
 	int i = getc(stdin);
 	if (i == EOF) {
