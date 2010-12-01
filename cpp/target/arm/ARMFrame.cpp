@@ -92,11 +92,18 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	regs.args.push_back(regs.all[3]);
 
 	//TODO:
+	regs.callerSaves.push_back(regs.all[0]);
+	regs.callerSaves.push_back(regs.all[1]);
+	regs.callerSaves.push_back(regs.all[2]);
+	regs.callerSaves.push_back(regs.all[3]);
+
 	regs.calleeSaves.push_back(regs.all[4]);
 	regs.calleeSaves.push_back(regs.all[5]);
 	regs.calleeSaves.push_back(regs.all[6]);
 	regs.calleeSaves.push_back(regs.all[7]);
-	regs.calleeSaves.push_back(regs.all[11]);
+	regs.calleeSaves.push_back(regs.all[8]);
+	regs.calleeSaves.push_back(regs.all[9]);
+	regs.calleeSaves.push_back(regs.all[10]);
 }
 
 ARMFrame::~ARMFrame()
@@ -217,7 +224,7 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 	*/
 	{
 		TempList alive_regs;
-		alive_regs.push_back(rv());
+		//alive_regs.push_back(rv());
 		TempList used = findRegsInBody(body);
 		std::copy(used.begin(), used.end(), std::back_inserter(alive_regs));
 		std::sort(alive_regs.begin(), alive_regs.end());
@@ -324,26 +331,23 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 		return proc;
 	}
 
-	std::string calleeSaveStr;
-#if 1 //FIXME
-	calleeSaveStr += "fp,";
-#else
-	TempList::const_iterator it = regs.calleeSaves.begin();
-	while (it != regs.calleeSaves.end()) {
+	//FIXME:
+	std::string saveRegStr;
+	TempList usedRegs = findRegsInBody(body);
+	TempList::const_iterator it = usedRegs.begin();
+	while (it != usedRegs.end()) {
 		Temp *r = *it;
-		calleeSaveStr += r->toString();
-		calleeSaveStr += ",";
+		saveRegStr += r->toString();
+		saveRegStr += ",";
 		++it;
 	}
-#endif
-	
 
 	//prologue//////////
 	assem::Instruction *funcLabel = body.front();
 	assert(funcLabel->isLABEL());
 	proc.push_back(funcLabel);
 	
-	assem = format("sp!, {%s lr}", calleeSaveStr.c_str());
+	assem = format("sp!, {%s lr}", saveRegStr.c_str());
 	assem::OPER *stmfd = gcnew(assem::OPER, ("stmfd", assem, TempList(), TempList()));
 	proc.push_back(stmfd);
 
@@ -361,7 +365,7 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	assem::OPER *rewind_sp = gcnew(assem::OPER, ("add", "sp, fp, #4", TempList(), TempList()));
 	proc.push_back(rewind_sp);
 	
-	assem = format("sp!, {%s pc}", calleeSaveStr.c_str());
+	assem = format("sp!, {%s pc}", saveRegStr.c_str());
 	assem::OPER *ldmfd = gcnew(assem::OPER, ("ldmfd", assem, TempList(), TempList()));
 	proc.push_back(ldmfd);
 
@@ -400,19 +404,27 @@ ARMFrame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 	BOOST_FOREACH(assem::Instruction *inst, proc) {
 		TempList use = inst->use();
 		if (std::find(use.begin(), use.end(), spill) != use.end()) {
+			Temp *tmp = gcnew(Temp, ());
 			std::string operand = format("$d0, [fp, #%d]", -frameOffset);
-			assem::OPER *ldr = gcnew(assem::OPER, ("ldr", operand, spill, NULL));
+			assem::OPER *ldr = gcnew(assem::OPER, ("ldr", operand, tmp, NULL));
 			result.push_back(ldr);
+			inst->replaceUse(spill, tmp);
 		}
 
 		result.push_back(inst);
 
 		TempList def = inst->def();
 		if (std::find(def.begin(), def.end(), spill) != def.end()) {
+			Temp *tmp = gcnew(Temp, ());
 			std::string operand = format("$s0, [fp, #%d]", -frameOffset);
-			assem::OPER *str = gcnew(assem::OPER, ("str", operand, NULL, spill));
+			assem::OPER *str = gcnew(assem::OPER, ("str", operand, NULL, tmp));
 			result.push_back(str);
+			inst->replaceDef(spill, tmp);
 		}
+	}
+
+	BOOST_FOREACH(assem::Instruction *inst, result) {
+		DBG("%s", inst->format(this).c_str());
 	}
 	return result;
 }

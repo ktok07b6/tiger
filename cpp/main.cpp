@@ -21,10 +21,10 @@
 #include "BasicBlocks.h"
 #include "Trace.h"
 #include "Instruction.h"
-#include "AsmFlowGraph.h"
-#include "Liveness.h"
-#include "InterferenceGraph.h"
-#include "Color.h"
+//#include "AsmFlowGraph.h"
+//#include "Liveness.h"
+//#include "InterferenceGraph.h"
+#include "RegAlloc.h"
 
 #include "Property.h"
 Property<int> value;
@@ -285,23 +285,14 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
 		++it;
 	}
 #endif
-	const graph::AsmFlowGraph flow(proc);
-	//flow.show();
-	const regalloc::Liveness liveness(flow);
-	const graph::InterferenceGraph *igraph = liveness.getInterferenceGraph();
-	//igraph->show();
+	regalloc::RegAlloc allocator(proc, frame);
+	TempMap *tm = allocator.getTempMap();
 
-	TempList regs = frame->registers().all;
-	
-	regalloc::Color color(*igraph, regs);
-	color.coloring();
-
-	assem::InstructionList proc2;
-	proc2 = frame->procEntryExit3(proc);
+	assem::InstructionList proc2 = frame->procEntryExit3(allocator.getProc());
 	it = proc2.begin();
 	while (it != proc2.end()) {
 		assem::Instruction *inst = *it;
-		std::string s = inst->format(&color);
+		std::string s = inst->format(tm);
 		if (!s.empty()) {
 			*out += s;
 			*out += "\n";

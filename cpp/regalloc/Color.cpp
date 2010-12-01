@@ -27,7 +27,9 @@ Color::Color(const InterferenceGraph &ig, const TempList &regs)
 	, workListMoves()
 	, activeMoves()
 	, precolored(tempSize)
-	, spillTemp(NULL)
+	, spillTemps()
+	, numMaxRegs(regs.size())
+	, numWorkRegs(regs.size())
 {
 }
 
@@ -68,10 +70,21 @@ Color::coloring()
 	assignColors();
 
 	if (!spilledNodes.none()) {
-		//TODO:select node
-		int nid = spilledNodes.right();
-		graph::Node *n = igraph.nid2node(nid);
-		spillTemp = igraph.node2temp(n);
+		//TODO:select node by spill cost
+		/*
+		for (unsigned int i = 0; i < spilledNodes.size(); ++i) {
+			if (spilledNodes.get(i)) {
+				graph::Node *n = igraph.nid2node(i);
+				spillTemps.push_back(igraph.node2temp(n));
+			}
+		}
+		*/
+		graph::Node *n;
+		n = igraph.nid2node(0);
+		spillTemps.push_back(igraph.node2temp(n));
+		//n = igraph.nid2node(1);
+		//spillTemps.push_back(igraph.node2temp(n));
+
 		return false;
 	}
 	return true;
@@ -137,7 +150,7 @@ Color::makeWorkList()
 	int i = 0;
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
-		if (K <= n->degree()) {
+		if (numMaxRegs <= n->degree()) {
 			spillWorkList.set(i);
 		}
 #ifdef ENABLE_COALESCE
@@ -177,7 +190,7 @@ Color::decrementDegree(int nid)
 {
 	int degree = degreeMap[nid];
 	degreeMap[nid] = degree - 1;
-	if (degree == K) {
+	if (degree == numMaxRegs) {
 		Bitmap adj = adjacent(nid);
 		adj.set(nid);
 		enableMoves(adj);
@@ -219,7 +232,7 @@ Color::enableMoves(int nid)
 void 
 Color::addWorkList(int nid)
 {
-	if (!precolored.get(nid) && !isMoveRelated(nid) && degreeMap[nid] < K) {
+	if (!precolored.get(nid) && !isMoveRelated(nid) && degreeMap[nid] < numMaxRegs) {
 		freezeWorkList.reset(nid);
 		simplifyWorkList.set(nid);
 	}
@@ -230,7 +243,7 @@ Color::isOK(int nid1, int nid2)
 {
 	Node *n1 = igraph.nid2node(nid1);
 	Bitmap adj = nodes2bitmap(n1->adj());
-	return degreeMap[nid1] < K || 
+	return degreeMap[nid1] < numMaxRegs || 
 		precolored.get(nid1) ||
 		adj.get(nid2);
 }
@@ -243,11 +256,11 @@ Color::isConservative(const Bitmap &nodes)
 		if (!nodes.get(nid)) {
 			continue;
 		}
-		if (degreeMap[nid] >= K) {
+		if (degreeMap[nid] >= numMaxRegs) {
 			++k;
 		}
 	}
-	return (k < K);
+	return (k < numMaxRegs);
 }
 
 void
@@ -330,7 +343,7 @@ Color::combine(int nid1, int nid2)
 		igraph.addEdge(n1, n2);
 		decrementDegree(a);
 	}
-	if (degreeMap[nid1] >= K && freezeWorkList.get(nid1)) {
+	if (degreeMap[nid1] >= numMaxRegs && freezeWorkList.get(nid1)) {
 		freezeWorkList.reset(nid1);
 		spillWorkList.set(nid1);
 	}
@@ -374,7 +387,7 @@ Color::freezeMoves(int nid)
 
 		activeMoves.erase(it);
 		frozenMoves.push_back(*it);
-		if (nodeMoves(v).empty() && degreeMap[v] < K) {
+		if (nodeMoves(v).empty() && degreeMap[v] < numMaxRegs) {
 			freezeWorkList.reset(v);
 			simplifyWorkList.set(v);
 		}
@@ -400,8 +413,8 @@ Color::assignColors()
 	FUNCLOG;
 	while (!selectStack.empty()) {
 		Node *n = selectStack.pop_back();
-		Bitmap okColors(K);
-		for (int i = 0; i < K; ++i) {
+		Bitmap okColors(numMaxRegs);
+		for (int i = 0; i < numMaxRegs; ++i) {
 			okColors.set(i);
 		}
 		NodeList adj = n->adj();
@@ -413,7 +426,7 @@ Color::assignColors()
 			}
 		}
 		int nid = igraph.node2nid(n);
-		if (!okColors.none() && okColors.right() < 10) {
+		if (!okColors.none() && okColors.right() < numWorkRegs) {
 			coloredNodes.set(nid);
 			if (!precolored.get(nid)) {
 				color[nid] = okColors.right();
@@ -428,7 +441,7 @@ Color::assignColors()
 		}
 		color[nid] = color[getAlias(nid)];
 	}
-	/*
+	
 	ColorMap::iterator it = color.begin();
 	while (it != color.end()) {
 		int nid = it->first;
@@ -436,7 +449,7 @@ Color::assignColors()
 		DBG("%d color is %d", nid, color);
 		++it;
 	}
-	*/
+	
 }
 
 Bitmap
@@ -539,10 +552,16 @@ Color::show()
 	DBG("===== show end =====\n");
 }
 
-Temp *
+TempList
 Color::getTempForSpill()
 {
-	return spillTemp;
+	return spillTemps;
+}
+
+void 
+Color::setNumWorkRegs(int n)
+{
+	numWorkRegs = n;
 }
 
 }//namespace regalloc

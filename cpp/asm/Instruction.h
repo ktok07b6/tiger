@@ -25,6 +25,9 @@ class Instruction : public Object
 	virtual TempList def() = 0;
 	virtual LabelList jumps() = 0;
 
+	virtual void replaceUse(Temp *oldt, Temp *newt) = 0;
+	virtual void replaceDef(Temp *oldt, Temp *newt) = 0;
+	
 	virtual bool isMOVE() {return false;}
 	virtual bool isLABEL() {return false;}
 	std::string format(TempMap *m);
@@ -68,6 +71,9 @@ class OPER : public Instruction
 	virtual TempList use();
 	virtual TempList def();
 	virtual LabelList jumps();
+	virtual void replaceUse(Temp *oldt, Temp *newt);
+	virtual void replaceDef(Temp *oldt, Temp *newt);
+
 	void setJumpTargets(const LabelList &jmps);
 private:
 	TempList dst;
@@ -88,6 +94,8 @@ class MOVE : public Instruction
 	virtual TempList use();
 	virtual TempList def();
 	virtual LabelList jumps();
+	virtual void replaceUse(Temp *oldt, Temp *newt);
+	virtual void replaceDef(Temp *oldt, Temp *newt);
 
 	virtual bool isMOVE() {return true;}
 
@@ -106,6 +114,8 @@ class LABEL : public Instruction
 	virtual TempList use();
 	virtual TempList def();
 	virtual LabelList jumps();
+	virtual void replaceUse(Temp *oldt, Temp *newt);
+	virtual void replaceDef(Temp *oldt, Temp *newt);
 	virtual bool isLABEL() {return true;}
 	Label *label() {return lab;}
  private:

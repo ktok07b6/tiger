@@ -40,4 +40,18 @@ MOVE::jumps()
 	return LabelList();
 }
 
+void 
+MOVE::replaceUse(Temp *oldt, Temp *newt)
+{
+	assert(src == oldt);
+	src = newt;
+}
+
+void 
+MOVE::replaceDef(Temp *oldt, Temp *newt)
+{
+	assert(dst == oldt);
+	dst = newt;
+}
+
 }//namespace assem

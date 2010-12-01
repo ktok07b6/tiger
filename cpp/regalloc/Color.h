@@ -20,7 +20,8 @@ public:
 	Color(const graph::InterferenceGraph &igraph, const TempList &regs);
 	virtual std::string tempMap(Temp *temp);
 	bool coloring();
-	Temp *getTempForSpill();
+	TempList getTempForSpill();
+	void setNumWorkRegs(int n);
 private:
 
 	typedef std::pair<int, int> NidPair;
@@ -54,10 +55,6 @@ private:
 	bool adj(int n1, int n2);
 
 	void show();
-	enum {
-		//TODO: Do not depend on a specific target
-		K = 16
-	};
 
 	Bitmap nodes2bitmap(const graph::NodeList &nodes);
 
@@ -88,7 +85,9 @@ private:
 	MoveListMap moveList;
 	typedef std::map<int, int> ColorMap;
 	ColorMap color;
-	Temp *spillTemp;
+	TempList spillTemps;
+	int numMaxRegs;
+	int numWorkRegs;
 };
 
 } //namespace regalloc

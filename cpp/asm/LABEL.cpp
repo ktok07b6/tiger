@@ -26,4 +26,16 @@ LABEL::jumps()
 	return LabelList();
 }
 
+void 
+LABEL::replaceUse(Temp *oldt, Temp *newt)
+{
+	assert(!"do not reach here");
+}
+
+void 
+LABEL::replaceDef(Temp *oldt, Temp *newt)
+{
+	assert(!"do not reach here");
+}
+
 }//namespace assem
