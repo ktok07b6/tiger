@@ -201,6 +201,7 @@ IRTranslater::visit(CallExp *exp)
 		Exp *e = *it;
 		e->accept(this);
 		tree::Exp *arg = texp->unEx();
+		assert(arg);
 		args.push_back(arg);
 		++it;
 	}
@@ -208,7 +209,12 @@ IRTranslater::visit(CallExp *exp)
 	Label *namedLabel = gcnew(Label, (exp->func->name));
 	tree::NAME *func = _NAME(namedLabel);
 	tree::CALL *call = _CALL(func, args);
-	texp = gcnew(translate::Ex, (call));
+	if (exp->fnInfo->result->isVoidT()) {
+		tree::EXPR *expr = _EXPR(call);
+		texp = gcnew(translate::Nx, (expr));
+	} else {
+		texp = gcnew(translate::Ex, (call));
+	}
 }
 
 void
@@ -479,11 +485,24 @@ IRTranslater::visit(IfExp *exp)
 		Temp *tmp = gcnew(Temp, ());
 		tree::TEMP *r = _TEMP(tmp);
 
+		tree::Stm *r_T;
+		tree::Stm *r_F;
+
 		exp->thenexp->accept(this);
-		tree::MOVE *r_T = _MOVE(r, texp->unEx());
+		tree::Exp *thenexp = texp->unEx();
+	    if (thenexp) {
+			r_T = _MOVE(r, thenexp);
+		} else {
+			r_T = texp->unNx();
+		}
 
 		exp->elseexp->accept(this);
-		tree::MOVE *r_F = _MOVE(r, texp->unEx());
+		tree::Exp *elseexp = texp->unEx();
+	    if (elseexp) {
+			r_F = _MOVE(r, elseexp);
+		} else {
+			r_F = texp->unNx();
+		}
 
 		Label *labelJoin = gcnew(Label, ());
 		tree::LABEL *l_Join = _LABEL(labelJoin);

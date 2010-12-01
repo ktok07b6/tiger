@@ -311,6 +311,7 @@ MOVE::MOVE(Exp *dst, Exp *src)
 	, dst(dst)
 	, src(src)
 {
+	assert(dst && src);
 }
 
 ExpList
