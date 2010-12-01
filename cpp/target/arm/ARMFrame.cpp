@@ -44,10 +44,6 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	Frame::endFuncLabel = gcnew(Label, (end));
 	frameCount++;
 
-	//Access *access;
-
-	//size_t num = f.size();
-
 	regs.all.push_back(gcnew(Temp, ("r0")));
 	regs.all.push_back(gcnew(Temp, ("r1")));
 	regs.all.push_back(gcnew(Temp, ("r2")));
@@ -64,9 +60,6 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	regs.all.push_back(gcnew(Temp, ("sp")));
 	regs.all.push_back(gcnew(Temp, ("lr")));
 	regs.all.push_back(gcnew(Temp, ("pc")));
-
-	//TODO: if(このフレームがstatic linkを必要とするなら)
-	//frameOffset += WORD_SIZE;//static linkのためにfp[0]を空ける
 
 	int i = 0;
 	std::vector<int>::const_iterator it;
@@ -211,51 +204,38 @@ assem::InstructionList
 ARMFrame::procEntryExit2(const assem::InstructionList &body)
 {
 	assem::InstructionList newbody;
-	bool isGlobal = (name == Symbol::symbol("__tigermain"));
-	/*
-	if (isGlobal) {
-		std::copy(body.begin(), body.end(), std::back_inserter(newbody));
-		//insert end label
-		assert(endFuncLabel);
-		std::string assem = format("%s:", endFuncLabel->toString().c_str());
-		assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
-		newbody.push_back(end_lab);
 
-	} else 
-	*/
-	{
-		TempList alive_regs;
-		//alive_regs.push_back(rv());
-		TempList used = findRegsInBody(body);
-		std::copy(used.begin(), used.end(), std::back_inserter(alive_regs));
-		std::sort(alive_regs.begin(), alive_regs.end());
-		alive_regs.erase(std::unique(alive_regs.begin(), alive_regs.end()), alive_regs.end());
+	TempList alive_regs;
+	//alive_regs.push_back(rv());
+	TempList used = findRegsInBody(body);
+	std::copy(used.begin(), used.end(), std::back_inserter(alive_regs));
+	std::sort(alive_regs.begin(), alive_regs.end());
+	alive_regs.erase(std::unique(alive_regs.begin(), alive_regs.end()), alive_regs.end());
 
-		std::string comment;
+	std::string comment;
 #if 1
-		BOOST_FOREACH(Temp *r, alive_regs) {
-			comment += r->toString();
-			comment += " ";
-		}
-#endif		
-		assem::OPER *sink1 = gcnew(assem::OPER, ("", "", alive_regs, TempList(), "@def " + comment));
-		assem::OPER *sink2 = gcnew(assem::OPER, ("", "", TempList(), alive_regs, "@use " + comment));
-	
-		assem::Instruction *funcLabel = body.front();
-		assert(funcLabel->isLABEL());
-		newbody.push_back(funcLabel);
-	
-		newbody.push_back(sink1);
-		std::copy(body.begin()+1, body.end(), std::back_inserter(newbody));
-	
-		//insert end label
-		assert(endFuncLabel);
-		std::string assem = format("%s:", endFuncLabel->toString().c_str());
-		assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
-		newbody.push_back(end_lab);
-
-		newbody.push_back(sink2);
+	BOOST_FOREACH(Temp *r, alive_regs) {
+		comment += r->toString();
+		comment += " ";
 	}
+#endif		
+	assem::OPER *sink1 = gcnew(assem::OPER, ("", "", alive_regs, TempList(), "@def " + comment));
+	assem::OPER *sink2 = gcnew(assem::OPER, ("", "", TempList(), alive_regs, "@use " + comment));
+	
+	assem::Instruction *funcLabel = body.front();
+	assert(funcLabel->isLABEL());
+	newbody.push_back(funcLabel);
+	
+	newbody.push_back(sink1);
+	std::copy(body.begin()+1, body.end(), std::back_inserter(newbody));
+	
+	//insert end label
+	assert(endFuncLabel);
+	std::string assem = format("%s:", endFuncLabel->toString().c_str());
+	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
+	newbody.push_back(end_lab);
+
+	newbody.push_back(sink2);
 
 	return newbody;
 }
@@ -315,22 +295,6 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	 */
 	assem::InstructionList proc;
 	std::string assem;
-
-	if (false /*name == Symbol::symbol("__tigermain")*/ ) {
-		assem::Instruction *funcLabel = body.front();
-		assert(funcLabel->isLABEL());
-		proc.push_back(funcLabel);
-
-		assem::OPER *set_fp = gcnew(assem::OPER, ("mov", "fp, sp", TempList(), TempList()));
-		proc.push_back(set_fp);
-
-		std::copy(body.begin()+1, body.end(), std::back_inserter(proc));
-
-		//add "exit" syscall
-		assem::OPER *syscall_exit = gcnew(assem::OPER, ("swi", "#0x900001", TempList(), TempList(), "@ sys_exit"));
-		proc.push_back(syscall_exit);
-		return proc;
-	}
 
 	//FIXME:
 	std::string saveRegStr;
@@ -423,10 +387,11 @@ ARMFrame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 			inst->replaceDef(spill, tmp);
 		}
 	}
-
+#if 0
 	BOOST_FOREACH(assem::Instruction *inst, result) {
 		DBG("%s", inst->format(this).c_str());
 	}
+#endif
 	return result;
 }
 

@@ -687,10 +687,6 @@ IRTranslater::visit(ArrayExp *exp)
 	exp->init->accept(this);
 	tree::Exp *init = texp->unEx();
 
-	tree::SEQMaker seq;
-	Temp *t = gcnew(Temp, ());
-	tree::TEMP *base = _TEMP(t);
-
 	tree::ExpList arg;
 	arg.push_back(size);
 	arg.push_back(init);
