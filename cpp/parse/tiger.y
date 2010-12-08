@@ -64,31 +64,15 @@ extern Absyn *result_syntax_tree;
 %token ARRAY
 %token OF
 %token BREAK
-//%token ASSIGN
 %right ASSIGN
-%nonassoc <op> AND OR
-%nonassoc <op> EQ NE LT GT LE GE
+%left <op> AND OR
+%nonassoc <op> EQ NE LT LE GT GE
 %left <op> PLUS MINUS
 %left <op> TIMES DIVIDE
- //%token <op> PLUS
- //%token <op> MINUS
- //%token <op> TIMES
- //%token <op> DIVIDE
- //%token <op> EQ
- //%token <op> NE
- //%token <op> GT
- //%token <op> LT
- //%token <op> GE
- //%token <op> LE
- //%token <op> AND
- //%token <op> OR
 %token TYPE
 
 %type<sym> id
 %type<sym> type_id
-%type<op> arithmetic_op
-%type<op> compare_op
-%type<op> boolean_op
 %type<exp> expr
 %type<exp> string_expr
 %type<exp> integer_expr
@@ -235,54 +219,69 @@ neg_expr
 
 //------------------------------------
 binary_op_expr
-: expr arithmetic_op expr
+: expr PLUS expr
 {
-	$$ = gcnew(OpExp, ($1, $2, $3, 0));
+	$$ = gcnew(OpExp, ($1, PlusOp, $3, 0));
 	PARSER_DBG("OpExp %p", $$);
 }
-| expr compare_op expr
+| expr MINUS expr
 {
-	$$ = gcnew(OpExp, ($1, $2, $3, 0));
+	$$ = gcnew(OpExp, ($1, MinusOp, $3, 0));
 	PARSER_DBG("OpExp %p", $$);
 }
-| expr boolean_op expr
+| expr TIMES expr
 {
-	if ($2 == AndOp) {
-		//TODO:
-	} else if ($2 == OrOp) {
-		//TODO:
-	}
-	$$ = gcnew(OpExp, ($1, $2, $3, 0));
+	$$ = gcnew(OpExp, ($1, TimesOp, $3, 0));
 	PARSER_DBG("OpExp %p", $$);
 }
+| expr DIVIDE expr
+{
+	$$ = gcnew(OpExp, ($1, DivideOp, $3, 0));
+	PARSER_DBG("OpExp %p", $$);
+}
+| expr EQ expr
+{
+	$$ = gcnew(OpExp, ($1, EqOp, $3, 0));
+	PARSER_DBG("OpExp %p", $$);
+}
+| expr NE expr
+{
+	$$ = gcnew(OpExp, ($1, NeOp, $3, 0));
+	PARSER_DBG("OpExp %p", $$);
+}
+| expr LT expr
+{
+	$$ = gcnew(OpExp, ($1, LtOp, $3, 0));
+	PARSER_DBG("OpExp %p", $$);
+}
+| expr LE expr
+{
+	$$ = gcnew(OpExp, ($1, LeOp, $3, 0));
+	PARSER_DBG("OpExp %p", $$);
+}
+| expr GT expr
+{
+	$$ = gcnew(OpExp, ($1, GtOp, $3, 0));
+	PARSER_DBG("OpExp %p", $$);
+}
+| expr GE expr
+{
+	$$ = gcnew(OpExp, ($1, GeOp, $3, 0));
+	PARSER_DBG("OpExp %p", $$);
+}
+| expr AND expr
+{
+	$$ = gcnew(OpExp, ($1, AndOp, $3, 0));
+	PARSER_DBG("OpExp %p", $$);
+}
+| expr OR expr
+{
+	$$ = gcnew(OpExp, ($1, OrOp, $3, 0));
+	PARSER_DBG("OpExp %p", $$);
+}
+
 ;
 
-//------------------------------------
-arithmetic_op
-: PLUS
-| MINUS
-| TIMES
-| DIVIDE
-{}
-;
-
-//------------------------------------
-compare_op
-: EQ
-| NE
-| GT
-| LT
-| GE
-| LE
-{}
-;
-
-//------------------------------------
-boolean_op
-: AND
-| OR
-{}
-;
 
 //------------------------------------
 assignment_expr
