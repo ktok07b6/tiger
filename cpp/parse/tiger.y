@@ -64,19 +64,24 @@ extern Absyn *result_syntax_tree;
 %token ARRAY
 %token OF
 %token BREAK
-%token ASSIGN
-%token <op> PLUS
-%token <op> MINUS
-%token <op> TIMES
-%token <op> DIVIDE
-%token <op> EQ
-%token <op> NE
-%token <op> GT
-%token <op> LT
-%token <op> GE
-%token <op> LE
-%token <op> AND
-%token <op> OR
+//%token ASSIGN
+%right ASSIGN
+%nonassoc <op> AND OR
+%nonassoc <op> EQ NE LT GT LE GE
+%left <op> PLUS MINUS
+%left <op> TIMES DIVIDE
+ //%token <op> PLUS
+ //%token <op> MINUS
+ //%token <op> TIMES
+ //%token <op> DIVIDE
+ //%token <op> EQ
+ //%token <op> NE
+ //%token <op> GT
+ //%token <op> LT
+ //%token <op> GE
+ //%token <op> LE
+ //%token <op> AND
+ //%token <op> OR
 %token TYPE
 
 %type<sym> id
@@ -115,10 +120,6 @@ extern Absyn *result_syntax_tree;
 %type<ty> ty
 %type<field> tyfield
 %type<fields> tyfields
-
-%right ASSIGN
-%left PLUS MINUS
-%left TIMES DIVIDE
 
 
 
