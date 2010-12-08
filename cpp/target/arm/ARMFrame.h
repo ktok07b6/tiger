@@ -23,6 +23,8 @@ class ARMFrame : public Frame
 	virtual assem::InstructionList *codegen(tree::Stm *stm);
 	virtual const Registers &registers();
 	virtual assem::InstructionList spillTemp(const assem::InstructionList &body, Temp *spill);
+	virtual void setUsedRegs(const TempList &regs);
+
 	void extraArgSize(int size);
 	enum {
 		WORD_SIZE = 4,
@@ -35,6 +37,7 @@ class ARMFrame : public Frame
 	int maxExtraArgSize;
 	ARMCodeGen *generator;
 	assem::InstructionList instList;
+	TempList usedRegs;
 	static int frameCount;
 };
 

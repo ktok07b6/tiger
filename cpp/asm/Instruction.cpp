@@ -56,7 +56,7 @@ Instruction::format(TempMap *m)
 			if (s.empty()) {
 				//If a temp of instruction is not used,
 				//this instruction is ignored.
-				return "\t" + comment;
+				return "\t@" + opcode + "\t" + operands +comment;
 			}
 			result += s;
 		} else {

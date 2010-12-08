@@ -507,6 +507,7 @@ Color::tempMap(Temp *temp)
 		//ERROR("%s is not allocated to a register", temp->toString().c_str());
 		return "";
 	}
+	usedRegs.push_back(regs[regnum]);
 	return regs[regnum]->toString();
 }
 
@@ -562,6 +563,14 @@ void
 Color::setNumWorkRegs(int n)
 {
 	numWorkRegs = n;
+}
+
+TempList
+Color::getUsedRegs()
+{
+	std::sort(usedRegs.begin(), usedRegs.end());
+	usedRegs.erase(std::unique(usedRegs.begin(), usedRegs.end()), usedRegs.end());
+	return usedRegs;
 }
 
 }//namespace regalloc

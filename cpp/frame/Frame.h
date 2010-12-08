@@ -53,11 +53,12 @@ public:
 	virtual assem::InstructionList *codegen(tree::Stm *stm) = 0;
 	virtual const Registers &registers() = 0;
 	virtual assem::InstructionList spillTemp(const assem::InstructionList &body, Temp *spill) = 0;
+	virtual void setUsedRegs(const TempList &regs) = 0;
 	Label *getEndFuncLabel();
 protected:
 	Frame();
 	Symbol *name;
-	std::vector<Access*> formals;	
+	std::vector<Access*> formals;
 	Registers regs;
 	Label *endFuncLabel;
 

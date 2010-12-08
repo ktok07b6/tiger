@@ -296,9 +296,8 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	assem::InstructionList proc;
 	std::string assem;
 
-	//FIXME:
 	std::string saveRegStr;
-	TempList usedRegs = findRegsInBody(body);
+	//usedRegs is passed by regalloc 
 	TempList::const_iterator it = usedRegs.begin();
 	while (it != usedRegs.end()) {
 		Temp *r = *it;
@@ -393,6 +392,12 @@ ARMFrame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 	}
 #endif
 	return result;
+}
+
+void 
+ARMFrame::setUsedRegs(const TempList &regs)
+{
+	usedRegs = regs;
 }
 
 void 

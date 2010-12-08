@@ -22,6 +22,7 @@ public:
 	bool coloring();
 	TempList getTempForSpill();
 	void setNumWorkRegs(int n);
+	TempList getUsedRegs();
 private:
 
 	typedef std::pair<int, int> NidPair;
@@ -88,6 +89,7 @@ private:
 	TempList spillTemps;
 	int numMaxRegs;
 	int numWorkRegs;
+	TempList usedRegs;
 };
 
 } //namespace regalloc

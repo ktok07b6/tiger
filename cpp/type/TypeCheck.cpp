@@ -40,6 +40,8 @@ Type *TypeCheck::pop()
 void TypeCheck::error(const string &msg)
 {
 	accept = false;
+	fprintf(stderr, msg.c_str());
+	abort();
 	//throw msg;
 }
 
@@ -179,7 +181,7 @@ void TypeCheck::visit(OpExp *exp)
 
 	assert(l_t);
 	assert(r_t);
-	
+
 	if (l_t->coerceTo(r_t)) {
 		Type *t;
 		if (!(exp->op == EqOp || exp->op == NeOp)) {

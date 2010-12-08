@@ -35,6 +35,12 @@ RegAlloc::getTempMap()
 	return color;
 }
 
+TempList
+RegAlloc::getUsedRegs()
+{
+	return color->getUsedRegs();
+}
+
 int count = 0;
 void
 RegAlloc::allocate()

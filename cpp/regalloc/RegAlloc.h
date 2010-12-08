@@ -16,6 +16,7 @@ class RegAlloc
 
 	const assem::InstructionList &getProc();
 	TempMap *getTempMap();
+	TempList getUsedRegs();
 private:
 	void allocate();
 	void rewriteProgram(const TempList &spills);
