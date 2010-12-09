@@ -129,6 +129,11 @@ void addBuiltinFuncs()
 	nameTable.put(Symbol::symbol("getch"), gcnew(FuncEntry, (StrT, arg_types)));
 	arg_types.clear();
 
+	//test
+	arg_types.push_back(IntT);
+	nameTable.put(Symbol::symbol("test"), gcnew(FuncEntry, (VoidT, arg_types)));
+	arg_types.clear();
+	
 }
 
 bool typeCheckPhase()

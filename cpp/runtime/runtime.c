@@ -141,3 +141,9 @@ struct string *getch()
 		return consts+i;
 	}
 }
+
+void test(int cond)
+{
+	if (cond == 0) 
+		abort();
+}
