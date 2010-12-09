@@ -287,20 +287,20 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
 	}
 #endif
 	regalloc::RegAlloc allocator(proc, frame);
-	TempMap *tm = allocator.getTempMap();
-
+    TempMap *tm = allocator.getTempMap();
+    frame->setUsedRegs(allocator.getUsedRegs());
 	assem::InstructionList proc2 = frame->procEntryExit3(allocator.getProc());
-	it = proc2.begin();
-	while (it != proc2.end()) {
+    it = proc2.begin();
+    while (it != proc2.end()) {
 		assem::Instruction *inst = *it;
 		std::string s = inst->format(tm);
-		if (!s.empty()) {
-			*out += s;
-			*out += "\n";
-		}
-		++it;
-	}
-	*out += "\n\n";
+        if (!s.empty()) {
+            *out += s;
+            *out += "\n";
+        }
+        ++it;
+    }
+    *out += "\n\n";
 }
 
 

@@ -305,7 +305,7 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 		saveRegStr += ",";
 		++it;
 	}
-
+	saveRegStr += "fp,";
 	//prologue//////////
 	assem::Instruction *funcLabel = body.front();
 	assert(funcLabel->isLABEL());

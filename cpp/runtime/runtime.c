@@ -33,6 +33,7 @@ void print(struct string *s)
 	for (i = 0; i < s->length; i++, p++) {
 		putchar(*p);
 	}
+	fflush(stdout);
 }
 
 void flush()
