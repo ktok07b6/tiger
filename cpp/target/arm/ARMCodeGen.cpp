@@ -240,14 +240,11 @@ ARMCodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 		tree::Exp *e = *exp;
 		Temp *dst = *arg_reg;
 		if (_M0(CONST_T, konst) == e) {
-			std::string arg_reg_str = frame->tempMap(dst);
-			std::string assem = format("%s, #%d", arg_reg_str.c_str(), konst->value);
+			std::string assem = format("$d0, #%d", konst->value);
 			emit(gcnew(assem::MOVE, ("mov", assem, dst, NULL)));
 		} else {
 			Temp *src = munchExp(e);
-			std::string arg_reg_str = frame->tempMap(dst);
-			std::string assem = format("%s, $s0", arg_reg_str.c_str());
-			emit(gcnew(assem::MOVE, ("mov", assem, dst, src)));
+			emit(gcnew(assem::MOVE, ("mov", "$d0, $s0", dst, src)));
 		}
 		tsrc->push_back(dst);
 		++exp;

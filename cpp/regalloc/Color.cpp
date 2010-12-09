@@ -493,22 +493,21 @@ Color::isMoveRelated(int nid)
 	return !moves.empty();
 }
 
-std::string 
+Temp *
 Color::tempMap(Temp *temp)
 {
-	//TODO: Do not depend on a specific target
 	Node *n = igraph.temp2node(temp);
 	if (!n) {
-		return "";
+		return NULL;
 	}
 	int nid = igraph.node2nid(n);
 	int regnum = color[nid];
 	if (regnum == -1) {
 		//ERROR("%s is not allocated to a register", temp->toString().c_str());
-		return "";
+		return NULL;
 	}
 	usedRegs.push_back(regs[regnum]);
-	return regs[regnum]->toString();
+	return regs[regnum];
 }
 
 

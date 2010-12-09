@@ -37,15 +37,18 @@ Instruction::format(TempMap *m)
 		char c = *it;
 		if (c == '$') {
 			//assert(distance(it, assem.end() > 2));
-			string s;
+			std::string s;
+			Temp *t = NULL;
 			char type = *(++it);
 			int num = *(++it) - 0x30;
 			switch (type) {
 			case 's':
-				s = m->tempMap(uses[num]);
+				t = m->tempMap(uses[num]);
+				if (t) s = t->toString();
 				break;
 			case 'd':
-				s = m->tempMap(defs[num]);
+				t = m->tempMap(defs[num]);
+				if (t) s = t->toString();
 				break;
 			case 'j':
 				s = jmps[num]->toString();

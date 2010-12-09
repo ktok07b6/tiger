@@ -18,7 +18,7 @@ class Color : public TempMap
 {
 public:
 	Color(const graph::InterferenceGraph &igraph, const TempList &regs);
-	virtual std::string tempMap(Temp *temp);
+	virtual Temp *tempMap(Temp *temp);
 	bool coloring();
 	TempList getTempForSpill();
 	void setNumWorkRegs(int n);

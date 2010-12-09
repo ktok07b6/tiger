@@ -38,6 +38,9 @@ RegAlloc::getTempMap()
 TempList
 RegAlloc::getUsedRegs()
 {
+	BOOST_FOREACH(assem::Instruction *inst, proc) {
+		inst->format(color);
+	}
 	return color->getUsedRegs();
 }
 

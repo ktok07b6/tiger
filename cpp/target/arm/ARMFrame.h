@@ -19,7 +19,7 @@ class ARMFrame : public Frame
 	virtual tree::Exp *staticChain(tree::Exp *fp);
 	virtual assem::InstructionList procEntryExit2(const assem::InstructionList &body);
 	virtual assem::InstructionList procEntryExit3(const assem::InstructionList &body);
-	virtual std::string tempMap(Temp *temp);
+	virtual Temp *tempMap(Temp *temp);
 	virtual assem::InstructionList *codegen(tree::Stm *stm);
 	virtual const Registers &registers();
 	virtual assem::InstructionList spillTemp(const assem::InstructionList &body, Temp *spill);

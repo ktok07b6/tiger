@@ -305,7 +305,7 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 		saveRegStr += ",";
 		++it;
 	}
-	saveRegStr += "fp,";
+
 	//prologue//////////
 	assem::Instruction *funcLabel = body.front();
 	assert(funcLabel->isLABEL());
@@ -336,15 +336,10 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	return proc;
 }
 
-std::string 
+Temp *
 ARMFrame::tempMap(Temp *temp)
 {
-	for (int i = 0; i < MAX_REG; ++i){
-		if (temp == regs.all[i]) {
-			return regs.all[i]->toString();
-		} 
-	}
-	return temp->toString();
+	return temp;
 }
 
 assem::InstructionList *
