@@ -2,14 +2,15 @@
 #include <stdio.h>
 #include "Absyn.h"
 #include "parser.hpp"
+#include "debug.h"
 
 extern "C" int yywrap(void)
 {
     return 1;
 }
 
-#define DBG printf
 extern bool isTypeID(const char *id);
+#define ECHO
 %}
 
 %x STRING
@@ -88,7 +89,9 @@ nil   {return NIL; }
 
 "/*" {BEGIN(COMMENT); yymore();}
 <COMMENT>\n {yymore();}
-<COMMENT>"*/"  {BEGIN(INITIAL);}
+<COMMENT>"*/"  {
+	BEGIN(INITIAL);
+}
 
 \n ;//{ return TIGER_EOL;}
 

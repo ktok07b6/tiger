@@ -29,7 +29,7 @@
 #include "Property.h"
 Property<int> value;
 
-extern int yylex();
+//extern int yylex();
 extern int yyparse();
 extern int yydebug;
 
@@ -40,6 +40,7 @@ Table<NameEntry> nameTable(nameScopes);
 Table<Type> typeTable(typeScopes);
 
 extern FILE *yyin;
+extern FILE *yyout;
 FILE *outStream = stdout;//TODO
 Absyn *absyn = NULL;
 translate::Exp *ir = NULL;
@@ -59,6 +60,7 @@ bool parsePhase()
 	if (!absyn) {
 		return false;
 	}
+
 	printAbsyn();
 	return true;
 }
@@ -312,6 +314,7 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
 int main(int argc, char **argv)
 {
 	yyin = NULL;
+	yyout = stderr;
 	if (argc==2) {
 		yyin = fopen(argv[1], "rb");
 		if (yyin == NULL) {
@@ -326,6 +329,7 @@ int main(int argc, char **argv)
 	if (!parsePhase()) {
 		return -1;
 	}
+
 	//makeDot();
 	//printSource();
 	if (!typeCheckPhase()) {
@@ -343,7 +347,7 @@ int main(int argc, char **argv)
 	out += "\t.global\t__tigermain\n";
 
 	codegenPhase(frags, &out);
-    fprintf(outStream, "\n%s\n", out.c_str());
+	fprintf(outStream, "\n%s\n", out.c_str());
 
 	//HeapManager::instance()->dump();
 	HeapManager::instance()->clean();

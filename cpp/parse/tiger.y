@@ -14,12 +14,12 @@
 using namespace std;
 //#define YYDEBUG 1
 extern "C" void yyerror(char *s) {
-	printf("%s\n",s);
+	fprintf(stderr, "%s\n",s);
 }
 
 int yylex(void);
 extern Absyn *result_syntax_tree;
-
+extern int yyget_lineno (void );
 %}
 %union {
 	Absyn *absyn;
