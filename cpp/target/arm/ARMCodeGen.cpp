@@ -329,21 +329,50 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 		opcode = "???";
 		break;
 	}
+	//(op,e1,CONST(i))
 	if (_M0(CONST_T, konst) == binop->r) {
-		//(op,e1,CONST(i))
-		std::string assem = format("$d0, $s0, #%d", konst->value);
+		if (binop->op == tree::BINOP::oMUL) {
+			Temp *rs = gcnew(Temp, ());
+			std::string assem = format("$d0, #%d", konst->value);
+			emit(gcnew(assem::MOVE, ("mov", assem, rs, NULL)));
 
-		Temp *r = gcnew(Temp, ());
-		emit(gcnew(assem::OPER, (opcode, assem, r, munchExp(binop->l))));
-		return r;
+			Temp *rm = munchExp(binop->l);
+			TempList tdst, tsrc;
+			tdst.push_back(rs);//Rd
+			tsrc.push_back(rm);
+			tsrc.push_back(rs);
+			emit(gcnew(assem::OPER, ("mul", "$d0, $s0, $s1", tdst, tsrc)));
+			return rs;
+
+		} else {
+			std::string assem = format("$d0, $s0, #%d", konst->value);
+			Temp *r = gcnew(Temp, ());
+			emit(gcnew(assem::OPER, (opcode, assem, r, munchExp(binop->l))));
+			return r;
+		}
 	}
+	//(op,CONST(i),e1)
 	if (_M0(CONST_T, konst) == binop->l) {
-		//(op,CONST(i),e1)
-		std::string assem = format("$d0, $s0, #%d", konst->value);
+		if (binop->op == tree::BINOP::oMUL) {
+			Temp *rs = gcnew(Temp, ());
+			std::string assem = format("$d0, #%d", konst->value);
+			emit(gcnew(assem::MOVE, ("mov", assem, rs, NULL)));
 
-		Temp *r = gcnew(Temp, ());
-		emit(gcnew(assem::OPER, (opcode, assem, r, munchExp(binop->r))));
-		return r;
+			Temp *rm = munchExp(binop->r);
+			TempList tdst, tsrc;
+			tdst.push_back(rs);//Rd
+			tsrc.push_back(rm);
+			tsrc.push_back(rs);
+			emit(gcnew(assem::OPER, ("mul", "$d0, $s0, $s1", tdst, tsrc)));
+			return rs;
+
+		} else {
+			std::string assem = format("$d0, $s0, #%d", konst->value);
+
+			Temp *r = gcnew(Temp, ());
+			emit(gcnew(assem::OPER, (opcode, assem, r, munchExp(binop->r))));
+			return r;
+		}
 	}
 		
 	{
