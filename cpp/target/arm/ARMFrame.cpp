@@ -297,13 +297,27 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	std::string assem;
 
 	std::string saveRegStr;
-	//usedRegs is passed by regalloc 
+	//usedRegs is passed by regalloc
+	bool fpExist = false;
 	TempList::const_iterator it = usedRegs.begin();
 	while (it != usedRegs.end()) {
 		Temp *r = *it;
+#ifdef DO_NOT_SAVE_ARGUMENT_REGISTERS
+		if (r == regs.all[0] || r == regs.all[1] || r == regs.all[2] || r == regs.all[3]) {
+			++it;
+			continue;
+		} else
+#endif
+		if (r == regs.all[11]) {
+			fpExist = true;
+		}
 		saveRegStr += r->toString();
 		saveRegStr += ",";
 		++it;
+	}
+	//fp is always used by frame
+	if (!fpExist) {
+		saveRegStr += "fp,";
 	}
 
 	//prologue//////////
