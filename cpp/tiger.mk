@@ -13,7 +13,7 @@ LIBGCC=/opt/arm-2009q1/lib/gcc/arm-none-linux-gnueabi/4.3.3/libgcc.a
 
 #/opt/arm-2009q1/arm-none-linux-gnueabi/libc/usr/lib/crt1.o
 
-all:tmp.s
+all:$(filename).S
 	$(CC) $(INCS) -c runtime/runtime.c -o runtime.o
 	$(AS) $(filename).S -o $(filename).o
 	$(CC) $(LIBDIRS) -static -lc $(LIBGCC) runtime.o  $(filename).o  -o $(filename)
