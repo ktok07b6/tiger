@@ -28,32 +28,34 @@ case class VarExp(va:ASTVar) extends ASTExp
 case class NilExp() extends ASTExp
 case class IntExp(n:Int) extends ASTExp
 case class StringExp(s:String) extends ASTExp
-case class CallExp(func:Symbol, funcEntry:FuncEntry, exps:List[ASTExp]) extends ASTExp
-case class PlusOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class MinusOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class TimesOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class DivideOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class EqOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class NeOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class LtOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class GtOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class LeOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class GeOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class AndOpExp(l:ASTExp, r:ASTExp) extends ASTExp
-case class OrOpExp(l:ASTExp, r:ASTExp) extends ASTExp
+case class CallExp(func:Symbol, exps:List[ASTExp]) extends ASTExp {
+	var funcEntry:FuncEntry = null
+}
+class Oper extends Enumeration {
+	val Plus, Minus, Times, Divide, Eq, Ne, Lt, Gt, Le, Ge, And, Or = Value
+}
+case class OpExp(l:ASTExp, r:ASTExp, op:Oper) extends ASTExp
 case class RecordExp(list:List[RecordField], typ:Symbol) extends ASTExp
 case class SeqExp(seq:List[ASTExp]) extends ASTExp
 case class AssignExp(va:ASTVar, exp:ASTExp) extends ASTExp
 case class IfExp(test:ASTExp, thenexp:ASTExp, elseexp:ASTExp) extends ASTExp
 case class WhileExp(test:ASTExp, body:ASTExp) extends ASTExp
-case class ForExp(va:Symbol, varEntry:VarEntry, escape:Boolean, lo:ASTExp, hi:ASTExp, body:ASTExp) extends ASTExp
+case class ForExp(va:Symbol, lo:ASTExp, hi:ASTExp, body:ASTExp) extends ASTExp {
+	var varEntry:VarEntry = null
+	var escape:Boolean = false
+}
 case class BreakExp() extends ASTExp
 case class LetExp(decs:List[ASTDec], body:SeqExp) extends ASTExp
 case class ArrayExp(typ:Symbol, size:ASTExp, init:ASTExp) extends ASTExp
 
 //Decs
-case class FunDec(name:Symbol, funcEntry:FuncEntry, params:List[TypeField], result:Symbol, body:ASTExp) extends ASTDec
-case class VarDec(name:Symbol, varEntry:VarEntry, escape:Boolean, typ:Symbol, init:ASTExp) extends ASTDec
+case class FunDec(name:Symbol, params:List[TypeField], result:Symbol, body:ASTExp) extends ASTDec {
+	var funcEntry:FuncEntry = null
+}
+case class VarDec(name:Symbol, typ:Symbol, init:ASTExp) extends ASTDec {
+	var varEntry:VarEntry = null
+	var escape:Boolean = false
+}
 case class TypeDec(name:Symbol, typ:ASTType) extends ASTDec
 
 //Types

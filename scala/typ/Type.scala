@@ -1,5 +1,7 @@
 package tiger.typ;
 
+import tiger.symbol._
+
 abstract class Type {
 	def actual():Type = this
 }
@@ -13,10 +15,10 @@ case class Str() extends Type {
 }
 
 case class Name(name:Symbol) extends Type {
-	var binding:Type = null
-	override def actual():Type = binding.actual()
+	var binding:Option[Type] = None
+	override def actual():Type = binding.get.actual
 	override def toString = "Name(" + name + ")->" + actual()
-	def bind(t:Type) {binding = t}
+	def bind(t:Type) {binding = Some(t)}
 }
 
 case class Nil() extends Type {

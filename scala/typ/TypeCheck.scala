@@ -28,94 +28,157 @@ object TypeCheck {
 			arrayT.element
 		}
 		case e:VarExp => {
-			null
+			typeCheck(e.va)
 		}
 		case e:NilExp => {
-			null
+			Nil()
 		}
 		case e:IntExp => {
-			null
+			Int()
 		}
 		case e:StringExp => {
-			null
+			Str()
 		}
 		case e:CallExp => {
-			null
+			val fe:FuncEntry = Table.getFuncEntry(e.func).get
+			require(e.exps.length == fe.params.length)
+			for ((a,t) <- e.exps zip fe.params) {
+				require(Type.coerceTo(typeCheck(a), t))
+			}
+			e.funcEntry = fe
+ 			fe.result
 		}
-		case e:PlusOpExp => {
-			null
+		case e:OpExp => {
+			val lt = typeCheck(e.l)
+			val rt = typeCheck(e.r)
+			require(Type.coerceTo(lt, rt))
+			lt match {
+				case i:Int => i
+				case s:Str => s
+				case _   => error("invalid operand type")
+			}
 		}
-		case e:MinusOpExp => {
-			null
-		}
-		case e:TimesOpExp => {
-			null
-		}
-		case e:DivideOpExp => {
-			null
-		}
-		case e:EqOpExp => {
-			null
-		}
-		case e:NeOpExp => {
-			null
-		}
-		case e:LtOpExp => {
-			null
-		}
-		case e:GtOpExp => {
-			null
-		}
-		case e:LeOpExp => {
-			null
-		}
-		case e:GeOpExp => {
-			null
-		}
-		case e:AndOpExp => {
-			null
-		}
-		case e:OrOpExp => {
-			null
-		}
+
 		case e:RecordExp => {
+			val t = Table.getType(e.typ).get
+			val rt = t.actual().asInstanceOf[Record]
+			//TODO
 			null
 		}
 		case e:SeqExp => {
-			null
+			val results = for (exp <- e.seq) yield {
+				typeCheck(exp)
+			}
+			results.last
 		}
 		case e:AssignExp => {
-			null
+			val dst = typeCheck(e.va)
+			val src = typeCheck(e.exp)
+			require(Type.coerceTo(dst, src))
+			Void()
 		}
 		case e:IfExp => {
-			null
+			val testt = typeCheck(e.test)
+			require(testt.isInstanceOf[Int])
+			val thent = typeCheck(e.thenexp)
+			//TODO
+			val elset = typeCheck(e.elseexp)
+			Void()
 		}
 		case e:WhileExp => {
-			null
+			val testt = typeCheck(e.test)
+			require(testt.isInstanceOf[Int])
+			typeCheck(e.body)
+			//TODO
+			Void()
 		}
 		case e:ForExp => {
-			null
+			Table.beginScope
+			val vart = Name(e.va)
+			vart.bind(Table.getType(SymbolTable.symbol("int")).get)
+			val ve = new VarEntry(vart)
+			Table.putVarEntry(e.va, ve)
+			e.varEntry = ve
+
+			require(typeCheck(e.lo).actual.isInstanceOf[Int])
+			require(typeCheck(e.hi).actual.isInstanceOf[Int])
+
+			typeCheck(e.body)
+			Table.endScope
+			Void()
 		}
 		case e:BreakExp => {
-			null
+			Void()
 		}
 		case e:LetExp => {
-			null
+			Table.beginScope
+
+			for(dec <- e.decs) {
+				require(typeCheck(dec).actual.isInstanceOf[Void])
+			}
+
+			val bodyt = typeCheck(e.body)
+			Table.endScope
+			bodyt.actual
 		}
 		case e:ArrayExp => {
-			null
+			val t = Table.getType(e.typ).get
+			val arrt = t.actual.asInstanceOf[Array]
+
+			require(typeCheck(e.size).actual.isInstanceOf[Int])
+			val initt = typeCheck(e.init)
+			require(Type.coerceTo(initt, arrt.element))
+			arrt
 		}
 		case d:FunDec => {
-			null
+			val params = for (p <- d.params) yield {
+				typeCheck(p)
+			}
+			val result = Table.getType(d.result).get
+			Table.putFuncEntry(d.name, FuncEntry(result, params))
+			Void()
 		}
 		case d:VarDec => {
-			null
+			val opt = Table.getType(d.typ)
+			opt match {
+				case Some(t) => {
+					val ve = VarEntry(t)
+					Table.putVarEntry(d.name, ve)
+					val initt = typeCheck(d.init)
+					if (!Type.coerceTo(t, initt)) {
+						error("var initialize exp type mismatch")
+					}
+					d.varEntry = ve
+				}
+				case None => {
+					val initt = typeCheck(d.init)
+					val ve = VarEntry(initt.actual)
+					if (initt.actual.isInstanceOf[Nil]) {
+						error("initializing nil expressions not constrained by record type");
+					}
+					Table.putVarEntry(d.name, ve)
+					d.varEntry = ve
+				}
+			}
+			Void()
 		}
 		case d:TypeDec => {
-			null
+			val t = typeCheck(d.typ)
+			t match {
+				case Record(na, ty, tail) => ()//TODO 
+				case _ => ()
+			} 
+			Table.putType(d.name, t)
+			Void()
 		}
 		case t:NameTy => {
-			null
+			val namet = Name(t.name)
+			val opt = Table.getType(t.name)
+			opt match {
+				case Some(t) => namet.bind(t)
+				case None => error("unknown type name")
+			}
+			namet
 		}
 		case t:RecordTy => {
 			null
@@ -124,10 +187,17 @@ object TypeCheck {
 			null
 		}
 		case f:TypeField => {
-			null
+			val opt = Table.getType(f.typ)
+			opt match {
+				case Some(t) => t
+				case None    => Name(f.typ)
+			}
 		}
 		case f:RecordField => {
-			null
+			val initt = typeCheck(f.init)
+			val namet = Table.getType(f.name).get
+			require(Type.coerceTo(initt, namet))
+			Void()
 		}
 		case _ => null
 	}
