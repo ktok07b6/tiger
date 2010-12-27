@@ -155,9 +155,22 @@ ARMCodeGen::munchCJUMP(tree::CJUMP *cj)
 	std::string assem;
 	TempList tsrc;
 
+	const char *cond[] = {"eq", "ne", 
+						  "lt", "gt", 
+						  "le", "ge",
+						  "lo", "hi",
+						  "ls", "hs"};
+	//reverse condition for less or greater
+	const char *cond_r[] = {"eq", "ne", 
+							"ge", "le", 
+							"gt", "lt",
+							"hs", "ls",
+							"hi", "lo"};
+	bool reverse = false;
 	if (_M0(CONST_T, konst) == cj->l) {
 		assem = format("$s0, #%d", konst->value);
 		tsrc.push_back(munchExp(cj->r));
+		reverse = true;
 	} else if (_M0(CONST_T, konst) == cj->r) {
 		assem = format("$s0, #%d", konst->value);
 		tsrc.push_back(munchExp(cj->l));
@@ -167,16 +180,10 @@ ARMCodeGen::munchCJUMP(tree::CJUMP *cj)
 		tsrc.push_back(munchExp(cj->r));
 	}
 	emit(gcnew(assem::OPER, ("cmp", assem, TempList(), tsrc)));
-
-	const char *cond[] = {"eq", "ne", 
-						  "lt", "gt", 
-						  "le", "ge",
-						  "lo", "hi",
-						  "ls", "hs"};
 	LabelList targets;
 	targets.push_back(cj->truelab);
 	targets.push_back(cj->falselab);
-	assem = format("b%s", cond[cj->relop]);
+	assem = format("b%s", reverse ? cond_r[cj->relop] : cond[cj->relop]);
 	assem::OPER *op = gcnew(assem::OPER, (assem, "$j0", NULL, NULL));
 	op->setJumpTargets(targets);
 	emit(op);

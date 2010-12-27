@@ -905,5 +905,6 @@ IRTranslater::isBuiltinFunc(Symbol *f)
 		(Symbol::symbol("substring") == f) ||
 		(Symbol::symbol("stringConcat") == f) ||
 		(Symbol::symbol("not") == f) ||
-		(Symbol::symbol("getch") == f);
+		(Symbol::symbol("getch") == f) ||
+		(Symbol::symbol("test") == f);
 }
