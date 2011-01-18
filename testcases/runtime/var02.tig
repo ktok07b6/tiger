@@ -1,0 +1,10 @@
+let
+    var a:int := 4095
+in
+    test(a = 4095);
+    a := 4096;
+    test(a = 4096);
+
+	a := 65536;
+	test(a = 65536)
+end

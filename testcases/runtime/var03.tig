@@ -1,0 +1,14 @@
+let
+    var a := 1
+	var b := 2
+    var c := 0
+in
+    c := a + b;
+    test(c = 3);
+    c := a - b;
+    test(c = -1);
+    c := a * b;
+    test(c = 2);
+    c := a / b;
+    test(c = 0)
+end
