@@ -161,8 +161,9 @@ struct IntExp : Exp
 struct StringExp : Exp
 {
  StringExp(const std::string &str, int pos) 
-	 : Exp(pos), str(str) {}
-	const std::string str;
+	 : Exp(pos), str(str.substr(1, str.size()-2)) {
+	}
+	std::string str;
 	ACCEPTOR;
 };
 
