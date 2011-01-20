@@ -327,9 +327,17 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 	case tree::BINOP::oMUL:
 		opcode = "mul";
 		break;
-	case tree::BINOP::oDIV:
-		//TODO:
-		opcode = "div???";
+	case tree::BINOP::oDIV: {
+		//use builtin function of gcc (__aeabi_idiv)
+		TempList tsrc;
+		tree::ExpList args;
+		args.push_back(binop->l);
+		args.push_back(binop->r);
+		munchArgs(args, &tsrc);
+		emit(gcnew(assem::OPER, ("bl", "__aeabi_idiv", frame->registers().args, tsrc)));
+		return frame->rv();
+
+	}
 		break;
 	default:
 		//TODO:
