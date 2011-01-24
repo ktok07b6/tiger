@@ -1,6 +1,7 @@
 //#define ENABLE_FUNCLOG
 #include "TreeVisitor.h"
 #include "Tree.h"
+#include "TreePrinter.h"
 
 namespace tree {
 
@@ -50,14 +51,16 @@ ExpList
 CALL::kids()
 {
 	FUNCLOG;
-	args.push_front(func);
-	return args;
+	ExpList a = args;
+	a.push_front(func);
+	return a;
 }
 
 Exp *
 CALL::build(ExpList kids)
 {
 	FUNCLOG;
+
 	int s = kids.size();
 	Exp *f = kids.pop_front();
 	assert(kids.size() == s-1);
