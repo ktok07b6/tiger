@@ -381,7 +381,8 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 			emit(gcnew(assem::OPER, ("mul", "$d0, $s0, $s1", tdst, tsrc)));
 			return rs;
 
-		} else {
+		} else if (binop->op == tree::BINOP::oPLUS) {
+			//add process has commutative law
 			std::string assem = format("$d0, $s0, #%d", konst->value);
 
 			Temp *r = gcnew(Temp, ());

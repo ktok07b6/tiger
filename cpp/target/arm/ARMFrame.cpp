@@ -67,11 +67,7 @@ ARMFrame::ARMFrame(Symbol *n, const std::vector<int> &f)
 	while (it != f.end()) {
 		int escape = (*it);
 		Access *acc;
-		if (escape) {
-			acc = allocLocal(true);
-		} else {
-			acc = gcnew(InReg, (regs.all[i]));
-		}
+		acc = allocLocal(escape);
 		formals.push_back(acc);
 		++i;
 		++it;
@@ -308,7 +304,10 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 			continue;
 		} else
 #endif
-		if (r == regs.all[11]) {
+		if (r == regs.all[0]) {
+			++it;
+			continue;
+		} else if (r == regs.all[11]) {
 			fpExist = true;
 		}
 		saveRegStr += r->toString();
