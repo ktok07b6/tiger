@@ -1,0 +1,8 @@
+let
+    var s := 0
+in
+    for i := -10 to 0 do s := s + i;
+    test(s = -10-9-8-7-6-5-4-3-2-1-0);
+
+    print("ok\n")
+end

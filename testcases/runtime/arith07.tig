@@ -1,0 +1,7 @@
+let
+    function f(x:int):int =
+      x-x/10*10
+in
+    test(f(123) = 3);
+    print ("ok\n")
+end

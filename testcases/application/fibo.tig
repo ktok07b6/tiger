@@ -1,0 +1,19 @@
+let
+
+ function printint(i: int) =
+  let function f(i:int) = if i>0 
+	     then (f(i/10); print(chr(i-i/10*10+ord("0"))))
+   in 
+       (if i<0 then (print("-"); f(-i))
+      else if i>0 then f(i)
+      else print("0");
+	  print("\n"))
+  end
+
+    function fib (x:int):int =
+        if x < 2 
+            then x 
+            else fib(x-1) + fib(x-2)
+in
+    printint(fib(30));
+end

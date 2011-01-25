@@ -1,0 +1,10 @@
+let
+    var s := 0
+in
+    for i := 0 to 10 do
+        (if i = 5 then break;s := s + 1);
+
+    test(s = 5);
+
+    print("ok\n")
+end

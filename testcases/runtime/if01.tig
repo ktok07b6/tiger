@@ -1,0 +1,12 @@
+(
+  test(if 1 then 1 else 0 = 1);
+  test(if 0 then 1 else 0 = 0);
+  test(if 1 then 1+1 else 0 = 2);
+
+  test(if 1 then if 1 then 10 else -10 else 0 = 10);
+  test(if 1 then if 0 then 10 else -10 else 0 = -10);
+  test(if 0 then 0 else if 1 then 10 else -10 = 10);
+  test(if 0 then 0 else if 0 then 10 else -10 = -10);
+
+  print("ok\n")
+)
