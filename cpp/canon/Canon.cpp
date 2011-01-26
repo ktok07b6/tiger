@@ -1,6 +1,41 @@
+//#define CANON_DEBUG
 //#define ENABLE_FUNCLOG
 #include "Canon.h"
+#include "TreePrinter.h"
 
+class MoveCall : public tree::Stm
+{
+	tree::TEMP *dst;
+	tree::CALL *src;
+
+ public:
+	MoveCall(tree::TEMP *d, tree::CALL *s);
+	virtual tree::ExpList kids();
+	virtual tree::Stm *build(tree::ExpList kids);
+    virtual void accept(tree::TreeVisitor *v);
+};
+
+class MoveBinop : public tree::Stm
+{
+	tree::TEMP *dst;
+	tree::BINOP *src;
+
+ public:
+	MoveBinop(tree::TEMP *d, tree::BINOP *s);
+	virtual tree::ExpList kids();
+	virtual tree::Stm *build(tree::ExpList kids);
+    virtual void accept(tree::TreeVisitor *v);
+};
+
+class ExpCall : public tree::Stm
+{
+	tree::CALL *call;
+ public:
+	ExpCall(tree::CALL *c);
+	virtual tree::ExpList kids();
+	virtual tree::Stm *build(tree::ExpList kids);
+    virtual void accept(tree::TreeVisitor *v);
+};
 
 MoveCall::MoveCall(tree::TEMP *d, tree::CALL *s)
 	: Stm(MOVE_T)
@@ -24,6 +59,34 @@ MoveCall::build(tree::ExpList kids)
 void 
 MoveCall::accept(tree::TreeVisitor *v)
 {
+	tree::MOVE *m = gcnew(tree::MOVE, (dst, src));
+	v->visit(m);
+}
+
+MoveBinop::MoveBinop(tree::TEMP *d, tree::BINOP *s)
+	: Stm(MOVE_T)
+	, dst(d)
+	, src(s)
+{
+}
+ 
+tree::ExpList
+MoveBinop::kids()
+{
+	return src->kids();
+}
+
+tree::Stm *
+MoveBinop::build(tree::ExpList kids)
+{
+	return gcnew(tree::MOVE, (dst, src->build(kids)));
+}
+
+void 
+MoveBinop::accept(tree::TreeVisitor *v)
+{
+	tree::MOVE *m = gcnew(tree::MOVE, (dst, src));
+	v->visit(m);
 }
 
 
@@ -48,35 +111,50 @@ ExpCall::build(tree::ExpList kids)
 void 
 ExpCall::accept(tree::TreeVisitor *v)
 {
+	tree::EXPR *expr = gcnew(tree::EXPR, (call));
+	v->visit(expr);
 }
 
 
-StmExpList::StmExpList()
-{
-}
 
-StmExpList::StmExpList(tree::Stm *s, const tree::ExpList &e)
-	: stm(s), exps(e)
-{
-}
+
+//--------------------------------------------------
 
 Canon::Canon()
 {
 	tree::CONST *const0 = gcnew(tree::CONST, (0));
 	tree::EXPR *expr = gcnew(tree::EXPR, (const0));
 	nopNull.stm = expr;
+
+#ifdef CANON_DEBUG
+	dumpfp = fopen("canon.dump", "w");
+#endif
 }
 
 Canon::~Canon()
 {
+#ifdef CANON_DEBUG
+	fclose(dumpfp);
+#endif
+}
+
+void
+Canon::dump(tree::Tree *s, void *tag)
+{
+#ifdef CANON_DEBUG
+	fprintf(dumpfp, "========================== %d %p\n", s->id, tag);
+	tree::TreePrinter printer;
+	s->accept(&printer);
+	fprintf(dumpfp, "%s", printer.getResult().c_str());
+#endif
 }
 
 bool
 Canon::isNop(tree::Stm *s) 
 {
-	if (!s) return false;
-	//because it has no side effects
-	return s->isEXPR_T() && ((tree::EXPR*)s)->exp && ((tree::EXPR*)s)->exp->isCONST_T();
+	//it has no side effects
+	if (!s) return true;
+	return (s->isEXPR_T() && ((tree::EXPR*)s)->exp && ((tree::EXPR*)s)->exp->isCONST_T());
 }
 
 tree::Stm *
@@ -92,7 +170,7 @@ Canon::seq(tree::Stm *s1, tree::Stm *s2)
 bool
 Canon::commute(tree::Stm *s, tree::Exp *e)
 {
-	return isNop(s) || e->isNAME_T() || e->isCONST_T();
+	return isNop(s) || e->isNAME_T() || e->isCONST_T() || e->isTEMP_T();
 }
 
 tree::Stm *
@@ -108,6 +186,8 @@ Canon::do_stm(tree::MOVE *move)
 	FUNCLOG;
 	if (move->dst->isTEMP_T() && move->src->isCALL_T()) {
 		return reorder_stm(gcnew(MoveCall, ((tree::TEMP*)move->dst, (tree::CALL*)move->src)));
+	} else if (move->dst->isTEMP_T() && move->src->isBINOP_T()) {
+		return reorder_stm(gcnew(MoveBinop, ((tree::TEMP*)move->dst, (tree::BINOP*)move->src)));
 	} else if(move->dst->isESEQ_T()) {
 		//remove ESEQ
 		tree::ESEQ *eseq = (tree::ESEQ*)move->dst;
@@ -162,8 +242,16 @@ Canon::reorder_stm(tree::Stm *stm)
 		VDBG("stm is nil");
 		return NULL;
 	}
+#ifdef CANON_DEBUG
+	int tag;
+	dump(stm, &tag);
+#endif
 	StmExpList x = reorder(stm->kids());
-	return seq(x.stm, stm->build(x.exps));
+	tree::Stm *newstm = seq(x.stm, stm->build(x.exps));
+#ifdef CANON_DEBUG
+	dump(newstm, &tag);
+#endif
+	return newstm;
 }
 
 
@@ -200,8 +288,16 @@ tree::ESEQ *
 Canon::reorder_exp(tree::Exp *exp)
 {
 	FUNCLOG;
+#ifdef CANON_DEBUG
+	int tag;
+	dump(exp, &tag);
+#endif
 	StmExpList x = reorder(exp->kids());
-	return gcnew(tree::ESEQ, (x.stm, exp->build(x.exps)));
+	tree::ESEQ *eseq = gcnew(tree::ESEQ, (x.stm, exp->build(x.exps)));
+#ifdef CANON_DEBUG
+	dump(eseq, &tag);
+#endif
+	return eseq;
 }
 
 StmExpList
@@ -213,17 +309,23 @@ Canon::reorder(tree::ExpList kids)
 		return nopNull;
 	}
 
+	//DBG("reorder kids ------------------ begin");
+	//tree::TreePrinter::printExpList(kids);
+	//DBG("reorder kids ------------------ end");
+
 	tree::Exp *a = kids.pop_front();
-	if (a->isCALL_T()) {
+	if (a->isCALL_T() || a->isBINOP_T()) {
 		//replace CALL
 		Temp *t = gcnew(Temp, ());
 		tree::TEMP *tmp = gcnew(tree::TEMP, (t));
 		tree::MOVE *mv = gcnew(tree::MOVE, (tmp, a));
 		tree::Exp *e = gcnew(tree::ESEQ, (mv, tmp));
-		kids.push_front(e);
-		return reorder(kids);
+		//kids.push_front(e);
+		//return reorder(kids);
+		a = e;
 	}
-	else {
+
+	{
 		tree::ESEQ *aa = do_exp(a);
 		StmExpList bb = reorder(kids);
 		if (commute(bb.stm, aa->exp)) {
@@ -234,6 +336,7 @@ Canon::reorder(tree::ExpList kids)
 		} else {
 			Temp *t = gcnew(Temp, ());
 			tree::TEMP *tmp = gcnew(tree::TEMP, (t));
+
 			tree::ExpList exps;
 			exps.push_back(tmp);
 			exps.push_all(bb.exps);
@@ -264,7 +367,6 @@ Canon::linear(tree::Stm *s, tree::StmList stms)
 	}
 }
 
-#include "TreePrinter.h"
 tree::StmList
 Canon::linearize(tree::Stm *s)
 {

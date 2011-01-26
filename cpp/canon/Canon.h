@@ -3,35 +3,14 @@
 
 #include "Tree.h"
 #include "TreeVisitor.h"
+#include <stdio.h>
 
-class MoveCall : public tree::Stm
+
+struct StmExpList
 {
-	tree::TEMP *dst;
-	tree::CALL *src;
-
- public:
-	MoveCall(tree::TEMP *d, tree::CALL *s);
-	virtual tree::ExpList kids();
-	virtual tree::Stm *build(tree::ExpList kids);
-    virtual void accept(tree::TreeVisitor *v);
-};
-
-class ExpCall : public tree::Stm
-{
-	tree::CALL *call;
- public:
-	ExpCall(tree::CALL *c);
-	virtual tree::ExpList kids();
-	virtual tree::Stm *build(tree::ExpList kids);
-    virtual void accept(tree::TreeVisitor *v);
-};
-
-class StmExpList
-{
- public:
-	StmExpList();
-	StmExpList(tree::Stm *s, const tree::ExpList &e);
-
+StmExpList(): stm(NULL), exps(){}
+StmExpList(tree::Stm *s, const tree::ExpList &e) : stm(s), exps(e){}
+StmExpList(const StmExpList &other)	: stm(other.stm), exps(other.exps){}
 	tree::Stm *stm;
 	tree::ExpList exps;
 };
@@ -39,7 +18,9 @@ class StmExpList
 class Canon
 {
 	StmExpList nopNull;
- public:
+	FILE *dumpfp;
+	void dump(tree::Tree*, void*);
+public:
 	Canon();
 	~Canon();
 	bool isNop(tree::Stm *s);
