@@ -15,5 +15,5 @@ let
             then x 
             else fib(x-1) + fib(x-2)
 in
-    printint(fib(30));
+    printint(fib(30))
 end

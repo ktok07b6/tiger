@@ -38,10 +38,10 @@ Color::coloring()
 {
 	build();
 	makeWorkList();
-	//show();
+	show();
 	int i = 0;
 	do {
-		//DBG("===== coloring iteration %d =====", i);
+		VDBG("===== coloring iteration %d =====", i);
 		++i;
 
 		if (!simplifyWorkList.none()) {
@@ -58,7 +58,7 @@ Color::coloring()
 		else if (!spillWorkList.none()) {
 			selectSpill();
 		}
-		//show();
+		show();
 	} while (!simplifyWorkList.none() ||
 #ifdef ENABLE_COALESCE
 			 !workListMoves.empty() ||
@@ -142,6 +142,7 @@ Color::build()
 
 		++it;
 	}
+	//igraph.show();
 }
 
 void 
@@ -150,7 +151,10 @@ Color::makeWorkList()
 	int i = 0;
 	const NodeList &nodes = igraph.getNodes();
 	BOOST_FOREACH(Node *n, nodes) {
-		if (numMaxRegs <= n->degree()) {
+		int nid = igraph.node2nid(n);
+		if (precolored.get(nid)) {
+		}
+		else if (numMaxRegs <= n->degree()) {
 			spillWorkList.set(i);
 		}
 #ifdef ENABLE_COALESCE
@@ -171,6 +175,7 @@ Color::simplify()
 	assert(!simplifyWorkList.none());
 
 	int nid = simplifyWorkList.right();
+	assert(!precolored.get(nid));
 	simplifyWorkList.reset(nid);
 
 	Node *n = igraph.nid2node(nid);
@@ -195,6 +200,10 @@ Color::decrementDegree(int nid)
 		adj.set(nid);
 		enableMoves(adj);
 		spillWorkList.reset(nid);
+		if (precolored.get(nid)) {
+			DBG("??");
+			return;
+		}
 		if (isMoveRelated(nid)) {
 			freezeWorkList.set(nid);
 		} else {
@@ -334,6 +343,7 @@ Color::combine(int nid1, int nid2)
 
 	enableMoves(nid2);
 	Bitmap adj2 = adjacent(nid2);
+	VDBG("combined nid2 adj %s", adj2.toString().c_str());
 	for (unsigned int a = 0; a < adj2.size(); ++a) {
 		if (!adj2.get(a)) {
 			continue;
@@ -343,10 +353,12 @@ Color::combine(int nid1, int nid2)
 		igraph.addEdge(n1, n2);
 		decrementDegree(a);
 	}
+	
 	if (degreeMap[nid1] >= numMaxRegs && freezeWorkList.get(nid1)) {
 		freezeWorkList.reset(nid1);
 		spillWorkList.set(nid1);
 	}
+	//igraph.show();
 }
 
 int
@@ -417,6 +429,21 @@ Color::assignColors()
 		for (int i = 0; i < numMaxRegs; ++i) {
 			okColors.set(i);
 		}
+		VDBG("assign color for %s", n->toString().c_str());
+		int nid = igraph.node2nid(n);
+#if 0
+		Bitmap adj = adjacent(nid);
+		for (unsigned int i = 0; i < adj.size(); ++i) {
+			if (!adj.get(i)) {
+				continue;
+			}
+			int reala = getAlias(i);
+			//干渉辺がすでに色付けされている?
+			if (coloredNodes.get(reala) || precolored.get(reala)) {
+				okColors.reset(color[reala]);
+			}
+		}
+#else
 		NodeList adj = n->adj();
 		BOOST_FOREACH(Node *a, adj) {
 			int reala = getAlias(igraph.node2nid(a));
@@ -425,7 +452,10 @@ Color::assignColors()
 				okColors.reset(color[reala]);
 			}
 		}
-		int nid = igraph.node2nid(n);
+#endif
+
+		VDBG("ok colors %s", okColors.toString().c_str());
+		
 		if (!okColors.none() && okColors.right() < numWorkRegs) {
 			coloredNodes.set(nid);
 			if (!precolored.get(nid)) {
@@ -446,7 +476,7 @@ Color::assignColors()
 	while (it != color.end()) {
 		int nid = it->first;
 		int color = it->second;
-		DBG("%d color is %d", nid, color);
+		VDBG("%d color is %d", nid, color);
 		++it;
 	}
 	
@@ -457,9 +487,9 @@ Color::adjacent(int nid)
 {
 	Node *n =  igraph.nid2node(nid);
 	Bitmap adj = nodes2bitmap(n->adj());
-	Bitmap selects = nodes2bitmap(selectStack);
-	Bitmap tmp = selects | coalescedNodes;
-	adj -=  tmp;
+	//Bitmap selects = nodes2bitmap(selectStack);
+	//Bitmap tmp = selects/* | coalescedNodes FIXME*/;
+	//adj -=  tmp;
 	return adj;
 }
 
@@ -532,24 +562,24 @@ Color::adj(int nid1, int nid2)
 void
 Color::show()
 {
-	DBG("===== show begin =====");
+	VDBG("===== show begin =====");
 	int maxid = igraph.getNodes().size();
 	for (int i = 0; i < maxid; ++i) {
 		int ai = getAlias(i);
 		Node *n = igraph.nid2node(i);
 		Node *an = igraph.nid2node(ai);
-		DBG("alias: %d(%s) => %d(%s)", 
+		VDBG("alias: %d(%s) => %d(%s)", 
 			i, n->toString().c_str(),
 			ai, an->toString().c_str());
 	}
 	Bitmap stk = nodes2bitmap(selectStack);
-	DBG("simplifyWorkList: %s", (const char*)simplifyWorkList);
-	DBG("freezeWorkList  : %s", (const char*)freezeWorkList);
-	DBG("spillWorkList   : %s", (const char*)spillWorkList);
-	DBG("spilledNodes    : %s", (const char*)spilledNodes);
-	DBG("coalescedNodes  : %s", (const char*)coalescedNodes);
-	DBG("selectStack     : %s", (const char*)stk);
-	DBG("===== show end =====\n");
+	VDBG("simplifyWorkList: %s", (const char*)simplifyWorkList);
+	VDBG("freezeWorkList  : %s", (const char*)freezeWorkList);
+	VDBG("spillWorkList   : %s", (const char*)spillWorkList);
+	VDBG("spilledNodes    : %s", (const char*)spilledNodes);
+	VDBG("coalescedNodes  : %s", (const char*)coalescedNodes);
+	VDBG("selectStack     : %s", (const char*)stk);
+	VDBG("===== show end =====\n");
 }
 
 TempList
