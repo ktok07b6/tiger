@@ -186,9 +186,11 @@ Canon::do_stm(tree::MOVE *move)
 	FUNCLOG;
 	if (move->dst->isTEMP_T() && move->src->isCALL_T()) {
 		return reorder_stm(gcnew(MoveCall, ((tree::TEMP*)move->dst, (tree::CALL*)move->src)));
-	} else if (move->dst->isTEMP_T() && move->src->isBINOP_T()) {
+	}
+	 else if (move->dst->isTEMP_T() && move->src->isBINOP_T()) {
 		return reorder_stm(gcnew(MoveBinop, ((tree::TEMP*)move->dst, (tree::BINOP*)move->src)));
-	} else if(move->dst->isESEQ_T()) {
+		}
+	else if(move->dst->isESEQ_T()) {
 		//remove ESEQ
 		tree::ESEQ *eseq = (tree::ESEQ*)move->dst;
 		tree::MOVE *move2 = gcnew(tree::MOVE, (eseq->exp, move->src));

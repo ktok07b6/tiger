@@ -132,14 +132,13 @@ Color::build()
 		Node *y = it->second;
 		int nidx = igraph.node2nid(x);
 		int nidy = igraph.node2nid(y);
-		NidPair mv = std::make_pair(nidx, nidy);
-		VDBG("workListMoves.push %d:%d", nidx, nidy);
-		workListMoves.push_back(mv);
-		Moves &movesx = moveList[nidx];
-		movesx.push_back(mv);
-		Moves &movesy = moveList[nidy];
-		movesy.push_back(mv);
-
+		if (nidx != nidy) {
+			NidPair mv = std::make_pair(nidx, nidy);
+			VDBG("workListMoves.push %d:%d", nidx, nidy);
+			workListMoves.push_back(mv);
+			moveList[nidx].push_back(mv);
+			moveList[nidy].push_back(mv);
+		}
 		++it;
 	}
 	//igraph.show();
@@ -339,7 +338,14 @@ Color::combine(int nid1, int nid2)
 	//combine move list
 	Moves &moves1 = moveList[nid1];
 	Moves &moves2 = moveList[nid2];
-	std::copy(moves2.begin(), moves2.end(), std::back_inserter(moves1));
+	Moves::iterator i = moves2.begin();
+	while (i != moves2.end()) {
+		int other = i->first != nid2 ? i->first:i->second;
+		if (other != nid1) {
+			moves1.push_back(std::make_pair(nid1, other));
+		}
+		++i;
+	}
 
 	enableMoves(nid2);
 	Bitmap adj2 = adjacent(nid2);
@@ -397,9 +403,14 @@ Color::freezeMoves(int nid)
 			v = getAlias(y);
 		}
 
-		activeMoves.erase(it);
-		frozenMoves.push_back(*it);
-		if (nodeMoves(v).empty() && degreeMap[v] < numMaxRegs) {
+		NidPair mv = std::make_pair(x,y);
+		Moves::iterator it2 = std::find(activeMoves.begin(), activeMoves.end(), mv);
+		if (it2 != activeMoves.end()) {
+			activeMoves.erase(it2);
+		}
+
+		frozenMoves.push_back(mv);
+		if (nodeMoves(v).empty() && degreeMap[v] < numMaxRegs && !precolored.get(v)) {
 			freezeWorkList.reset(v);
 			simplifyWorkList.set(v);
 		}
@@ -497,6 +508,13 @@ Color::Moves
 Color::nodeMoves(int nid)
 {
 	Moves &moves = moveList[nid];
+#if (LOG_MASK & VERBOSE_ON)
+	Moves::iterator i = moves.begin();
+	while (i != moves.end()) {
+		DBG("moveList[%d] %d %d", nid, i->first, i->second);
+		++i;
+	}
+#endif
 	if (!moves.empty()) {
 		//TODO:  moves & (activeMoves | workListMoves);
 		Moves tmp;
