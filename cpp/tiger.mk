@@ -14,5 +14,5 @@ LIBGCC=$(TOOLCHAIN)/lib/gcc/arm-none-linux-gnueabi/4.3.3/libgcc.a
 all:obj/$(filename).S
 	$(SILENT) $(CC) $(INCS) -c runtime/runtime.c -o obj/runtime.o 
 	$(SILENT) $(AS) obj/$(filename).S -o obj/$(filename).o
-	$(SILENT) $(CC) $(LIBDIRS) -static -lc $(LIBGCC) obj/runtime.o  obj/$(filename).o  -o $(filename)
+	$(SILENT) $(CC) $(LIBDIRS) -static -lc $(LIBGCC) obj/runtime.o  obj/$(filename).o  -o bin/$(filename)
 
