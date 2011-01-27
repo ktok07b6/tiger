@@ -10,5 +10,7 @@ in
     c := a * b;
     test(c = 2);
     c := a / b;
-    test(c = 0)
+    test(c = 0);
+
+	print("ok\n")
 end

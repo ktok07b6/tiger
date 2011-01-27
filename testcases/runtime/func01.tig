@@ -4,5 +4,7 @@ in
  test(f() = 10);
  test(f()+f() = 20);
  test((if 1 then f() else f()) = 10);
- test((if 1 then 10+10 else f())= 20)
+ test((if 1 then 10+10 else f())= 20);
+
+ print("ok\n")
 end

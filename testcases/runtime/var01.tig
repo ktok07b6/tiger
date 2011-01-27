@@ -3,5 +3,7 @@ let
 in
     test(a = 0);
 	a := 1;
-	test(a = 1)
+	test(a = 1);
+
+	print("ok\n")
 end

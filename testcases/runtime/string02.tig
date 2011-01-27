@@ -1,1 +1,5 @@
-stringEqual(chr(65), "A"))
+(
+  stringEqual(chr(65), "A")); 
+
+  print("ok\n")
+)
