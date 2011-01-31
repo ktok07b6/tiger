@@ -9,6 +9,9 @@
 
 #include "debug.h"
 
+class Temp;
+typedef std::vector<Temp*> TempList;
+
 class Temp : public Object
 {
  public:
@@ -16,7 +19,9 @@ class Temp : public Object
  Temp(const std::string &specialName) : num(count++), specialName(specialName) 
 	{
 	}
-
+ Temp(const Temp &other) : num(other.num), specialName(other.specialName) 
+		{
+		}
 	~Temp() {FUNCLOG;}
 
 	operator const char *() {
@@ -33,12 +38,18 @@ class Temp : public Object
 		}
 		return s;
 	}
- private:
+
+	static void printTempList(const TempList &tlist);
+private:
 	int num;
 	const std::string specialName;
 	static int count;
+	friend struct LessTemp;
 };
 
-typedef std::vector<Temp*> TempList;
-
+struct LessTemp {
+    bool operator()(Temp *lhs, Temp *rhs) const {
+        return lhs->num < rhs->num;
+    }
+};
 #endif //TEMP_H
