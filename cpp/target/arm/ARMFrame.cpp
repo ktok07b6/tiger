@@ -205,7 +205,7 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 	//alive_regs.push_back(rv());
 	TempList used = findRegsInBody(body);
 	std::copy(used.begin(), used.end(), std::back_inserter(alive_regs));
-	std::sort(alive_regs.begin(), alive_regs.end());
+	std::sort(alive_regs.begin(), alive_regs.end(), LessTemp());
 	alive_regs.erase(std::unique(alive_regs.begin(), alive_regs.end()), alive_regs.end());
 
 	std::string comment;
@@ -258,7 +258,7 @@ ARMFrame::findRegsInBody(const assem::InstructionList &body)
 			}
 		}
 	}
-	std::sort(used.begin(), used.end());
+	std::sort(used.begin(), used.end(), LessTemp());
 	used.erase(std::unique(used.begin(), used.end()), used.end());
 	return used;
 }

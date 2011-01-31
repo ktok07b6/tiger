@@ -11,19 +11,6 @@ using namespace graph;
 
 namespace regalloc {
 
-void printTempList(const TempList &li)
-{
-	DBG("print temp list %d", li.size());
-	std::string result;
-
-	BOOST_FOREACH(Temp *t, li) {
-		assert(t);
-		result += t->toString();
-		result += " ";
-	}
-	DBG("%s", result.c_str());
-}
-
 void 
 Liveness::printBitmap(const Bitmap &bm, const char *prefix)
 {
@@ -51,15 +38,15 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 		TempList use = flow.use(n);
 		std::copy(use.begin(), use.end(), std::back_inserter(temps));
 	}
-	std::sort(temps.begin(), temps.end());
+	std::sort(temps.begin(), temps.end(), LessTemp());
 	temps.erase(std::unique(temps.begin(), temps.end()), temps.end());
-	/*
+#if 1	
 	int ti = 0;
 	BOOST_FOREACH(Temp *t, temps) {
 		DBG("%d:%s", ti, (const char*)*t);
 		++ti;
 	}
-	*/
+#endif	
 	BOOST_FOREACH(Node *n, flowNodes) {
 		LiveInfo *li = new LiveInfo();
 		li->def = new Bitmap(temps.size());
@@ -220,10 +207,12 @@ Liveness::tempList2bitmap(const TempList &tlist)
 TempList 
 Liveness::bitmap2tempList(const Bitmap &bm)
 {
+	Temp::printTempList(temps);
 	TempList tlist;
 	for (unsigned int i = 0; i < bm.size(); ++i) {
 		if (bm.get(i)) {
-			tlist.push_back(temps[i]);
+			Temp *t = temps[i];
+			tlist.push_back(t);
 		}
 	}
 	return tlist;
@@ -237,13 +226,21 @@ Liveness::makeInterferenceGraph()
 	igraph = new InterferenceGraph();
 
 	//enumerate all live temps
+#if 0 //BUG?
 	Bitmap liveouts;
 	BOOST_FOREACH(LiveInfo *li, info) {
-		liveouts |= *li->liveout; 
+		liveouts |= *(li->liveout); 
 	}
 	TempList liveTemps = bitmap2tempList(liveouts);
-
-	//printTempList(liveTemps);
+#else
+	TempList liveTemps;
+	BOOST_FOREACH(LiveInfo *li, info) {
+		TempList tlist = bitmap2tempList(*(li->liveout));
+		std::copy(tlist.begin(), tlist.end(), std::back_inserter(liveTemps));
+	}
+	std::sort(liveTemps.begin(), liveTemps.end(), LessTemp());
+	liveTemps.erase(std::unique(liveTemps.begin(), liveTemps.end()), liveTemps.end());
+#endif
 
 	//create nodes for temps,
 	BOOST_FOREACH(Temp *t, liveTemps) {
