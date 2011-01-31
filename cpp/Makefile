@@ -51,6 +51,7 @@ SOURCES_LIBCORE= \
 	Color.cpp \
 	RegAlloc.cpp  \
 	ARMFrame.cpp ARMCodeGen.cpp \
+	RemoveUselessMove.cpp \
 	$(NULL)
 
 SOURCES_TIGER=main.cpp
