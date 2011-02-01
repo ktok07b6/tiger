@@ -1,0 +1,15 @@
+let
+    type rec = {a:int, b:int}
+    var a:rec := rec{a=1, b=2}
+in
+    test(a.a = 1);
+    test(a.b = 2);
+
+    a.a := 10;
+    a.b := 20;
+
+    test(a.a = 10);
+    test(a.b = 20);
+
+   print("ok\n")
+end

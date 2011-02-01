@@ -1,0 +1,11 @@
+let
+    type list = {car:int, cdr:list}
+    var l:list := nil
+in
+    l := list{car=0, cdr=list{car=1, cdr=list{car=2, cdr=nil}}};
+    test(l.car = 0);
+    test(l.cdr.car = 1);
+    test(l.cdr.cdr.car = 2);
+
+    print("ok\n")
+end

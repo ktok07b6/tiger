@@ -1,0 +1,20 @@
+let
+    type rec = {id:int, name:string}
+    var a:rec := rec{id=0, name="a"}
+    var b:rec := rec{id=1, name="b"}
+in
+    test(a.id = 0);
+    test(stringEqual(a.name, "a"));
+    test(b.id = 1);
+    test(stringEqual(b.name, "b"));
+
+    a.name := "aaa";
+    b.name := "bbb";
+
+    test(a.id = 0);
+    test(stringEqual(a.name, "aaa"));
+    test(b.id = 1);
+    test(stringEqual(b.name, "bbb"));
+
+    print("ok\n")
+end
