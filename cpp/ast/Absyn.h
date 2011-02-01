@@ -193,7 +193,6 @@ struct RecordField : Absyn
  RecordField(Symbol *name, Exp *init, int pos)
 	 : Absyn(pos), name(name), init(init) {}
 	Symbol *name;
-	VarEntry *symInfo;
 	Exp *init;
 	ACCEPTOR;
 };
