@@ -1,0 +1,11 @@
+let
+    type arr = array of int
+	var a:arr := arr[10] of 0
+in
+    for i:=0 to 10 do test(a[i] = 0);
+    for i:=0 to 10 do a[i] := i;
+    for i:=0 to 10 do test(a[i] = i);
+    for i:=0 to 10 do test(a[a[i]] = i);
+
+    print("ok\n")
+end

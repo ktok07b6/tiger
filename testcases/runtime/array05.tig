@@ -1,0 +1,18 @@
+let
+    type strings = array of string
+	var a:strings := strings[3] of ""
+in
+    test(a[0] = "");
+    test(a[1] = "");
+    test(a[2] = "");
+
+	a[0] := "zero";
+    a[1] := "one";
+    a[2] := "two";
+
+    test(stringEqual(a[0], "zero"));
+    test(stringEqual(a[1], "one"));
+    test(stringEqual(a[2], "two"));
+
+    print("ok\n")
+end

@@ -1,0 +1,21 @@
+let
+    type point = {x:int, y:int}
+    type points = array of point
+	var a:points := points[2] of point{x=1, y=2}
+in
+    test(a[0].x = 1);
+    test(a[0].y = 2);
+    test(a[1].x = 1);
+    test(a[1].y = 2);
+    
+    a[0].x := 2; a[0].y := 1;
+    a[1].x := 2; a[1].y := 1;
+
+    test(a[0].x = 2);
+    test(a[0].y = 1);
+    test(a[1].x = 2);
+    test(a[1].y = 1);
+
+    print("ok\n")
+end
+

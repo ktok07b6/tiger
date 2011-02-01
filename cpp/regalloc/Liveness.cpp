@@ -207,7 +207,6 @@ Liveness::tempList2bitmap(const TempList &tlist)
 TempList 
 Liveness::bitmap2tempList(const Bitmap &bm)
 {
-	Temp::printTempList(temps);
 	TempList tlist;
 	for (unsigned int i = 0; i < bm.size(); ++i) {
 		if (bm.get(i)) {

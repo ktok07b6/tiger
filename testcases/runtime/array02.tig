@@ -1,0 +1,17 @@
+let
+    type arr = array of int
+    function f(i:int):int = i*i
+    function g(i:int):arr = arr[3] of f(i)
+	var a1:arr := arr[3] of f(2)
+    var a2:arr := g(3)
+in
+    test(a1[0] = 4);
+    test(a1[1] = 4);
+    test(a1[2] = 4);
+
+    test(a2[0] = 9);
+    test(a2[1] = 9);
+    test(a2[2] = 9);
+
+    print("ok\n")
+end

@@ -1,0 +1,20 @@
+let
+	type arr = array of int
+	var a:arr := arr[3] of 0
+in
+    test(a[0] = 0);
+    test(a[1] = 0);
+    test(a[2] = 0);
+
+	a[0] := 10;
+	a[1] := 20;
+	a[2] := 30;
+    test(a[0] = 10);
+    test(a[1] = 20);
+    test(a[2] = 30);
+
+    test(a[0] + a[1] = 30);
+    test(a[1] / a[0] = 2);
+
+    print("ok\n")
+end

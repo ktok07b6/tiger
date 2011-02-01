@@ -1,0 +1,22 @@
+let
+    type strings = array of string
+    type str2d = array of strings
+	var a:str2d := str2d[2] of strings[2] of ""
+in
+    test(a[0][0] = "");
+    test(a[0][1] = "");
+    test(a[1][0] = "");
+    test(a[1][1] = "");
+
+	a[0][0] := "1";
+	a[0][1] := "0";
+	a[1][0] := "0";
+	a[1][1] := "1";
+
+    test(stringEqual(a[0][0], "1"));
+    test(stringEqual(a[0][1], "0"));
+    test(stringEqual(a[1][0], "0"));
+    test(stringEqual(a[1][1], "1"));
+
+    print("ok\n")
+end
