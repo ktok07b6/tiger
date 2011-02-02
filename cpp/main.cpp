@@ -25,7 +25,7 @@
 //#include "Liveness.h"
 //#include "InterferenceGraph.h"
 #include "RegAlloc.h"
-#include "RemoveUselessMove.h"
+#include "Optimizer.h"
 #include "Property.h"
 Property<int> value;
 
@@ -304,9 +304,9 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
         inst->update(tm);
 		++it;
 	}
-	//Optimizer;
+	//
 	assem::InstructionList proc3;
-	proc3 = opt::removeUselessMove(proc2);
+	proc3 = opt::optimize(proc2);
     it = proc3.begin();
     while (it != proc3.end()) {
 		assem::Instruction *inst = *it;
@@ -320,6 +320,12 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
     *out += "\n\n";
 }
 
+void initOptimization()
+{
+	opt::setOptimizationOption(opt::REMOVE_USELESS_MOVE, opt::OPT_ENABLE);
+	opt::setOptimizationOption(opt::REMOVE_USELESS_JUMP, opt::OPT_DISABLE);
+	opt::setOptimizationOption(opt::CONSTANT_FOLDING, opt::OPT_DISABLE);
+}
 
 int main(int argc, char **argv)
 {
@@ -347,6 +353,8 @@ int main(int argc, char **argv)
 	}
 
 	//printSymbols();
+
+	initOptimization();
 
 	FragmentList frags;
 	translatePhase(frags);
