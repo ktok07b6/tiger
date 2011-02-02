@@ -51,6 +51,7 @@ SOURCES_LIBCORE= \
 	Color.cpp \
 	RegAlloc.cpp  \
 	ARMFrame.cpp ARMCodeGen.cpp \
+	Optimizer.cpp \
 	RemoveUselessMove.cpp \
 	$(NULL)
 
