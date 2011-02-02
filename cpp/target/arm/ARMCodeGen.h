@@ -7,9 +7,13 @@ class ARMFrame;
 
 class ARMCodeGen : public assem::CodeGen
 {
- public:
+public:
 	ARMCodeGen(ARMFrame *frame);
 
+	virtual bool isMove(assem::Instruction *inst);
+	virtual bool isJump(assem::Instruction *inst);
+
+protected:
 	virtual void munchMOVE(tree::Exp *dst, tree::Exp *src);
 	virtual void munchLABEL(Label *lab);
 	virtual void munchJUMP(Label *lab);
@@ -23,10 +27,11 @@ class ARMCodeGen : public assem::CodeGen
 	virtual Temp *munchCONST(tree::CONST *c);
 	virtual Temp *munchTEMP(tree::TEMP *t);
 	virtual Temp *munchNAME(tree::NAME *n);
-
-	virtual bool isMove(assem::Instruction *inst);
-	virtual bool isJump(assem::Instruction *inst);
- private:
+private:
+	virtual Temp *munchBINOP_PLUS(tree::BINOP *b);
+	virtual Temp *munchBINOP_MINUS(tree::BINOP *b);
+	virtual Temp *munchBINOP_MUL(tree::BINOP *b);
+	virtual Temp *munchBINOP_DIV(tree::BINOP *b);
 	ARMFrame *frame;
 };
 

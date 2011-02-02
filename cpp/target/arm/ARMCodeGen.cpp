@@ -50,31 +50,32 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 	tree::TEMP *temp;
 
 	if (_M1(MEM_T, mem, _M0(BINOP_T, binop)) == dst) {
-		if (binop->op == tree::BINOP::oPLUS) {
-			if (_M0(CONST_T, konst) == binop->r && 
-				_M0(CONST_T, konst2) != binop->l) {
-				//(MEM(BINOP(PLUS,e1,CONST(i))), e2)
-				std::string assem;
-				if (konst->value <= IMMEDIATE_MAX) {
-					assem = format("$s1, [$s0, #%d]", konst->value);
-					TempList tl;
-					tl.push_back(munchExp(binop->l));
-					tl.push_back(munchExp(src));
-					emit(gcnew(assem::OPER, ("str", assem, TempList(), tl)));
+		//the offset of the memory is always calculated by add process
+		assert(binop->op == tree::BINOP::oPLUS);
+
+		if (_M0(CONST_T, konst) == binop->r && 
+			_M0(CONST_T, konst2) != binop->l) {
+			//(MEM(BINOP(PLUS,e1,CONST(i))), e2)
+			std::string assem;
+			if (konst->value <= IMMEDIATE_MAX) {
+				assem = format("$s1, [$s0, #%d]", konst->value);
+				TempList tl;
+				tl.push_back(munchExp(binop->l));
+				tl.push_back(munchExp(src));
+				emit(gcnew(assem::OPER, ("str", assem, TempList(), tl)));
 					return;
-				}
-			} else if (_M0(CONST_T, konst) == binop->l &&
-					   _M0(CONST_T, konst2) != binop->r) {
-				//MEM(BINOP(PLUS,CONST(i),e1)),e2))
-				std::string assem;
-				if (konst->value <= IMMEDIATE_MAX) {
-					assem = format("$s1, [$s0, #%d]", konst->value);
-					TempList tl;
-					tl.push_back(munchExp(binop->r));
-					tl.push_back(munchExp(src));
-					emit(gcnew(assem::OPER, ("str", assem, TempList(), tl)));
-					return;
-				}
+			}
+		} else if (_M0(CONST_T, konst) == binop->l &&
+				   _M0(CONST_T, konst2) != binop->r) {
+			//MEM(BINOP(PLUS,CONST(i),e1)),e2))
+			std::string assem;
+			if (konst->value <= IMMEDIATE_MAX) {
+				assem = format("$s1, [$s0, #%d]", konst->value);
+				TempList tl;
+				tl.push_back(munchExp(binop->r));
+				tl.push_back(munchExp(src));
+				emit(gcnew(assem::OPER, ("str", assem, TempList(), tl)));
+				return;
 			}
 		} 
 	}
@@ -266,6 +267,9 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 	tree::CONST *konst, *konst2;
 
 	if (_M0(BINOP_T, binop) == mem->exp) {
+		//the offset of the memory is always calculated by add process
+		assert(binop->op == tree::BINOP::oPLUS);
+
 		if (_M0(CONST_T, konst) == binop->r &&
 			_M0(CONST_T, konst2) != binop->l) {
 			//(BINOP(PLUS,e1,CONST(i)))
@@ -310,58 +314,29 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 Temp *
 ARMCodeGen::munchBINOP(tree::BINOP *binop)
 {
-	tree::CONST *konst, *konst2;
-	const char *opcode;
 	switch (binop->op) {
-	case tree::BINOP::oPLUS:
-		opcode = "add";
-		break;	
-	case tree::BINOP::oMINUS:
-		opcode = "sub";
-		break;
-	case tree::BINOP::oMUL:
-		opcode = "mul";
-		break;
-	case tree::BINOP::oDIV: {
-		//use builtin function of gcc (__aeabi_idiv)
-		TempList tsrc;
-		tree::ExpList args;
-		args.push_back(binop->l);
-		args.push_back(binop->r);
-		munchArgs(args, &tsrc);
-		emit(gcnew(assem::OPER, ("bl", "__aeabi_idiv", frame->registers().args, tsrc)));
-		return frame->rv();
-
-	}
-		break;
+	case tree::BINOP::oPLUS:  return munchBINOP_PLUS(binop);
+	case tree::BINOP::oMINUS: return munchBINOP_MINUS(binop);
+	case tree::BINOP::oMUL:   return munchBINOP_MUL(binop);
+	case tree::BINOP::oDIV:   return munchBINOP_DIV(binop);
 	default:
-		//TODO:
-		opcode = "???";
-		break;
+		assert(0);
+		return NULL;
 	}
+}
+
+Temp *
+ARMCodeGen::munchBINOP_PLUS(tree::BINOP *binop)
+{
+	tree::CONST *konst, *konst2;
+
 	//(op,CONST(i1),CONST(i2))
 	if (_M0(CONST_T, konst) == binop->l &&
 		_M0(CONST_T, konst2) == binop->r &&
 		opt::getOptimizationOption(opt::CONSTANT_FOLDING) == opt::OPT_ENABLE ) {
 		int value;
-		switch (binop->op) {
-		case tree::BINOP::oPLUS:
-			value = konst->value + konst2->value;
-			break;	
-		case tree::BINOP::oMINUS:
-			value = konst->value - konst2->value;
-			break;
-		case tree::BINOP::oMUL:
-			value = konst->value * konst2->value;
-			break;
-		case tree::BINOP::oDIV:
-			value = konst->value / konst2->value;
-			break;
-		default:
-			//TODO:
-			assert(0);
-			break;
-		}
+		value = konst->value + konst2->value;
+
 		Temp *r = gcnew(Temp, ());
 		std::string assem = format("$d0, =%d", value);
 		emit(gcnew(assem::MOVE, ("ldr", assem, r, NULL)));
@@ -369,49 +344,32 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 	}
 	//(op,e1,CONST(i))
 	else if (_M0(CONST_T, konst) == binop->r) {
-		if (binop->op != tree::BINOP::oMUL && konst->value <= IMMEDIATE_MAX) {
+		if (konst->value == 0) {
+			//"e1 + 0"
+			return munchExp(binop->l);
+		}
+
+		if (konst->value <= IMMEDIATE_MAX) {
 			std::string assem = format("$d0, $s0, #%d", konst->value);
 			Temp *r = gcnew(Temp, ());
-			emit(gcnew(assem::OPER, (opcode, assem, r, munchExp(binop->l))));
+			emit(gcnew(assem::OPER, ("add", assem, r, munchExp(binop->l))));
 			return r;
 		} 
-		else if (binop->op == tree::BINOP::oMUL) {
-			Temp *rs = gcnew(Temp, ());
-			std::string assem = format("$d0, =%d", konst->value);
-			emit(gcnew(assem::MOVE, ("ldr", assem, rs, NULL)));
-			
-			Temp *rm = munchExp(binop->l);
-			TempList tdst, tsrc;
-			tdst.push_back(rs);//Rd
-			tsrc.push_back(rm);
-			tsrc.push_back(rs);
-			emit(gcnew(assem::OPER, ("mul", "$d0, $s0, $s1", tdst, tsrc)));
-			return rs;
-		}
 	}
 	//(op,CONST(i),e1)
 	else if (_M0(CONST_T, konst) == binop->l) {
-		if (binop->op == tree::BINOP::oPLUS && konst->value <= IMMEDIATE_MAX) {
-			//add process has commutative law
+		//add process has commutative law
+		if (konst->value == 0) {
+			//"0 + e1"
+			return munchExp(binop->r);
+		}
+		else if (konst->value <= IMMEDIATE_MAX) {
 			std::string assem = format("$d0, $s0, #%d", konst->value);
 
 			Temp *r = gcnew(Temp, ());
-			emit(gcnew(assem::OPER, (opcode, assem, r, munchExp(binop->r))));
+			emit(gcnew(assem::OPER, ("add", assem, r, munchExp(binop->r))));
 			return r;
 		}
-		else if (binop->op == tree::BINOP::oMUL) {
-			Temp *rs = gcnew(Temp, ());
-			std::string assem = format("$d0, =%d", konst->value);
-			emit(gcnew(assem::MOVE, ("ldr", assem, rs, NULL)));
-
-			Temp *rm = munchExp(binop->r);
-			TempList tdst, tsrc;
-			tdst.push_back(rs);//Rd
-			tsrc.push_back(rm);
-			tsrc.push_back(rs);
-			emit(gcnew(assem::OPER, ("mul", "$d0, $s0, $s1", tdst, tsrc)));
-			return rs;
-		} 
 	}
 		
 	{
@@ -421,8 +379,165 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 		tdst.push_back(r);
 		tsrc.push_back(munchExp(binop->l));
 		tsrc.push_back(munchExp(binop->r));
-		emit(gcnew(assem::OPER, (opcode, "$d0, $s0, $s1", tdst, tsrc)));
+		emit(gcnew(assem::OPER, ("add", "$d0, $s0, $s1", tdst, tsrc)));
 		return r;
+	}
+}
+
+Temp *
+ARMCodeGen::munchBINOP_MINUS(tree::BINOP *binop)
+{
+	tree::CONST *konst, *konst2;
+
+	//(op,CONST(i1),CONST(i2))
+	if (_M0(CONST_T, konst) == binop->l &&
+		_M0(CONST_T, konst2) == binop->r &&
+		opt::getOptimizationOption(opt::CONSTANT_FOLDING) == opt::OPT_ENABLE ) {
+		int value;
+		value = konst->value - konst2->value;
+
+		Temp *r = gcnew(Temp, ());
+		std::string assem = format("$d0, =%d", value);
+		emit(gcnew(assem::MOVE, ("ldr", assem, r, NULL)));
+		return r;
+	}
+	//(op,e1,CONST(i))
+	else if (_M0(CONST_T, konst) == binop->r) {
+		if (konst->value == 0) {
+			//"e1 - 0"
+			return munchExp(binop->l);
+		}
+
+		if (konst->value <= IMMEDIATE_MAX) {
+			std::string assem = format("$d0, $s0, #%d", konst->value);
+			Temp *r = gcnew(Temp, ());
+			emit(gcnew(assem::OPER, ("sub", assem, r, munchExp(binop->l))));
+			return r;
+		} 
+	}
+	//(op,CONST(i),e1)
+	else if (_M0(CONST_T, konst) == binop->l) {
+		//can nothing
+	}
+		
+	{
+		//(op,e1,e2)
+		Temp *r = gcnew(Temp, ());
+		TempList tdst, tsrc;
+		tdst.push_back(r);
+		tsrc.push_back(munchExp(binop->l));
+		tsrc.push_back(munchExp(binop->r));
+		emit(gcnew(assem::OPER, ("sub", "$d0, $s0, $s1", tdst, tsrc)));
+		return r;
+	}
+}
+
+Temp *
+ARMCodeGen::munchBINOP_MUL(tree::BINOP *binop)
+{
+	tree::CONST *konst, *konst2;
+	//(op,CONST(i1),CONST(i2))
+	if (_M0(CONST_T, konst) == binop->l &&
+		_M0(CONST_T, konst2) == binop->r &&
+		opt::getOptimizationOption(opt::CONSTANT_FOLDING) == opt::OPT_ENABLE ) {
+		int value;
+		value = konst->value * konst2->value;
+
+		Temp *r = gcnew(Temp, ());
+		std::string assem = format("$d0, =%d", value);
+		emit(gcnew(assem::MOVE, ("ldr", assem, r, NULL)));
+		return r;
+	}
+	//(op,e1,CONST(i))
+	else if (_M0(CONST_T, konst) == binop->r) {
+		if (konst->value == 1) {
+			//"e1 * 1"
+			return munchExp(binop->l);
+		}
+
+		Temp *rs = gcnew(Temp, ());
+		std::string assem = format("$d0, =%d", konst->value);
+		emit(gcnew(assem::MOVE, ("ldr", assem, rs, NULL)));
+			
+		Temp *rm = munchExp(binop->l);
+		TempList tdst, tsrc;
+		tdst.push_back(rs);//Rd
+		tsrc.push_back(rm);
+		tsrc.push_back(rs);
+		emit(gcnew(assem::OPER, ("mul", "$d0, $s0, $s1", tdst, tsrc)));
+		return rs;
+	}
+	//(op,CONST(i),e1)
+	else if (_M0(CONST_T, konst) == binop->l) {
+		if (konst->value == 1) {
+			//"1 * e1"
+			return munchExp(binop->r);
+		}
+
+		Temp *rs = gcnew(Temp, ());
+		std::string assem = format("$d0, =%d", konst->value);
+		emit(gcnew(assem::MOVE, ("ldr", assem, rs, NULL)));
+		
+		Temp *rm = munchExp(binop->r);
+		TempList tdst, tsrc;
+		tdst.push_back(rs);//Rd
+		tsrc.push_back(rm);
+		tsrc.push_back(rs);
+		emit(gcnew(assem::OPER, ("mul", "$d0, $s0, $s1", tdst, tsrc)));
+		return rs;
+	}
+		
+	{
+		//(op,e1,e2)
+		Temp *r = gcnew(Temp, ());
+		TempList tdst, tsrc;
+		tdst.push_back(r);
+		tsrc.push_back(munchExp(binop->l));
+		tsrc.push_back(munchExp(binop->r));
+		emit(gcnew(assem::OPER, ("mul", "$d0, $s0, $s1", tdst, tsrc)));
+		return r;
+	}
+
+}
+
+Temp *
+ARMCodeGen::munchBINOP_DIV(tree::BINOP *binop)
+{
+	tree::CONST *konst, *konst2;
+
+	//(op,CONST(i1),CONST(i2))
+	if (_M0(CONST_T, konst) == binop->l &&
+		_M0(CONST_T, konst2) == binop->r &&
+		opt::getOptimizationOption(opt::CONSTANT_FOLDING) == opt::OPT_ENABLE ) {
+		int value;
+		value = konst->value / konst2->value;
+
+		Temp *r = gcnew(Temp, ());
+		std::string assem = format("$d0, =%d", value);
+		emit(gcnew(assem::MOVE, ("ldr", assem, r, NULL)));
+		return r;
+	}
+	//(op,e1,CONST(i))
+	else if (_M0(CONST_T, konst) == binop->r) {
+		if (konst->value == 1) {
+			//"e1 / 1"
+			return munchExp(binop->l);
+		}
+	}
+	//(op,CONST(i),e1)
+	else if (_M0(CONST_T, konst) == binop->l) {
+		//can nothing
+	}
+
+	{
+		//use builtin function of gcc (__aeabi_idiv)
+		TempList tsrc;
+		tree::ExpList args;
+		args.push_back(binop->l);
+		args.push_back(binop->r);
+		munchArgs(args, &tsrc);
+		emit(gcnew(assem::OPER, ("bl", "__aeabi_idiv", frame->registers().args, tsrc)));
+		return frame->rv();
 	}
 }
 

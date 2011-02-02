@@ -13,11 +13,15 @@ typedef std::vector<Instruction*> InstructionList;
 
 class CodeGen
 {
- public:
+public:
 	static CodeGen *create();
 	virtual ~CodeGen() {}
 
 	void generate(tree::Stm *s, assem::InstructionList &instList);
+
+	virtual bool isMove(Instruction *inst) = 0;
+	virtual bool isJump(Instruction *inst) = 0;
+protected:
 	void munchStm(tree::Stm *s);
 	void munchSEQ(tree::Stm *l, tree::Stm *r);
 	Temp *munchExp(tree::Exp *e);
@@ -36,9 +40,6 @@ class CodeGen
 	virtual Temp *munchTEMP(tree::TEMP *t) = 0;
 	virtual Temp *munchNAME(tree::NAME *n) = 0;
 
-	virtual bool isMove(Instruction *inst) = 0;
-	virtual bool isJump(Instruction *inst) = 0;
-protected:
 	CodeGen();
 	void emit(Instruction *inst);
 	InstructionList ilist;
