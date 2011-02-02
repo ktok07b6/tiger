@@ -75,4 +75,62 @@ Instruction::format(TempMap *m)
 	return result;
 }
 
+void
+Instruction::update(TempMap *m)
+{
+	if (opcode.empty()) {
+		return;
+	}
+	string  newOperands;
+	string::iterator it = operands.begin();
+	TempList uses = use();
+	TempList defs = def();
+	LabelList jmps = jumps();
+	bool valid = true;
+	while (it != operands.end()) {
+		char c = *it;
+		if (c == '$') {
+			//assert(distance(it, assem.end() > 2));
+			std::string s;
+			Temp *t = NULL;
+			char type = *(++it);
+			int num = *(++it) - 0x30;
+			switch (type) {
+			case 's':
+				t = m->tempMap(uses[num]);
+				if (t) {
+					s = t->toString();
+					replaceUse(num, t);
+				} else {
+					valid = false;
+				}
+				break;
+			case 'd':
+			    t = m->tempMap(defs[num]);
+				if (t) {
+					s = t->toString();
+					replaceDef(num, t);
+				} else {
+					valid = false;
+				}
+				break;
+			case 'j':
+				s = jmps[num]->toString();
+				break;
+			default:
+				assert(!"invalid assem format");
+			}
+			newOperands += s;
+		} else {
+			newOperands += c;
+		}
+		++it;
+	}
+	if (valid) {
+		operands = newOperands;
+	} else {
+		opcode = "@" + opcode;
+	}
+}
+
 }//namespace assem

@@ -54,4 +54,16 @@ MOVE::replaceDef(Temp *oldt, Temp *newt)
 	dst = newt;
 }
 
+void 
+MOVE::replaceUse(int index, Temp *newt)
+{
+	src = newt;
+}
+
+void 
+MOVE::replaceDef(int index, Temp *newt)
+{
+	dst = newt;
+}
+
 }//namespace assem

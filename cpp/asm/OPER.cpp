@@ -72,6 +72,19 @@ OPER::replaceDef(Temp *oldt, Temp *newt)
 	assert(std::find(dst.begin(), dst.end(), newt) != dst.end());
 }
 
+void 
+OPER::replaceUse(int index, Temp *newt)
+{
+	assert(0 <= index && index < src.size());
+	src[index] = newt;
+}
+
+void 
+OPER::replaceDef(int index, Temp *newt)
+{
+	assert(0 <= index && index < dst.size());
+	dst[index] = newt;
+}
 
 void
 OPER::setJumpTargets(const LabelList &jmps)

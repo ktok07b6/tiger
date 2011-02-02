@@ -26,11 +26,20 @@ class Instruction : public Object
 	virtual LabelList jumps() = 0;
 
 	virtual void replaceUse(Temp *oldt, Temp *newt) = 0;
+	virtual void replaceUse(int index, Temp *newt) = 0;
 	virtual void replaceDef(Temp *oldt, Temp *newt) = 0;
+	virtual void replaceDef(int index, Temp *newt) = 0;
 	
 	virtual bool isMOVE() {return false;}
 	virtual bool isLABEL() {return false;}
 	std::string format(TempMap *m);
+	void update(TempMap *m);
+	bool valid() const {
+		return !opcode.empty() && opcode[0] != '@';
+	}
+	void invalidate() {
+		if (valid()) opcode = "@" + opcode;
+	}
 	std::string toString() {
 		std::string result = opcode + "\t" + operands;
 		if (!comment.empty()) {
@@ -72,7 +81,9 @@ class OPER : public Instruction
 	virtual TempList def();
 	virtual LabelList jumps();
 	virtual void replaceUse(Temp *oldt, Temp *newt);
+	virtual void replaceUse(int index, Temp *newt);
 	virtual void replaceDef(Temp *oldt, Temp *newt);
+	virtual void replaceDef(int index, Temp *newt);
 
 	void setJumpTargets(const LabelList &jmps);
 private:
@@ -95,7 +106,9 @@ class MOVE : public Instruction
 	virtual TempList def();
 	virtual LabelList jumps();
 	virtual void replaceUse(Temp *oldt, Temp *newt);
+	virtual void replaceUse(int index, Temp *newt);
 	virtual void replaceDef(Temp *oldt, Temp *newt);
+	virtual void replaceDef(int index, Temp *newt);
 
 	virtual bool isMOVE() {return true;}
 
@@ -115,7 +128,9 @@ class LABEL : public Instruction
 	virtual TempList def();
 	virtual LabelList jumps();
 	virtual void replaceUse(Temp *oldt, Temp *newt);
+	virtual void replaceUse(int index, Temp *newt);
 	virtual void replaceDef(Temp *oldt, Temp *newt);
+	virtual void replaceDef(int index, Temp *newt);
 	virtual bool isLABEL() {return true;}
 	Label *label() {return lab;}
  private:

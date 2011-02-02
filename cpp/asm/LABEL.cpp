@@ -38,4 +38,16 @@ LABEL::replaceDef(Temp *oldt, Temp *newt)
 	assert(!"do not reach here");
 }
 
+void 
+LABEL::replaceUse(int index, Temp *newt)
+{
+	assert(!"do not reach here");
+}
+
+void 
+LABEL::replaceDef(int index, Temp *newt)
+{
+	assert(!"do not reach here");
+}
+
 }//namespace assem

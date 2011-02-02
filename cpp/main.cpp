@@ -25,7 +25,7 @@
 //#include "Liveness.h"
 //#include "InterferenceGraph.h"
 #include "RegAlloc.h"
-
+#include "RemoveUselessMove.h"
 #include "Property.h"
 Property<int> value;
 
@@ -192,7 +192,7 @@ void translatePhase(FragmentList &fragments)
 	IRTranslater translater(frame);
 	absyn->accept(&translater);
 	fragments = translater.getFragments();
-#if 0
+#if 1
 	//ir = translater.getExp();
 	DBG("Intermediate Representation===========\n\n");
 	//tree::TreePrinter::printTree(ir->unNx());
@@ -293,6 +293,7 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
 		++it;
 	}
 #endif
+	//return;
 	regalloc::RegAlloc allocator(proc, frame);
     TempMap *tm = allocator.getTempMap();
     frame->setUsedRegs(allocator.getUsedRegs());
@@ -300,9 +301,18 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
     it = proc2.begin();
     while (it != proc2.end()) {
 		assem::Instruction *inst = *it;
-		std::string s = inst->format(tm);
-        if (!s.empty()) {
-            *out += s;
+        inst->update(tm);
+		++it;
+	}
+	//Optimizer;
+	assem::InstructionList proc3;
+	proc3 = opt::removeUselessMove(proc2);
+    it = proc3.begin();
+    while (it != proc3.end()) {
+		assem::Instruction *inst = *it;
+		if (inst->valid()) {
+            if (!inst->isLABEL()) *out += "\t";
+			*out += inst->toString();
             *out += "\n";
         }
         ++it;

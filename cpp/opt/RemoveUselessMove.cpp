@@ -1,5 +1,6 @@
 #include "RemoveUselessMove.h"
 #include <boost/foreach.hpp>
+#include "debug.h"
 
 namespace opt {
 assem::InstructionList removeUselessMove(const assem::InstructionList &ilist)
@@ -9,7 +10,7 @@ assem::InstructionList removeUselessMove(const assem::InstructionList &ilist)
 		if (inst->isMOVE()) {
 			assem::MOVE *mv = (assem::MOVE*)inst;
 			if (mv->getSrc() == mv->getDst()) {
-				continue;
+				inst->invalidate();
 			}
 		}
 		newlist.push_back(inst);
