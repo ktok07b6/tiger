@@ -10,6 +10,7 @@ class TreeMatcher
 	TreeMatcher(Tree::TypeID tid, Tree **tr);
 	virtual ~TreeMatcher() {}
 	virtual bool operator==(Tree *t) const;
+	bool operator!=(Tree *t) const;
  protected:
 	Tree::TypeID tid;
 	Tree **tr;

@@ -3,6 +3,7 @@
 #include "TreeMatcher.h"
 #include "tiger.h"
 #include "ARMFrame.h"
+#include "Optimizer.h"
 
 /*
   ::instruction sufixes::
@@ -45,12 +46,13 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 {
 	tree::MEM *mem;
 	tree::BINOP *binop;
-	tree::CONST *konst;
+	tree::CONST *konst, *konst2;
 	tree::TEMP *temp;
 
 	if (_M1(MEM_T, mem, _M0(BINOP_T, binop)) == dst) {
 		if (binop->op == tree::BINOP::oPLUS) {
-			if (_M0(CONST_T, konst) == binop->r) {
+			if (_M0(CONST_T, konst) == binop->r && 
+				_M0(CONST_T, konst2) != binop->l) {
 				//(MEM(BINOP(PLUS,e1,CONST(i))), e2)
 				std::string assem;
 				if (konst->value <= IMMEDIATE_MAX) {
@@ -61,7 +63,8 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 					emit(gcnew(assem::OPER, ("str", assem, TempList(), tl)));
 					return;
 				}
-			} else if (_M0(CONST_T, konst) == binop->l) {
+			} else if (_M0(CONST_T, konst) == binop->l &&
+					   _M0(CONST_T, konst2) != binop->r) {
 				//MEM(BINOP(PLUS,CONST(i),e1)),e2))
 				std::string assem;
 				if (konst->value <= IMMEDIATE_MAX) {
@@ -260,10 +263,11 @@ Temp *
 ARMCodeGen::munchMEM(tree::MEM *mem)
 {
 	tree::BINOP *binop;
-	tree::CONST *konst;
+	tree::CONST *konst, *konst2;
 
 	if (_M0(BINOP_T, binop) == mem->exp) {
-		if (_M0(CONST_T, konst) == binop->r) {
+		if (_M0(CONST_T, konst) == binop->r &&
+			_M0(CONST_T, konst2) != binop->l) {
 			//(BINOP(PLUS,e1,CONST(i)))
 			std::string assem;
 			if (konst->value <= IMMEDIATE_MAX) {
@@ -276,7 +280,8 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 				return r;
 			}
 		}
-		if (_M0(CONST_T, konst) == binop->l) {
+		if (_M0(CONST_T, konst) == binop->l &&
+			_M0(CONST_T, konst2) != binop->r) {
 			//(BINOP(PLUS,CONST(i),e1))
 			std::string assem;
 			if (konst->value <= IMMEDIATE_MAX) {
@@ -305,7 +310,7 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 Temp *
 ARMCodeGen::munchBINOP(tree::BINOP *binop)
 {
-	tree::CONST *konst;
+	tree::CONST *konst, *konst2;
 	const char *opcode;
 	switch (binop->op) {
 	case tree::BINOP::oPLUS:
@@ -334,8 +339,36 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 		opcode = "???";
 		break;
 	}
+	//(op,CONST(i1),CONST(i2))
+	if (_M0(CONST_T, konst) == binop->l &&
+		_M0(CONST_T, konst2) == binop->r &&
+		opt::getOptimizationOption(opt::CONSTANT_FOLDING) == opt::OPT_ENABLE ) {
+		int value;
+		switch (binop->op) {
+		case tree::BINOP::oPLUS:
+			value = konst->value + konst2->value;
+			break;	
+		case tree::BINOP::oMINUS:
+			value = konst->value - konst2->value;
+			break;
+		case tree::BINOP::oMUL:
+			value = konst->value * konst2->value;
+			break;
+		case tree::BINOP::oDIV:
+			value = konst->value / konst2->value;
+			break;
+		default:
+			//TODO:
+			assert(0);
+			break;
+		}
+		Temp *r = gcnew(Temp, ());
+		std::string assem = format("$d0, =%d", value);
+		emit(gcnew(assem::MOVE, ("ldr", assem, r, NULL)));
+		return r;
+	}
 	//(op,e1,CONST(i))
-	if (_M0(CONST_T, konst) == binop->r) {
+	else if (_M0(CONST_T, konst) == binop->r) {
 		if (binop->op != tree::BINOP::oMUL && konst->value <= IMMEDIATE_MAX) {
 			std::string assem = format("$d0, $s0, #%d", konst->value);
 			Temp *r = gcnew(Temp, ());
@@ -357,7 +390,7 @@ ARMCodeGen::munchBINOP(tree::BINOP *binop)
 		}
 	}
 	//(op,CONST(i),e1)
-	if (_M0(CONST_T, konst) == binop->l) {
+	else if (_M0(CONST_T, konst) == binop->l) {
 		if (binop->op == tree::BINOP::oPLUS && konst->value <= IMMEDIATE_MAX) {
 			//add process has commutative law
 			std::string assem = format("$d0, $s0, #%d", konst->value);

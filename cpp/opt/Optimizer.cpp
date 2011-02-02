@@ -23,4 +23,10 @@ setOptimizationOption(OptimizationOptionKey key, int value)
 	option[key] = value;
 }
 
+int 
+getOptimizationOption(OptimizationOptionKey key)
+{
+	return option[key];
+}
+
 }//namespace opt

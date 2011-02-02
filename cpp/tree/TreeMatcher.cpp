@@ -19,6 +19,12 @@ TreeMatcher::operator==(Tree *t) const
 	return true;
 }
 
+bool 
+TreeMatcher::operator!=(Tree *t) const
+{
+	return !(operator==(t));
+}
+
 TreeMatcher0::TreeMatcher0(Tree::TypeID tid, Tree **tr)
 	: TreeMatcher(tid, tr)
 {}

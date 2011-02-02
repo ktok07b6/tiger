@@ -20,6 +20,7 @@ enum {
 
 assem::InstructionList optimize(const assem::InstructionList &ilist);
 void setOptimizationOption(OptimizationOptionKey key, int value);
+int getOptimizationOption(OptimizationOptionKey key);
 
 }//namespace opt
 

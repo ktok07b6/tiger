@@ -69,16 +69,18 @@ void addBuiltinFuncs()
 {
 	TypeList arg_types;
 	//initArray
+	/*
 	arg_types.push_back(IntT);
 	arg_types.push_back(IntT);
 	nameTable.put(Symbol::symbol("initArray"), gcnew(FuncEntry, (IntT, arg_types)));
 	arg_types.clear();
-
+	*/
+	/*
 	//alloc
 	arg_types.push_back(IntT);
 	nameTable.put(Symbol::symbol("alloc"), gcnew(FuncEntry, (IntT, arg_types)));
 	arg_types.clear();
-
+	*/
 	//print
 	arg_types.push_back(StrT);
 	nameTable.put(Symbol::symbol("print"), gcnew(FuncEntry, (VoidT, arg_types)));
@@ -323,8 +325,8 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
 void initOptimization()
 {
 	opt::setOptimizationOption(opt::REMOVE_USELESS_MOVE, opt::OPT_ENABLE);
-	opt::setOptimizationOption(opt::REMOVE_USELESS_JUMP, opt::OPT_DISABLE);
-	opt::setOptimizationOption(opt::CONSTANT_FOLDING, opt::OPT_DISABLE);
+	opt::setOptimizationOption(opt::REMOVE_USELESS_JUMP, opt::OPT_ENABLE);
+	opt::setOptimizationOption(opt::CONSTANT_FOLDING, opt::OPT_ENABLE);
 }
 
 int main(int argc, char **argv)
