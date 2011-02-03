@@ -146,6 +146,7 @@ IRTranslater::visit(StringExp *exp)
 	sm.add(copy_str_len);
 
 	/*
+	  TODO: move strcpy to Frame impl
 	  strcopy(pstr->chars, [address of string], strSize);
 	 */
 	Label *lab = gcnew(Label, ());
@@ -226,7 +227,11 @@ IRTranslater::visit(OpExp *exp)
 	tree::Exp *el = texp->unEx();
 	exp->right->accept(this);
 	tree::Exp *er = texp->unEx();
-
+	if (exp->l_t->actual()->isStrT()) {
+		tree::Exp *e = convertStrOp(exp->op, el, er);
+		texp = gcnew(translate::Ex, (e));
+		return;
+	}
 	if (PlusOp <= exp->op && exp->op <= DivideOp) {
 		tree::BINOP::Oper op;
 
@@ -277,6 +282,25 @@ IRTranslater::visit(OpExp *exp)
 		}
 	}
 	assert(0);
+}
+
+
+tree::Exp *
+IRTranslater::convertStrOp(int op, tree::Exp *el, tree::Exp *er)
+{
+	tree::ExpList args;
+	args.push_back(el);
+	args.push_back(er);
+	if (op == PlusOp) {
+		return currentLevel->getFrame()->externalCall("stringConcat", args);
+	} else if (op == EqOp) {
+		return currentLevel->getFrame()->externalCall("stringEqual", args);
+	} else if (op == NeOp) {
+		tree::Exp *streq = currentLevel->getFrame()->externalCall("stringEqual", args);
+		args.clear();
+		args.push_back(streq);
+		return currentLevel->getFrame()->externalCall("not", args);
+	}
 }
 
 tree::Exp *
@@ -482,16 +506,14 @@ IRTranslater::visit(IfExp *exp)
 		cjump = _CJUMP(tree::CJUMP::oNE, boolean, const_0, labelT, labelF);
 	}
 	if (exp->elseexp) {
-		Temp *tmp = gcnew(Temp, ());
-		tree::TEMP *r = _TEMP(tmp);
-
+		Temp *r = gcnew(Temp, ());
 		tree::Stm *r_T;
 		tree::Stm *r_F;
 
 		exp->thenexp->accept(this);
 		tree::Exp *thenexp = texp->unEx();
 	    if (thenexp) {
-			r_T = _MOVE(r, thenexp);
+			r_T = _MOVE(_TEMP(r), thenexp);
 		} else {
 			r_T = texp->unNx();
 		}
@@ -499,7 +521,7 @@ IRTranslater::visit(IfExp *exp)
 		exp->elseexp->accept(this);
 		tree::Exp *elseexp = texp->unEx();
 	    if (elseexp) {
-			r_F = _MOVE(r, elseexp);
+			r_F = _MOVE(_TEMP(r), elseexp);
 		} else {
 			r_F = texp->unNx();
 		}
@@ -518,7 +540,7 @@ IRTranslater::visit(IfExp *exp)
 		sm.add(l_Join);
 		tree::SEQ *seq = sm.make();//makeSEQ(cjump, l_T, r_T, jmp_to_Join, l_F, r_F, l_Join);
 		//TODO
-		tree::ESEQ *eseq = _ESEQ(seq, r);
+		tree::ESEQ *eseq = _ESEQ(seq, _TEMP(r));
 		texp = gcnew(translate::Ex, (eseq));
 
 	} else {
@@ -710,6 +732,7 @@ IRTranslater::visit(ArrayExp *exp)
 	arg.push_back(size);
 	arg.push_back(init);
 	tree::Exp *addr = currentLevel->getFrame()->externalCall("initArray", arg);
+
 	texp = gcnew(translate::Ex, (addr));
 }
 
@@ -894,8 +917,8 @@ IRTranslater::getFragments()
 bool
 IRTranslater::isBuiltinFunc(Symbol *f)
 {
-	return (Symbol::symbol("initArray") == f) ||
-		(Symbol::symbol("alloc") == f) ||
+	return //(Symbol::symbol("initrray") == f) ||
+		//(Symbol::symbol("alloc") == f) ||
 		(Symbol::symbol("print") == f) ||
 		(Symbol::symbol("flush") == f) ||
 		(Symbol::symbol("ord") == f) ||

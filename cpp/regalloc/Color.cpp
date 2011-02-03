@@ -617,7 +617,6 @@ Color::getUsedRegs()
 {
 	std::sort(usedRegs.begin(), usedRegs.end(), LessTemp());
 	usedRegs.erase(std::unique(usedRegs.begin(), usedRegs.end()), usedRegs.end());
-	DBG("getUsedRegs");
 	Temp::printTempList(usedRegs);
 	return usedRegs;
 }

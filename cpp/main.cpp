@@ -194,7 +194,7 @@ void translatePhase(FragmentList &fragments)
 	IRTranslater translater(frame);
 	absyn->accept(&translater);
 	fragments = translater.getFragments();
-#if 1
+#if 0
 	//ir = translater.getExp();
 	DBG("Intermediate Representation===========\n\n");
 	//tree::TreePrinter::printTree(ir->unNx());
@@ -286,7 +286,7 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
 	proc = frame->procEntryExit2(instList);
 
 	assem::InstructionList::iterator it;
-#if 0
+#if 1
 	it = proc.begin();
 	while (it != proc.end()) {
 		assem::Instruction *inst = *it;

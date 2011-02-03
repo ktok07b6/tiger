@@ -13,6 +13,7 @@
 
 struct VarEntry;
 struct FuncEntry;
+struct Type;
 
 #define ACCEPTOR virtual void accept(AbsynVisitor *v) { v->visit(this); }
 
@@ -184,6 +185,8 @@ struct OpExp : Exp
 	Exp *left;
 	Exp *right;
 	Oper op;
+	Type *l_t;
+	Type *r_t;
 	ACCEPTOR;
 };
 

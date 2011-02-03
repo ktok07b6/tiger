@@ -149,7 +149,7 @@ void TypeCheck::visit(CallExp *exp)
 	FuncEntry *fn = static_cast<FuncEntry*>(entry);
 	
 	if (exp->explist->size() != fn->params.size()) {
-		DBG("exp->explist->size()=%d, fn->params.size()=%d",exp->explist->size(), fn->params.size());
+		//DBG("exp->explist->size()=%d, fn->params.size()=%d",exp->explist->size(), fn->params.size());
 		error("invalid number of params");
 	}
 	ExpList::iterator it;
@@ -175,26 +175,32 @@ void TypeCheck::visit(OpExp *exp)
 {
 	FUNCLOG;
 	exp->left->accept(this);
-	Type *l_t = pop();
+	exp->l_t = pop();
 	exp->right->accept(this);
-	Type *r_t = pop();
+	exp->r_t = pop();
 
-	assert(l_t);
-	assert(r_t);
+	assert(exp->l_t);
+	assert(exp->r_t);
 
-	if (l_t->coerceTo(r_t)) {
+	if (exp->l_t->coerceTo(exp->r_t)) {
 		Type *t;
-		if (!(exp->op == EqOp || exp->op == NeOp)) {
-			//TODO: stringの演算は何が有効か
-			if (l_t->actual()->isIntT()) {
-				t = IntT;
-			} else if (l_t->actual()->isStrT()) {
+		if (exp->l_t->actual()->isIntT()) {
+			t = IntT;
+		} else if (exp->l_t->actual()->isStrT()) {
+			if (exp->op == PlusOp) {
 				t = StrT;
+			} else if (exp->op == EqOp || exp->op == NeOp) {
+				t = IntT;
+			} else {
+				error("such operation to string is not supported");
+			}
+		} else {
+			//pointer equality test
+			if (exp->op == EqOp || exp->op == NeOp) {
+				t = IntT;
 			} else {
 				error("invalid operand type");
 			}
-		} else {
-			t = IntT;
 		}
 		push(t);
 	} else {
@@ -546,13 +552,13 @@ replaceNoneRecordType(RecordT *top, RecordT *r, Symbol *name)
 	while (r) {
 		if (r->fieldType->isNameT()) {
 			NameT *n = static_cast<NameT*>(r->fieldType);
-			DBG("n->name = %p, name = %p", n->name, name);
-			DBG("n->binding->isNoneT() %d", n->binding->isNoneT());
+			//DBG("n->name = %p, name = %p", n->name, name);
+			//DBG("n->binding->isNoneT() %d", n->binding->isNoneT());
 			if (n->name == name &&
 				n->binding->isNoneT()) {
 				r->fieldType = top;
-				DBG("recursive ok");
-				DBG("%s", top->toString().c_str());
+				//DBG("recursive ok");
+				//DBG("%s", top->toString().c_str());
 				break;
 			}
 		} else if (r->fieldType->isRecordT()) {
@@ -568,7 +574,7 @@ void TypeCheck::visit(TypeDec *dec)
 	dec->ty->accept(this);
 	Type *t = pop();
 
-	DBG("%s", t->toString().c_str());
+	//DBG("%s", t->toString().c_str());
 	//recursive check
 	if (t->isRecordT()) {
 		replaceNoneRecordType(static_cast<RecordT*>(t), 
@@ -610,7 +616,7 @@ void TypeCheck::visit(RecordTy *ty)
 		TypeField *f = *it;
 		f->accept(this);
 		Type *t = pop();
-		DBG("%s", t->toString().c_str());
+		//DBG("%s", t->toString().c_str());
 		if (!t) {
 			error("unknown type name");
 		} else if (t->isNoneT()){

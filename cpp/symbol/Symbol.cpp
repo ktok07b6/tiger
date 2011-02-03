@@ -23,6 +23,5 @@ Symbol::symbol(const string &n)
 		dict.insert(make_pair(n, s));
 	}
 
-	DBG("name = %s, symbol = %p", n.c_str(), s);
 	return s;
 }

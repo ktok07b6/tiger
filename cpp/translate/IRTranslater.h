@@ -47,6 +47,7 @@ struct IRTranslater : AbsynVisitor
 	const FragmentList &getFragments();
  private:
 	void procEntryExit(translate::Exp *exp);
+	tree::Exp *convertStrOp(int op, tree::Exp *, tree::Exp *);
 	tree::Exp *convertAndOp(tree::Exp *el, tree::Exp *er);
 	tree::Exp *convertOrOp(tree::Exp *el, tree::Exp *er);
 
