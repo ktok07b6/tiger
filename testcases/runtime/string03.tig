@@ -1,0 +1,9 @@
+let
+    function f():string = "z"
+in
+    test("z" = f());
+    test("z" + "z" = f() + f());
+    test("z" + "z" + "z..." = f() + f() + f() + "...");
+
+    print("ok\n")
+end

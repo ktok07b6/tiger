@@ -1,0 +1,11 @@
+let
+    function tiger():string = "t" + iger()
+    function iger():string = "i" + ger()
+    function ger():string = "g" + er()
+    function er():string = "e" + r()
+    function r():string = "r"
+in
+    test("tiger" = tiger());
+
+    print("ok\n")
+end

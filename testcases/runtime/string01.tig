@@ -10,12 +10,12 @@ test(stringEqual("23", substring("12345", 1, 2)));
 test(stringEqual("45", substring("12345", 3, 2)));
 
 test(stringEqual("tiger", stringConcat("tig", "er")));
-/*
+
 test(stringEqual(chr(65), chr(65)));
 
 test(stringEqual(chr(ord("0")), "0"));
 test(stringEqual(chr(ord("0")+1), "1"));
 test(stringEqual(chr(1+ord("0")), "1"));
-*/
+
 print("ok\n")
 )

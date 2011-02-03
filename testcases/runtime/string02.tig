@@ -1,5 +1,21 @@
 (
-  stringEqual(chr(65), "A")); 
 
-  print("ok\n")
+test("a" =  "a");
+test("abcde" = "abcde");
+test("abcde" <> "abcd");
+
+test("tiger" = "tig" + "er");
+test("ti" + "ger" = "ti" + "g" + "er");
+
+test("12" = substring("12345", 0, 2));
+test("23" = substring("12345", 1, 2));
+test("45" = substring("12345", 3, 2));
+
+test(chr(65) = chr(65));
+
+test(chr(ord("0")) = "0");
+test(chr(ord("0")+1) = "1");
+test(chr(1+ord("0")) = "1");
+
+print("ok\n")
 )

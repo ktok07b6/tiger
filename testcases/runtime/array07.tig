@@ -9,12 +9,12 @@ in
     test(a[1].y = 2);
     
     a[0].x := 2; a[0].y := 1;
-    a[1].x := 2; a[1].y := 1;
+    a[1].x := 4; a[1].y := 3;
 
     test(a[0].x = 2);
     test(a[0].y = 1);
-    test(a[1].x = 2);
-    test(a[1].y = 1);
+    test(a[1].x = 4);
+    test(a[1].y = 3);
 
     print("ok\n")
 end
