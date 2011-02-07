@@ -35,7 +35,7 @@ Instruction::format(TempMap *m)
 	LabelList jmps = jumps();
 	while (it != operands.end()) {
 		char c = *it;
-		if (c == '$') {
+		if (c == '\'') {
 			//assert(distance(it, assem.end() > 2));
 			std::string s;
 			Temp *t = NULL;
@@ -89,7 +89,7 @@ Instruction::update(TempMap *m)
 	bool valid = true;
 	while (it != operands.end()) {
 		char c = *it;
-		if (c == '$') {
+		if (c == '\'') {
 			//assert(distance(it, assem.end() > 2));
 			std::string s;
 			Temp *t = NULL;
