@@ -184,20 +184,22 @@ X86CodeGen::munchEXPR(tree::Exp *exp)
 void
 X86CodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 {
+	frame->argSize(exps.size());
 	tree::ExpList::const_reverse_iterator exp = exps.rbegin();
 	tree::CONST *konst;
-	int offset = 0;
+	int offset = exps.size() * frame->wordSize();
 	while (exp != exps.rend()) {
+		offset -= frame->wordSize();
 		tree::Exp *e = *exp;
 		if (_M0(CONST_T, konst) == e) {
-			std::string assem = format("$%d", konst->value);
-			emit(gcnew(assem::OPER, ("pushl", assem, NULL, NULL)));
+			std::string assem = format("$%d, %d(%%esp)", konst->value, offset);
+			emit(gcnew(assem::OPER, ("movl", assem, NULL, NULL)));
 		} else {
 			Temp *src = munchExp(e);
-			emit(gcnew(assem::OPER, ("pushl", "'s0", NULL, src)));
+			std::string assem = format("'s0, %d(%%esp)", offset);
+			emit(gcnew(assem::OPER, ("movl", assem, NULL, src)));
 		}
 		++exp;
-		offset += frame->wordSize();
 	}
 }
 

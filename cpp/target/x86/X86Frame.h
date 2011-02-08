@@ -25,7 +25,7 @@ class X86Frame : public Frame
 	virtual assem::InstructionList spillTemp(const assem::InstructionList &body, Temp *spill);
 	virtual void setUsedRegs(const TempList &regs);
 
-	void extraArgSize(int size);
+	void argSize(int size);
 	enum {
 		WORD_SIZE = 4,
 
@@ -45,7 +45,7 @@ class X86Frame : public Frame
 	TempList findRegsInBody(const assem::InstructionList &body);
 
 	int frameOffset;
-	int maxExtraArgSize;
+	int maxArgSize;
 	X86CodeGen *generator;
 	assem::InstructionList instList;
 	TempList usedRegs;

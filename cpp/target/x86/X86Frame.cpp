@@ -17,7 +17,7 @@ X86Frame::frameCount;
 
 X86Frame::X86Frame(Symbol *n, const std::vector<int> &f)
 	: frameOffset(0)
-	, maxExtraArgSize(0)
+	, maxArgSize(0)
 {
 	Frame::name = n;
 	std::string end = format("end_of_%s", name->name.c_str());
@@ -241,11 +241,11 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	  XXXXFFFC |--------------|
 	  XXXX0000 |    <empty>   |
 	  XXXX0004 |--------------|
-	  XXXX0008 |      ...     |-+ <== sp
+	  XXXX0008 |      ...     |-+ <== esp
 	  XXXX000C |--------------| |
 	  XXXX0010 |      ...     | | local vars & args
 	  XXXX0014 |--------------| |
-	  XXXX0018 | static link  |-+ <== fp
+	  XXXX0018 | static link  |-+ <== ebp
 	  XXXX001C |--------------|
 	  XXXX0020 |      lr      |-+
 	  XXXX0024 |--------------| | 
@@ -271,10 +271,6 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	assem::MOVE *move_sp = gcnew(assem::MOVE, ("movl", "%esp, %ebp", ebp, esp));
 	proc.push_back(move_sp);
 
-	assem = format("$%d, %%esp", frameOffset + maxExtraArgSize);
-	assem::OPER *expand_sp = gcnew(assem::OPER, ("subl", assem, esp, esp));
-	proc.push_back(expand_sp);
-
 	//usedRegs is passed by regalloc
 	//save callee saves
 	TempList::const_iterator it = usedRegs.begin();
@@ -287,10 +283,18 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 		++it;
 	}
 
+	assem = format("$%d, %%esp", frameOffset + maxArgSize*WORD_SIZE);
+	assem::OPER *expand_sp = gcnew(assem::OPER, ("subl", assem, esp, esp));
+	proc.push_back(expand_sp);
+
 	//body//////////////
 	std::copy(body.begin()+1, body.end(), std::back_inserter(proc));
 
 	//epilogue//////////
+
+	assem = format("$%d, %%esp", frameOffset + maxArgSize*WORD_SIZE);
+	assem::OPER *unexpand_sp = gcnew(assem::OPER, ("addl", assem, esp, esp));
+	proc.push_back(unexpand_sp);
 
 	//restore callee saves
 	TempList::const_reverse_iterator rit = usedRegs.rbegin();
@@ -376,9 +380,9 @@ X86Frame::setUsedRegs(const TempList &regs)
 }
 
 void 
-X86Frame::extraArgSize(int size)
+X86Frame::argSize(int size)
 {
-	maxExtraArgSize = (maxExtraArgSize < size) ? size : maxExtraArgSize;
+	maxArgSize = (maxArgSize < size) ? size : maxArgSize;
 }
 
 //------------------------------------------------------
