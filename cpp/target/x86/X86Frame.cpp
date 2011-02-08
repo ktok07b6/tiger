@@ -24,19 +24,19 @@ X86Frame::X86Frame(Symbol *n, const std::vector<int> &f)
 	Frame::endFuncLabel = gcnew(Label, (end));
 	frameCount++;
 
-	eax = gcnew(Temp, ("eax"));
-	ebx = gcnew(Temp, ("ebx"));
-	ecx = gcnew(Temp, ("ecx"));
-	edx = gcnew(Temp, ("edx"));
-	esi = gcnew(Temp, ("esi"));
-	edi = gcnew(Temp, ("edi"));
-	ebp = gcnew(Temp, ("ebp"));
-	esp = gcnew(Temp, ("esp"));
-	eip = gcnew(Temp, ("eip"));
+	eax = gcnew(Temp, ("%eax"));
+	ecx = gcnew(Temp, ("%ecx"));
+	edx = gcnew(Temp, ("%edx"));
+	ebx = gcnew(Temp, ("%ebx"));
+	esi = gcnew(Temp, ("%esi"));
+	edi = gcnew(Temp, ("%edi"));
+	ebp = gcnew(Temp, ("%ebp"));
+	esp = gcnew(Temp, ("%esp"));
+	eip = gcnew(Temp, ("%eip"));
 	regs.all.push_back(eax);
-	regs.all.push_back(ebx);
 	regs.all.push_back(ecx);
 	regs.all.push_back(edx);
+	regs.all.push_back(ebx);
 	regs.all.push_back(esi);
 	regs.all.push_back(edi);
 	regs.all.push_back(ebp);
@@ -299,8 +299,8 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	assem::MOVE *move_sp = gcnew(assem::MOVE, ("movl", "%esp, %ebp", ebp, esp));
 	proc.push_back(move_sp);
 
-	assem = format("$%d, %esp", frameOffset + maxExtraArgSize);
-	assem::OPER *expand_sp = gcnew(assem::OPER, ("subl", assem, TempList(), TempList()));
+	assem = format("$%d, %%esp", frameOffset + maxExtraArgSize);
+	assem::OPER *expand_sp = gcnew(assem::OPER, ("subl", assem, esp, esp));
 	proc.push_back(expand_sp);
 
 	//body//////////////

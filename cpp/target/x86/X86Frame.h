@@ -28,15 +28,19 @@ class X86Frame : public Frame
 	void extraArgSize(int size);
 	enum {
 		WORD_SIZE = 4,
-		MAX_REG = 9
-		/*
-		  General registers
-		  EAX EBX ECX EDX
 
-		  Index and pointers
-		  ESI EDI EBP EIP ESP
-		*/
+		EAX = 0,
+		ECX,
+		EDX,
+		EBX,
+		ESI,
+		EDI,
+		EBP,
+		ESP,
+		EIP,
+		MAX_REG
 	};
+
  private:
 	TempList findRegsInBody(const assem::InstructionList &body);
 
@@ -46,9 +50,9 @@ class X86Frame : public Frame
 	assem::InstructionList instList;
 	TempList usedRegs;
 	Temp *eax;
-	Temp *ebx;
 	Temp *ecx;
 	Temp *edx;
+	Temp *ebx;
 	Temp *esi;
 	Temp *edi;
 	Temp *ebp;
