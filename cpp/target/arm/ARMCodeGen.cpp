@@ -143,7 +143,7 @@ ARMCodeGen::munchJUMP(Label *lab)
 {
 	LabelList targets;
 	targets.push_back(lab);
-	assem::OPER *op = gcnew(assem::OPER, ("b", "$j0", NULL, NULL));
+	assem::OPER *op = gcnew(assem::OPER, ("b", "'j0", NULL, NULL));
 	op->setJumpTargets(targets);
 	emit(op);
 }
@@ -184,7 +184,7 @@ ARMCodeGen::munchCJUMP(tree::CJUMP *cj)
 	targets.push_back(cj->truelab);
 	targets.push_back(cj->falselab);
 	assem = format("b%s", reverse ? cond_r[cj->relop] : cond[cj->relop]);
-	assem::OPER *op = gcnew(assem::OPER, (assem, "$j0", NULL, NULL));
+	assem::OPER *op = gcnew(assem::OPER, (assem, "'j0", NULL, NULL));
 	op->setJumpTargets(targets);
 	emit(op);
 }
@@ -200,7 +200,7 @@ ARMCodeGen::munchEXPR(tree::Exp *exp)
 		LabelList targets;
 		targets.push_back(call->func->label);
 		//TODO: r0-r3 will be destoryed in c function
-		assem::OPER *op = gcnew(assem::OPER, ("bl", "$j0", frame->registers().args, tsrc));
+		assem::OPER *op = gcnew(assem::OPER, ("bl", "'j0", frame->registers().args, tsrc));
 		op->setJumpTargets(targets);
 		emit(op);
 	}
@@ -556,7 +556,7 @@ ARMCodeGen::munchCALL(tree::CALL *c)
 	LabelList targets;
 	targets.push_back(c->func->label);
 	//TODO: r0-r3 will be destoryed in c function
-	assem::OPER *op = gcnew(assem::OPER, ("bl", "$j0", frame->registers().args, tsrc));
+	assem::OPER *op = gcnew(assem::OPER, ("bl", "'j0", frame->registers().args, tsrc));
 	op->setJumpTargets(targets);
 	emit(op);
 	return rv;
