@@ -50,10 +50,18 @@ SOURCES_LIBCORE= \
 	Liveness.cpp \
 	Color.cpp \
 	RegAlloc.cpp  \
-	ARMFrame.cpp ARMCodeGen.cpp \
 	Optimizer.cpp \
 	RemoveUselessMove.cpp \
 	$(NULL)
+
+ifeq ($(TARGET_CPU), arm)
+SOURCES_TARGET=ARMFrame.cpp ARMCodeGen.cpp
+endif
+ifeq ($(TARGET_CPU), x86)
+SOURCES_TARGET=X86Frame.cpp X86CodeGen.cpp
+endif
+
+SOURCES_LIBCORE+=$(SOURCES_TARGET)
 
 SOURCES_TIGER=main.cpp
 
