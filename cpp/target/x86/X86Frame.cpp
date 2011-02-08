@@ -43,15 +43,13 @@ X86Frame::X86Frame(Symbol *n, const std::vector<int> &f)
 	regs.all.push_back(esp);
 	regs.all.push_back(eip);
 
-	int i = 0;
 	std::vector<int>::const_iterator it;
 	it = f.begin();
+	int argOffset = 8;//0 ... ebp, 4 ... return addr
 	while (it != f.end()) {
-		int escape = (*it);
-		Access *acc;
-		acc = allocLocal(escape);
+		Access *acc = gcnew(InFrame, (argOffset));
 		formals.push_back(acc);
-		++i;
+		argOffset += WORD_SIZE;
 		++it;
 	}
 
@@ -124,26 +122,22 @@ X86Frame::procEntryExit1(tree::Stm *body)
 	tree::LABEL *l = _LABEL(fname);
 	tree::SEQMaker sm;
 	sm.add(l);
-
+	/*
 	int i = 0;
 	int offset = 4;
 	std::vector<Access*>::iterator it = formals.begin();
 	while (it != formals.end()) {
-		if (i < 4) {
-			tree::Exp *r = _TEMP(regs.all[i]);
-			tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
-			sm.add(_MOVE(tmp, r));
-		} else {
-			tree::CONST *offs = _CONST(offset);
-			tree::TEMP *base = _TEMP(fp());
-			tree::MEM *m = _MEM(_(base) + _(offs));
-			tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
-			sm.add(_MOVE(tmp, m));
-			offset += WORD_SIZE;
-		}
+		tree::CONST *offs = _CONST(offset);
+		tree::TEMP *base = _TEMP(fp());
+		tree::MEM *m = _MEM(_(base) + _(offs));
+		tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
+		sm.add(_MOVE(tmp, m));
+		offset += WORD_SIZE;
+		
 		++it;
 		++i;
 	}
+	*/
 	sm.add(body);
 	return sm.make();
 }

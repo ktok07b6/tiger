@@ -34,7 +34,8 @@ X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		assert(binop->op == tree::BINOP::oPLUS);
 
 		if (_M0(CONST_T, konst) == binop->r && 
-			_M0(CONST_T, konst2) != binop->l) {
+			_M0(CONST_T, konst) != binop->l) {
+
 			//(MEM(BINOP(PLUS,e1,CONST(i))), e2)
 			std::string assem;
 			TempList tsrc;
@@ -70,6 +71,22 @@ X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		std::string assem = format("$%d, 'd0", konst->value);
 		emit(gcnew(assem::MOVE, ("movl", assem, temp->temp, NULL)));
 		return;
+	}
+
+	//(TEMP(i), MEM(bp+offset))
+	if (_M0(TEMP_T, temp) == dst && 
+		_M1(MEM_T, mem, _M0(BINOP_T, binop)) == src) {
+		//the offset of the memory is always calculated by add process
+		assert(binop->op == tree::BINOP::oPLUS);
+
+		if (_M0(CONST_T, konst) == binop->r && 
+			munchExp(binop->l) == frame->registers().all[X86Frame::EBP]) {
+			std::string assem = format("%d(%ebp), 'd0", konst->value);
+			emit(gcnew(assem::OPER, ("movl", assem, 
+									 temp->temp, 
+									 frame->registers().all[X86Frame::EBP])));
+			return;
+		}
 	}
 
 	//(TEMP(i), e2)
@@ -123,7 +140,7 @@ X86CodeGen::munchCJUMP(tree::CJUMP *cj)
 		assem = format("$%d, 's0", konst->value);
 		tsrc.push_back(munchExp(cj->l));
 	} else {
-		assem = "'s0, 's1";
+		assem = "'s1, 's0";
 		tsrc.push_back(munchExp(cj->l));
 		tsrc.push_back(munchExp(cj->r));
 	}
@@ -179,7 +196,7 @@ Temp *
 X86CodeGen::munchMEM(tree::MEM *mem)
 {
 	Temp *r = gcnew(Temp, ());
-	emit(gcnew(assem::MOVE, ("movl", 
+	emit(gcnew(assem::OPER, ("movl", 
 							 "('s0), 'd0", 
 							 r, 
 							 munchExp(mem->exp))));
