@@ -10,6 +10,8 @@ class List
  public:
 	typedef typename std::list<T*>::iterator iterator;
 	typedef typename std::list<T*>::const_iterator const_iterator;
+	typedef typename std::list<T*>::reverse_iterator reverse_iterator;
+	typedef typename std::list<T*>::const_reverse_iterator const_reverse_iterator;
 
 	List();
 
@@ -17,6 +19,10 @@ class List
 	const_iterator begin() const;
 	iterator end();
 	const_iterator end() const;
+	reverse_iterator rbegin();
+	const_reverse_iterator rbegin() const;
+	reverse_iterator rend();
+	const_reverse_iterator rend() const;
 
 	T *front();
 	T *back();
@@ -80,6 +86,34 @@ typename List<T>::const_iterator
 List<T>::end() const
 {
 	return li.end();
+}
+
+template<class T>
+typename List<T>::reverse_iterator
+List<T>::rbegin()
+{
+	return li.rbegin();
+}
+
+template<class T>
+typename List<T>::const_reverse_iterator
+List<T>::rbegin() const
+{
+	return li.rbegin();
+}
+
+template<class T>
+typename List<T>::reverse_iterator
+List<T>::rend()
+{
+	return li.rend();
+}
+
+template<class T>
+typename List<T>::const_reverse_iterator
+List<T>::rend() const
+{
+	return li.rend();
 }
 
 template<class T>
