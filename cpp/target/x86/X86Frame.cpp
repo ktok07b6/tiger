@@ -260,33 +260,11 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	assem::InstructionList proc;
 	std::string assem;
 
-	std::string saveRegStr;
-	//usedRegs is passed by regalloc
-	bool fpExist = false;
-	TempList::const_iterator it = usedRegs.begin();
-	while (it != usedRegs.end()) {
-		Temp *r = *it;
-		if (r == rv()) {
-			++it;
-			continue;
-		} else if (r == fp()) {
-			fpExist = true;
-		}
-		saveRegStr += r->toString();
-		saveRegStr += ",";
-		++it;
-	}
-	//fp is always used by frame
-	if (!fpExist) {
-		saveRegStr += "ebp,";
-	}
-
 	//prologue//////////
 	assem::Instruction *funcLabel = body.front();
 	assert(funcLabel->isLABEL());
 	proc.push_back(funcLabel);
 	
-	assem = format("%ebp");
 	assem::OPER *save_bp = gcnew(assem::OPER, ("pushl", "%ebp", NULL, ebp));
 	proc.push_back(save_bp);
 
@@ -297,10 +275,34 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	assem::OPER *expand_sp = gcnew(assem::OPER, ("subl", assem, esp, esp));
 	proc.push_back(expand_sp);
 
+	//usedRegs is passed by regalloc
+	//save callee saves
+	TempList::const_iterator it = usedRegs.begin();
+	while (it != usedRegs.end()) {
+		Temp *r = *it;
+		if (r == ebx || r == esi || r == edi) {
+			assem::OPER *callee_save = gcnew(assem::OPER, ("pushl", r->toString(), NULL, r));
+			proc.push_back(callee_save);
+		}
+		++it;
+	}
+
 	//body//////////////
 	std::copy(body.begin()+1, body.end(), std::back_inserter(proc));
 
 	//epilogue//////////
+
+	//restore callee saves
+	TempList::const_reverse_iterator rit = usedRegs.rbegin();
+	while (rit != usedRegs.rend()) {
+		Temp *r = *rit;
+		if (r == ebx || r == esi || r == edi) {
+			assem::OPER *callee_save = gcnew(assem::OPER, ("popl", r->toString(), r, NULL));
+			proc.push_back(callee_save);
+		}
+		++rit;
+	}
+
 	//leave
 	assem::MOVE *rewind_sp = gcnew(assem::MOVE, ("movl", "%ebp, %esp", esp, ebp));
 	proc.push_back(rewind_sp);

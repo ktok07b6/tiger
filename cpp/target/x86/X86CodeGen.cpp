@@ -20,6 +20,23 @@ X86CodeGen::X86CodeGen(X86Frame *frame)
 {
 }
 
+bool 
+X86CodeGen::isInFrameAccess(tree::Exp *e, tree::CONST **offset)
+{
+	tree::MEM *mem;
+	tree::BINOP *binop;
+	tree::CONST *konst;
+	if (_M1(MEM_T, mem, _M0(BINOP_T, binop)) == e) {
+		if (binop->op == tree::BINOP::oPLUS) {
+			if (_M0(CONST_T, konst) == binop->r && 
+				munchExp(binop->l) == frame->registers().all[X86Frame::EBP]) {
+				*offset = konst;
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 void
 X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
@@ -74,19 +91,12 @@ X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 	}
 
 	//(TEMP(i), MEM(bp+offset))
-	if (_M0(TEMP_T, temp) == dst && 
-		_M1(MEM_T, mem, _M0(BINOP_T, binop)) == src) {
-		//the offset of the memory is always calculated by add process
-		assert(binop->op == tree::BINOP::oPLUS);
-
-		if (_M0(CONST_T, konst) == binop->r && 
-			munchExp(binop->l) == frame->registers().all[X86Frame::EBP]) {
-			std::string assem = format("%d(%ebp), 'd0", konst->value);
-			emit(gcnew(assem::OPER, ("movl", assem, 
-									 temp->temp, 
-									 frame->registers().all[X86Frame::EBP])));
-			return;
-		}
+	if (_M0(TEMP_T, temp) == dst && isInFrameAccess(src, &konst)) {
+		std::string assem = format("%d(%%ebp), 'd0", konst->value);
+		emit(gcnew(assem::OPER, ("movl", assem, 
+								 temp->temp, 
+								 frame->registers().all[X86Frame::EBP])));
+		return;
 	}
 
 	//(TEMP(i), e2)
@@ -195,12 +205,21 @@ X86CodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 Temp *
 X86CodeGen::munchMEM(tree::MEM *mem)
 {
-	Temp *r = gcnew(Temp, ());
-	emit(gcnew(assem::OPER, ("movl", 
-							 "('s0), 'd0", 
-							 r, 
-							 munchExp(mem->exp))));
-	return r;
+	tree::CONST *konst;
+	if (isInFrameAccess(mem, &konst)) {
+		Temp *r = gcnew(Temp, ());
+		Temp *ebp = frame->registers().all[X86Frame::EBP];
+		string assem = format("%d(%%ebp), 'd0", konst->value); 
+		emit(gcnew(assem::OPER, ("movl", assem, r, ebp)));
+		return r;
+	} else {
+		Temp *r = gcnew(Temp, ());
+		emit(gcnew(assem::OPER, ("movl", 
+								 "('s0), 'd0", 
+								 r, 
+								 munchExp(mem->exp))));
+		return r;
+	}
 }
 
 Temp *

@@ -28,6 +28,7 @@ protected:
 	virtual Temp *munchTEMP(tree::TEMP *t);
 	virtual Temp *munchNAME(tree::NAME *n);
 private:
+	bool isInFrameAccess(tree::Exp *e, tree::CONST **offset);
 	X86Frame *frame;
 };
 
