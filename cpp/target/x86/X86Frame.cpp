@@ -12,6 +12,12 @@ Frame::newFrame(Symbol *name, const std::vector<int> &formals)
 	return gcnew(X86Frame, (name, formals));
 }
 
+std::string
+Frame::getFileHeader()
+{
+	return ".text\n" "\t.globl\t__tigermain\n";
+}
+
 int
 X86Frame::frameCount;
 
@@ -148,7 +154,6 @@ X86Frame::string(Label *label, const std::string &value)
 	std::string assem;
 	const char *lab = label->toString().c_str();
 	assem = format("%s:\t.long\t%s_body\n%s_body:\t.asciz\t\"%s\"", lab, lab, lab, value.c_str());
-	assem += "\n\t.align 2";
 	return assem;
 	/* example
     str1:    .ascii      "mov\tr1, r2\n"

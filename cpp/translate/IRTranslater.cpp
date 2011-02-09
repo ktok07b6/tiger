@@ -84,11 +84,19 @@ IRTranslater::visit(SubscriptVar *var)
 
 	tree::Exp *index = texp->unEx();
 	int wordSize = currentLevel->getFrame()->wordSize();
-	tree::CONST *ws = _CONST(wordSize);
-	tree::BINOP *offset = _(index) * _(ws);
-	tree::BINOP *addr = _(head) + _(offset);
-	tree::MEM *mem = _MEM(addr);
-	texp = gcnew(translate::Ex, (mem));
+	if (index->isCONST_T()) {
+		int idx = ((tree::CONST*)index)->value;
+		tree::CONST *offset = _CONST(idx*wordSize);
+		tree::BINOP *addr = _(head) + _(offset);
+		tree::MEM *mem = _MEM(addr);
+		texp = gcnew(translate::Ex, (mem));
+	} else {
+		tree::CONST *ws = _CONST(wordSize);
+		tree::BINOP *offset = _(index) * _(ws);
+		tree::BINOP *addr = _(head) + _(offset);
+		tree::MEM *mem = _MEM(addr);
+		texp = gcnew(translate::Ex, (mem));
+	}
 }
 
 void

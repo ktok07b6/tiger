@@ -32,6 +32,12 @@ Frame::newFrame(Symbol *name, const std::vector<int> &formals)
 	return gcnew(ARMFrame, (name, formals));
 }
 
+std::string
+Frame::getFileHeader()
+{
+	return ".text\n" "\t.align\t2\n" "\t.global\t__tigermain\n";
+}
+
 int
 ARMFrame::frameCount;
 

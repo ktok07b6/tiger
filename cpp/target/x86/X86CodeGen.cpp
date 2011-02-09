@@ -207,14 +207,21 @@ X86CodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 Temp *
 X86CodeGen::munchMEM(tree::MEM *mem)
 {
+	tree::BINOP *binop;
 	tree::CONST *konst;
-	if (isInFrameAccess(mem, &konst)) {
-		Temp *r = gcnew(Temp, ());
-		Temp *ebp = frame->registers().all[X86Frame::EBP];
-		string assem = format("%d(%%ebp), 'd0", konst->value); 
-		emit(gcnew(assem::OPER, ("movl", assem, r, ebp)));
-		return r;
-	} else {
+	tree::TEMP *temp;
+	if (_M0(BINOP_T, binop) == mem->exp) {
+		assert(binop->op == tree::BINOP::oPLUS);
+		if (_M0(CONST_T, konst) == binop->r && 
+			_M0(TEMP_T, temp) == binop->l) {
+			Temp *r = gcnew(Temp, ());
+			string assem = format("%d('s0), 'd0", konst->value); 
+			emit(gcnew(assem::OPER, ("movl", assem, r, temp->temp)));
+			return r;
+		}
+	}
+	
+	{
 		Temp *r = gcnew(Temp, ());
 		emit(gcnew(assem::OPER, ("movl", 
 								 "('s0), 'd0", 
