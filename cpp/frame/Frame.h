@@ -23,6 +23,7 @@ class Frame : public Object, public TempMap
 public:
 	virtual ~Frame() {}
 	static Frame *newFrame(Symbol *name, const std::vector<int> &formals);
+	static std::string getFileHeader();
 
 	class Access : public Object
 	{

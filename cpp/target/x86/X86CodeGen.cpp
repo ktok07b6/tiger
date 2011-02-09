@@ -20,24 +20,6 @@ X86CodeGen::X86CodeGen(X86Frame *frame)
 {
 }
 
-bool 
-X86CodeGen::isInFrameAccess(tree::Exp *e, tree::CONST **offset)
-{
-	tree::MEM *mem;
-	tree::BINOP *binop;
-	tree::CONST *konst;
-	if (_M1(MEM_T, mem, _M0(BINOP_T, binop)) == e) {
-		if (binop->op == tree::BINOP::oPLUS) {
-			if (_M0(CONST_T, konst) == binop->r && 
-				munchExp(binop->l) == frame->registers().all[X86Frame::EBP]) {
-				*offset = konst;
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 void
 X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 {
@@ -87,15 +69,6 @@ X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 	if (_M0(TEMP_T, temp) == dst && _M0(CONST_T, konst) == src) {
 		std::string assem = format("$%d, 'd0", konst->value);
 		emit(gcnew(assem::MOVE, ("movl", assem, temp->temp, NULL)));
-		return;
-	}
-
-	//(TEMP(i), MEM(bp+offset))
-	if (_M0(TEMP_T, temp) == dst && isInFrameAccess(src, &konst)) {
-		std::string assem = format("%d(%%ebp), 'd0", konst->value);
-		emit(gcnew(assem::OPER, ("movl", assem, 
-								 temp->temp, 
-								 frame->registers().all[X86Frame::EBP])));
 		return;
 	}
 
@@ -210,6 +183,7 @@ X86CodeGen::munchMEM(tree::MEM *mem)
 	tree::BINOP *binop;
 	tree::CONST *konst;
 	tree::TEMP *temp;
+	tree::MEM *mem2;
 	if (_M0(BINOP_T, binop) == mem->exp) {
 		assert(binop->op == tree::BINOP::oPLUS);
 		if (_M0(CONST_T, konst) == binop->r && 
@@ -217,6 +191,16 @@ X86CodeGen::munchMEM(tree::MEM *mem)
 			Temp *r = gcnew(Temp, ());
 			string assem = format("%d('s0), 'd0", konst->value); 
 			emit(gcnew(assem::OPER, ("movl", assem, r, temp->temp)));
+			return r;
+		}
+	}
+	if (_M0(BINOP_T, binop) == mem->exp) {
+		assert(binop->op == tree::BINOP::oPLUS);
+		if (_M0(CONST_T, konst) == binop->r && 
+			_M0(MEM_T, mem2) == binop->l) {
+			Temp *r = gcnew(Temp, ());
+			string assem = format("%d('s0), 'd0", konst->value); 
+			emit(gcnew(assem::OPER, ("movl", assem, r, munchExp(mem2))));
 			return r;
 		}
 	}
@@ -234,64 +218,96 @@ X86CodeGen::munchMEM(tree::MEM *mem)
 Temp *
 X86CodeGen::munchBINOP(tree::BINOP *binop)
 {
+	switch (binop->op) {
+	case tree::BINOP::oPLUS:  return munchBINOP_PLUS(binop);
+	case tree::BINOP::oMINUS: return munchBINOP_MINUS(binop);
+	case tree::BINOP::oMUL:   return munchBINOP_MUL(binop);
+	case tree::BINOP::oDIV:   return munchBINOP_DIV(binop);
+	default:
+		assert(0);
+		return NULL;
+	}
+}
+
+Temp *
+X86CodeGen::munchBINOP_PLUS(tree::BINOP *binop)
+{
 	TempList tsrc;
 	TempList tdst;
 	Temp *l = NULL;
 	Temp *tmp = NULL;
 
-	switch (binop->op) {
-	case tree::BINOP::oPLUS:
-		l = munchExp(binop->l);
-		tmp = gcnew(Temp, ());
-		emit(gcnew(assem::OPER, ("movl", "'s0, 'd0", tmp, l)));
+	l = munchExp(binop->l);
+	tmp = gcnew(Temp, ());
+	emit(gcnew(assem::OPER, ("movl", "'s0, 'd0", tmp, l)));
 		
-		tsrc.push_back(munchExp(binop->r));
-		tsrc.push_back(tmp);
-		tdst.push_back(tmp);
-		emit(gcnew(assem::OPER, ("addl", "'s0, 'd0", tdst, tsrc)));
-		return tmp;
-	case tree::BINOP::oMINUS:
-		l = munchExp(binop->l);
-		tmp = gcnew(Temp, ());
-		emit(gcnew(assem::OPER, ("movl", "'s0, 'd0", tmp, l)));
+	tsrc.push_back(munchExp(binop->r));
+	tsrc.push_back(tmp);
+	tdst.push_back(tmp);
+	emit(gcnew(assem::OPER, ("addl", "'s0, 'd0", tdst, tsrc)));
+	return tmp;
+}
 
-		tsrc.push_back(munchExp(binop->r));
-		tsrc.push_back(tmp);
-		tdst.push_back(tmp);
-		emit(gcnew(assem::OPER, ("subl", "'s0, 'd0", tdst, tsrc)));
-		return tmp;
-	case tree::BINOP::oMUL:
-		l = munchExp(binop->l);
-		tmp = gcnew(Temp, ());
-		emit(gcnew(assem::OPER, ("movl", "'s0, 'd0", tmp, l)));
+Temp *
+X86CodeGen::munchBINOP_MINUS(tree::BINOP *binop)
+{
+	TempList tsrc;
+	TempList tdst;
+	Temp *l = NULL;
+	Temp *tmp = NULL;
 
-		tsrc.push_back(munchExp(binop->r));
-		tsrc.push_back(tmp);
-		tdst.push_back(tmp);
+	l = munchExp(binop->l);
+	tmp = gcnew(Temp, ());
+	emit(gcnew(assem::OPER, ("movl", "'s0, 'd0", tmp, l)));
 
-		emit(gcnew(assem::OPER, ("imull", "'s0, 'd0", tdst, tsrc)));
-		return tmp;
-	case tree::BINOP::oDIV: {
-		Temp *eax = frame->registers().all[X86Frame::EAX];
-		Temp *edx = frame->registers().all[X86Frame::EDX];
-		l = munchExp(binop->l);
-		emit(gcnew(assem::OPER, ("movl", "'s0, %eax", eax, l)));
-		//emit(gcnew(assem::OPER, ("sarl", "$31, %edx", edx, NULL)));//clear edx
-		emit(gcnew(assem::OPER, ("cltd", "", edx, NULL)));//eax -> edx:eax
-		tsrc.push_back(munchExp(binop->r));
-		tsrc.push_back(eax);
-		tsrc.push_back(edx);
-		tdst.push_back(eax);//Quotient
-		tdst.push_back(edx);//Remainder
+	tsrc.push_back(munchExp(binop->r));
+	tsrc.push_back(tmp);
+	tdst.push_back(tmp);
+	emit(gcnew(assem::OPER, ("subl", "'s0, 'd0", tdst, tsrc)));
+	return tmp;
+}
 
-		emit(gcnew(assem::OPER, ("idivl", "'s0", tdst, tsrc)));
-		return eax;
-	}
-		break;
-	default:
-		assert(0);
-		return NULL;
-	}
+Temp *
+X86CodeGen::munchBINOP_MUL(tree::BINOP *binop)
+{
+	TempList tsrc;
+	TempList tdst;
+	Temp *l = NULL;
+	Temp *tmp = NULL;
+
+	l = munchExp(binop->l);
+	tmp = gcnew(Temp, ());
+	emit(gcnew(assem::OPER, ("movl", "'s0, 'd0", tmp, l)));
+
+	tsrc.push_back(munchExp(binop->r));
+	tsrc.push_back(tmp);
+	tdst.push_back(tmp);
+
+	emit(gcnew(assem::OPER, ("imull", "'s0, 'd0", tdst, tsrc)));
+	return tmp;
+}
+
+Temp *
+X86CodeGen::munchBINOP_DIV(tree::BINOP *binop)
+{
+	TempList tsrc;
+	TempList tdst;
+	Temp *l = NULL;
+	Temp *eax = frame->registers().all[X86Frame::EAX];
+	Temp *edx = frame->registers().all[X86Frame::EDX];
+	
+	l = munchExp(binop->l);
+	emit(gcnew(assem::OPER, ("movl", "'s0, %eax", eax, l)));
+	//emit(gcnew(assem::OPER, ("sarl", "$31, %edx", edx, NULL)));//clear edx
+	emit(gcnew(assem::OPER, ("cltd", "", edx, NULL)));//eax -> edx:eax
+	tsrc.push_back(munchExp(binop->r));
+	tsrc.push_back(eax);
+	tsrc.push_back(edx);
+	tdst.push_back(eax);//Quotient
+	tdst.push_back(edx);//Remainder
+	
+	emit(gcnew(assem::OPER, ("idivl", "'s0", tdst, tsrc)));
+	return eax;
 }
 
 Temp *

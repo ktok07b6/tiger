@@ -166,7 +166,9 @@ X86Frame::string(Label *label, const std::string &value)
 tree::Exp *
 X86Frame::staticChain(tree::Exp *fp)
 {
-	tree::MEM *mem = _MEM(fp);
+	tree::CONST *offset = _CONST(8);
+	tree::BINOP *binop = _(fp) + _(offset);
+	tree::MEM *mem = _MEM(binop);
 	return mem;
 }
 
@@ -401,7 +403,7 @@ tree::Exp *
 InFrame::exp(tree::Exp *fp)
 {
 	tree::CONST *konst = _CONST(offset);
-	tree::BINOP *bop = _BINOP(tree::BINOP::oPLUS, fp, konst);
+	tree::BINOP *bop = _(fp) + _(konst);
 	tree::MEM *mem = _MEM(bop);
 	return mem;
 }

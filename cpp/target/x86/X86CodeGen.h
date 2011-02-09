@@ -28,7 +28,10 @@ protected:
 	virtual Temp *munchTEMP(tree::TEMP *t);
 	virtual Temp *munchNAME(tree::NAME *n);
 private:
-	bool isInFrameAccess(tree::Exp *e, tree::CONST **offset);
+	Temp *munchBINOP_PLUS(tree::BINOP *b);
+	Temp *munchBINOP_MINUS(tree::BINOP *b);
+	Temp *munchBINOP_MUL(tree::BINOP *b);
+	Temp *munchBINOP_DIV(tree::BINOP *b);
 	X86Frame *frame;
 };
 
