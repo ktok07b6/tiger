@@ -1,5 +1,10 @@
 #! /bin/sh
 
+# $1 ... source file path
+# $2 ... make options 
+#        * SILIENT=@ shutup compiler outputs
+#        * TARGET="arm|x86"
+
 fullpath=$1
 filename=$(basename $fullpath)
 extension=${filename##*.}
