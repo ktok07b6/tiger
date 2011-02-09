@@ -1,0 +1,17 @@
+let
+  var x:int := -1
+  function f(x:int):int = x
+  function g():int = x
+  function h():int =
+    let
+      var y:int := x*2
+      function hh():int = y
+    in
+      hh()
+    end
+in
+  test(f(1) = 1);
+  test(g() = -1);
+  test(h() = -2);
+  print("ok\n")
+end
