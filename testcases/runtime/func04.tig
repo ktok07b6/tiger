@@ -13,5 +13,11 @@ in
   test(f(1) = 1);
   test(g() = -1);
   test(h() = -2);
+
+  x := 2;
+  test(f(1) = 1);
+  test(g() = 2);
+  test(h() = 4);
+
   print("ok\n")
 end
