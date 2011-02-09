@@ -84,9 +84,9 @@ X86Frame::allocLocal(bool escape)
 {
 	Frame::Access *access = NULL;
 	if (escape) {
+		frameOffset += WORD_SIZE;
 		DBG("frameOffset %d", frameOffset);
 		access = gcnew(InFrame, (-frameOffset));
-		frameOffset += WORD_SIZE;
 	} else {
 		Temp *t = gcnew(Temp, ());
 		access = gcnew(InReg, (t));
@@ -242,26 +242,26 @@ assem::InstructionList
 X86Frame::procEntryExit3(const assem::InstructionList &body)
 {
 	/*
-	  stack frame example
+	  the stack frame of x86-tiger
 
 	       ...  lower address
-	  XXXXFFFC |--------------|
-	  XXXX0000 |    <empty>   |
-	  XXXX0004 |--------------|
-	  XXXX0008 |      ...     |-+ <== esp
-	  XXXX000C |--------------| |
-	  XXXX0010 |      ...     | | local vars & args
-	  XXXX0014 |--------------| |
-	  XXXX0018 | static link  |-+ <== ebp
-	  XXXX001C |--------------|
-	  XXXX0020 |      lr      |-+
-	  XXXX0024 |--------------| | 
-	  XXXX0028 |      fp      | | callee save regs
-	  XXXX002C |--------------| |
-	  XXXX0030 |      ...     |-+
-	  XXXX0034 |--------------|
-	  XXXX0038 |      ...     | <== old sp
-	  XXXX003C |--------------|
+	           |--------------|
+	       -12 |    <empty>   |
+	           |--------------|
+	        -8 |      ...     |-+ <== esp
+	           |--------------| |
+	        -4 |      ...     | | local vars & args
+	           |--------------| |
+	         0 | previous ebp |-+ <== ebp (old esp top)
+	           |--------------|
+	        +4 | return addr  | // push by "call" instruction
+	           |--------------| 
+	        +8 | static link  | // arg 0 is static link. this is tiger's calling convention
+	           |--------------|
+	       +12 |     arg 1    | // pushed by caller
+	           |--------------|
+	       +16 |     arg 2    | // pushed by caller
+	           |--------------|
 	       ...  higher address
 	 */
 	assem::InstructionList proc;
