@@ -21,13 +21,20 @@
 #include "BasicBlocks.h"
 #include "Trace.h"
 #include "Instruction.h"
-//#include "AsmFlowGraph.h"
-//#include "Liveness.h"
-//#include "InterferenceGraph.h"
 #include "RegAlloc.h"
 #include "Optimizer.h"
 #include "Property.h"
 Property<int> value;
+
+#define PRINT_SOURCE
+//#define PRINT_AST
+//#define PRINT_IR
+#define PRINT_CANON_IR
+//#define PRINT_BASIC_BLOCK_IR
+//#define PRINT_TRACED_IR
+//#define PRINT_NO_REG_ASM
+//#define MAKE_DOT
+//#define PRINT_SYMBOLS
 
 //extern int yylex();
 extern int yyparse();
@@ -60,8 +67,9 @@ bool parsePhase()
 	if (!absyn) {
 		return false;
 	}
-
+#ifdef PRINT_AST
 	printAbsyn();
+#endif
 	return true;
 }
 
@@ -161,7 +169,6 @@ bool typeCheckPhase()
 
 	//-----------------------
 	bool ok = typeCheck();
-	//printSource();
 
 	nameTable.endScope();
 	typeTable.endScope();
@@ -194,11 +201,8 @@ void translatePhase(FragmentList &fragments)
 	IRTranslater translater(frame);
 	absyn->accept(&translater);
 	fragments = translater.getFragments();
-#if 0
-	//ir = translater.getExp();
+#ifdef PRINT_IR
 	DBG("Intermediate Representation===========\n\n");
-	//tree::TreePrinter::printTree(ir->unNx());
-	
 	FragmentList::iterator it;
 	it = fragments.begin();
 	while (it != fragments.end()) {
@@ -215,7 +219,9 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
 
 void codegenPhase(const FragmentList &frags, std::string *out)
 {
+#ifdef PRINT_SOURCE
 	printSource();
+#endif
 
 	std::string dataOut;
 	FragmentList::const_iterator it;
@@ -228,7 +234,7 @@ void codegenPhase(const FragmentList &frags, std::string *out)
 			Canon canon;
 			tree::StmList stms;
 			stms = canon.linearize(proc->getStm());
-#if 0
+#ifdef PRINT_CANON_IR
 			DBG("Linearized IR=========================");
 			tree::TreePrinter::printStmList(stms);
 			DBG("======================================");
@@ -236,7 +242,7 @@ void codegenPhase(const FragmentList &frags, std::string *out)
 #endif
 			Frame *frame = proc->getFrame();
 			BasicBlocks bb(stms, frame->getEndFuncLabel());
-#if 0
+#ifdef PRINT_BASIC_BLOCK_IR
 			DBG("Basic Blocks=========================");
 			std::list< tree::StmList >::const_iterator i1 = bb.blocks.begin();
 			while (i1 != bb.blocks.end()) {
@@ -250,7 +256,7 @@ void codegenPhase(const FragmentList &frags, std::string *out)
 #endif
 
 			Trace trace(bb.blocks);
-#if 0
+#ifdef PRINT_TRACED_IR
 			DBG("Traces=========================");
 			tree::TreePrinter::printStmList(trace.traced);
 			DBG("======================================");
@@ -286,7 +292,7 @@ void codegenPhase2(const assem::InstructionList &instList, Frame *frame, std::st
 	proc = frame->procEntryExit2(instList);
 
 	assem::InstructionList::iterator it;
-#if 1
+#ifdef PRINT_NO_REG_ASM
 	it = proc.begin();
 	while (it != proc.end()) {
 		assem::Instruction *inst = *it;
@@ -348,13 +354,15 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	//makeDot();
-	//printSource();
+#ifdef MAKE_DOT
+	makeDot();
+#endif
 	if (!typeCheckPhase()) {
 		return -1;
 	}
-
-	//printSymbols();
+#ifdef PRINT_SYMBOLS
+	printSymbols();
+#endif
 
 	initOptimization();
 

@@ -1,0 +1,16 @@
+let
+    var a := 0
+    var b := 0
+in
+    while 1 do (
+        a := 0; 
+        while 1 do (
+            a := a + 1;
+            if a = 10 then break);
+        test(a = 10);
+        b := b + 1;
+        if b = 10 then break);
+
+    test(b = 10);
+    print("ok\n")
+end
