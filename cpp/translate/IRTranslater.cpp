@@ -594,10 +594,14 @@ end:
 		cjump = _CJUMP(tree::CJUMP::oNE, boolean, const_0, labelS, labelE);
 	}
 
+	Label *oldLoopExit = NULL;
+	oldLoopExit = currentLoopExit;
 	currentLoopExit = labelE;
-
+	
 	exp->body->accept(this);
 	tree::Stm *body = texp->unNx();
+
+	currentLoopExit = oldLoopExit;
 
 	tree::LABEL *l_S = _LABEL(labelS);
 	tree::LABEL *l_E = _LABEL(labelE);
