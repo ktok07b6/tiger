@@ -68,8 +68,9 @@ X86Frame::X86Frame(Symbol *n, const std::vector<int> &f)
 	regs.calleeSaves.push_back(ebx);
 	regs.calleeSaves.push_back(esi);
 	regs.calleeSaves.push_back(edi);
-	regs.calleeSaves.push_back(ebp);
+	//regs.calleeSaves.push_back(ebp);
 	
+	regs.specials.push_back(ebp);
 	regs.specials.push_back(esp);
 	regs.specials.push_back(eip);
 }
@@ -355,7 +356,7 @@ X86Frame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 		TempList use = inst->use();
 		if (std::find(use.begin(), use.end(), spill) != use.end()) {
 			Temp *tmp = gcnew(Temp, ());
-			std::string operand = format("$d0, %d(%ebp)", -frameOffset);
+			std::string operand = format("%d(%%ebp), 'd0\t# loaded spill ", -frameOffset);
 			assem::OPER *ldr = gcnew(assem::OPER, ("movl", operand, tmp, NULL));
 			result.push_back(ldr);
 			inst->replaceUse(spill, tmp);
@@ -366,7 +367,7 @@ X86Frame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 		TempList def = inst->def();
 		if (std::find(def.begin(), def.end(), spill) != def.end()) {
 			Temp *tmp = gcnew(Temp, ());
-			std::string operand = format("%d(%ebp), $s0", -frameOffset);
+			std::string operand = format("'s0, %d(%%ebp)\t# stored spill", -frameOffset);
 			assem::OPER *str = gcnew(assem::OPER, ("movl", operand, NULL, tmp));
 			result.push_back(str);
 			inst->replaceDef(spill, tmp);
