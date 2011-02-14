@@ -817,9 +817,8 @@ IRTranslater::visit(FunDec *dec)
 					eseq = (tree::ESEQ*)eseq->exp;
 				}
 				tree::MOVE *mv_return_value = _MOVE(_TEMP(rv), eseq->exp);
-				tree::ESEQ *eseq2 = _ESEQ(mv_return_value, _TEMP(rv));
-				eseq->exp = eseq2;
-				sm.add(texp->unNx());
+				sm.add(eseq->stm);
+				sm.add(mv_return_value);
 			} else {
 				tree::MOVE *mv_return_value = _MOVE(_TEMP(rv), e); 
 				sm.add(mv_return_value);
