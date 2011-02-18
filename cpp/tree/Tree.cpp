@@ -2,6 +2,7 @@
 #include "TreeVisitor.h"
 #include "Tree.h"
 #include "TreePrinter.h"
+#include "TreeMatcher.h"
 
 namespace tree {
 
@@ -36,7 +37,7 @@ BINOP::build(ExpList kids)
 	Exp *ll = kids.pop_front();
 	Exp *rr = kids.pop_front();
 
-	return gcnew(BINOP, (op, ll, rr));
+	return _BINOP(op, ll, rr);
 }
 
 
@@ -65,7 +66,7 @@ CALL::build(ExpList kids)
 	Exp *f = kids.pop_front();
 	assert(kids.size() == s-1);
 	assert(f->isNAME_T());
-	return gcnew(CALL, ((NAME*)f, kids));
+	return _CALL((NAME*)f, kids);
 }
 
 
@@ -133,7 +134,7 @@ MEM::build(ExpList kids)
 {
 	FUNCLOG;
 	Exp *e = kids.pop_front();
-	return gcnew(MEM, (e));
+	return _MEM(e);
 }
 
 
@@ -199,7 +200,7 @@ EXPR::build(ExpList kids)
 {
 	FUNCLOG;
 	Exp *e = kids.pop_front();
-	return gcnew(EXPR, (e));
+	return _EXPR(e);
 }
 
 
@@ -229,7 +230,7 @@ CJUMP::build(ExpList kids)
 	FUNCLOG;
 	Exp *ll = kids.pop_front();
 	Exp *rr = kids.pop_front();
-	return gcnew(CJUMP, (relop, ll, rr, truelab, falselab));
+	return _CJUMP(relop, ll, rr, truelab, falselab);
 }
 
 CJUMP::RelOp
@@ -266,7 +267,7 @@ JUMP::JUMP(Label *target)
 	, exp(NULL)
 	, targets()
 {
-	exp = gcnew(NAME, (target));
+	exp = _NAME(target);
 	targets.push_back(target);
 }
 
@@ -284,7 +285,7 @@ JUMP::build(ExpList kids)
 {
 	FUNCLOG;
 	Exp *e = kids.pop_front();
-	return gcnew(JUMP, (e, targets));
+	return _JUMP2(e, targets);
 }
 
 
@@ -322,8 +323,13 @@ MOVE::kids()
 {
 	FUNCLOG;
 	ExpList li;
-	li.push_back(dst);
-	li.push_back(src);
+	MEM *mem;
+	if (_M0(MEM_T, mem)==dst) {
+		li.push_back(mem->exp);
+		li.push_back(src);
+	} else {
+		li.push_back(src);
+	}
 	return li;
 }
 
@@ -331,9 +337,15 @@ Stm *
 MOVE::build(ExpList kids)
 {
 	FUNCLOG;
-	Exp *d = kids.pop_front();
-	Exp *s = kids.pop_front();
-	return gcnew(MOVE, (d, s));
+	MEM *mem;
+	if (_M0(MEM_T, mem)==dst) {
+		Exp *d = kids.pop_front();
+		Exp *s = kids.pop_front();
+		return _MOVE(_MEM(d), s);
+	} else {
+		Exp *s = kids.pop_front();
+		return _MOVE(dst, s);
+	}
 }
 
 
@@ -380,7 +392,7 @@ SEQMaker::make()
 	if (vec.empty()) {
 		return NULL;
 	}
-	SEQ *seq = gcnew(SEQ, ());
+	SEQ *seq = _SEQ0();
 	SEQ *top = seq;
 	SEQ *next;
 
@@ -390,7 +402,7 @@ SEQMaker::make()
 		seq->l = s;
 		++it;
 		if (it != vec.end()) { 
-			next = gcnew(SEQ, ()); 
+			next = _SEQ0(); 
 			seq->r = next;
 			seq = next;
 		} else {

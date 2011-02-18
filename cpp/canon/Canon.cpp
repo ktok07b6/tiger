@@ -170,7 +170,7 @@ Canon::seq(tree::Stm *s1, tree::Stm *s2)
 bool
 Canon::commute(tree::Stm *s, tree::Exp *e)
 {
-	return isNop(s) || e->isNAME_T() || e->isCONST_T() || e->isTEMP_T() || e->isMEM_T();
+	return isNop(s) || e->isNAME_T() || e->isCONST_T();
 }
 
 tree::Stm *
@@ -187,9 +187,11 @@ Canon::do_stm(tree::MOVE *move)
 	if (move->dst->isTEMP_T() && move->src->isCALL_T()) {
 		return reorder_stm(gcnew(MoveCall, ((tree::TEMP*)move->dst, (tree::CALL*)move->src)));
 	}
+	/*
 	else if (move->dst->isTEMP_T() && move->src->isBINOP_T()) {
 		return reorder_stm(gcnew(MoveBinop, ((tree::TEMP*)move->dst, (tree::BINOP*)move->src)));
 	}
+	*/
 	else if(move->dst->isESEQ_T()) {
 		//remove ESEQ
 		tree::ESEQ *eseq = (tree::ESEQ*)move->dst;
@@ -316,7 +318,7 @@ Canon::reorder(tree::ExpList kids)
 	//DBG("reorder kids ------------------ end");
 
 	tree::Exp *a = kids.pop_front();
-	if (a->isCALL_T() || a->isBINOP_T()) {
+	if (a->isCALL_T()/* || a->isBINOP_T()*/) {
 		//replace CALL
 		Temp *t = gcnew(Temp, ());
 		tree::TEMP *tmp = gcnew(tree::TEMP, (t));
