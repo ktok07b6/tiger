@@ -1,5 +1,5 @@
 //#define ENABLE_FUNCLOG
-//#define LOG_MASK (ERROR_ON | WARN_ON | INFO_ON | DEBUG_ON | VERBOSE_ON)
+#define LOG_MASK (ERROR_ON | WARN_ON | INFO_ON | DEBUG_ON | VERBOSE_ON)
 #include <boost/foreach.hpp>
 #include "Color.h"
 #include "InterferenceGraph.h"
@@ -79,12 +79,15 @@ Color::coloring()
 			}
 		}
 		*/
-		graph::Node *n;
-		n = igraph.nid2node(0);
-		spillTemps.push_back(igraph.node2temp(n));
-		//n = igraph.nid2node(1);
-		//spillTemps.push_back(igraph.node2temp(n));
-
+		for (int nid = 0; nid < tempSize; ++nid) {
+			graph::Node *n;
+			if (!precolored.get(nid)) {
+				n = igraph.nid2node(nid);
+				spillTemps.push_back(igraph.node2temp(n));
+				break;
+			}
+		}
+		assert(!spillTemps.empty());
 		return false;
 	}
 	return true;
@@ -154,14 +157,17 @@ Color::makeWorkList()
 		if (precolored.get(nid)) {
 		}
 		else if (numMaxRegs <= n->degree()) {
+			assert(!precolored.get(i));
 			spillWorkList.set(i);
 		}
 #ifdef ENABLE_COALESCE
 		else if (isMoveRelated(i)) {
+			assert(!precolored.get(i));
 			freezeWorkList.set(i);
 		}
 #endif
 		else {
+			assert(!precolored.get(i));
 			simplifyWorkList.set(i);
 		} 
 		++i;
@@ -361,6 +367,7 @@ Color::combine(int nid1, int nid2)
 	}
 	
 	if (degreeMap[nid1] >= numMaxRegs && freezeWorkList.get(nid1)) {
+		assert(!precolored.get(nid1));
 		freezeWorkList.reset(nid1);
 		spillWorkList.set(nid1);
 	}
@@ -382,6 +389,7 @@ Color::freeze()
 {
 	int nid = freezeWorkList.right();
 	VDBG("freeze %d(%s)", nid, (const char*)(*igraph.nid2node(nid)));
+	assert(!precolored.get(nid));
 	freezeWorkList.reset(nid);
 	simplifyWorkList.set(nid);
 	freezeMoves(nid);
@@ -425,6 +433,7 @@ Color::selectSpill()
 	FUNCLOG;
 	//FIXME:
 	int nid = spillWorkList.right();
+	assert(!precolored.get(nid));
 	spillWorkList.reset(nid);
 	simplifyWorkList.set(nid);
 	freezeMoves(nid);
@@ -473,6 +482,7 @@ Color::assignColors()
 				color[nid] = okColors.right();
 			}
 		} else {
+			assert(!precolored.get(nid));
 			spilledNodes.set(nid);
 		}
 	}
