@@ -3,8 +3,8 @@
 
 #include "Tree.h"
 namespace tree {
-bool isThereCALL(Stm *);
-bool isThereCALL(Exp *);
+bool isExistType(Stm *, Tree::TypeID);
+bool isExistType(Exp *, Tree::TypeID);
 }//namespace tree
 
 #endif //TREE_UTILS_H

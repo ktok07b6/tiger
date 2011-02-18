@@ -126,7 +126,7 @@ X86Frame::rv()
 tree::Stm *
 X86Frame::procEntryExit1(tree::Stm *body)
 {
-	if (!tree::isThereCALL(body)) {
+	if (!tree::isExistType(body, tree::Tree::CALL_T)) {
 		//this is leaf function
 		//TODO:
 	}
