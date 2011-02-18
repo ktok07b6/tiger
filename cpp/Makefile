@@ -32,6 +32,7 @@ SOURCES_LIBCORE= \
 	TreePrinter.cpp \
 	Tree2DotTranslater.cpp \
 	TreeMatcher.cpp \
+	TreeUtils.cpp \
 	Ex.cpp Cx.cpp Nx.cpp\
 	Canon.cpp \
 	BasicBlocks.cpp \

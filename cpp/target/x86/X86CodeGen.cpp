@@ -297,7 +297,7 @@ X86CodeGen::munchBINOP_DIV(tree::BINOP *binop)
 	Temp *edx = frame->registers().all[X86Frame::EDX];
 	
 	l = munchExp(binop->l);
-	emit(gcnew(assem::OPER, ("movl", "'s0, %eax", eax, l)));
+	emit(gcnew(assem::OPER, ("movl", "'s0, 'd0", eax, l)));
 	//emit(gcnew(assem::OPER, ("sarl", "$31, %edx", edx, NULL)));//clear edx
 	emit(gcnew(assem::OPER, ("cltd", "", edx, NULL)));//eax -> edx:eax
 	tsrc.push_back(munchExp(binop->r));

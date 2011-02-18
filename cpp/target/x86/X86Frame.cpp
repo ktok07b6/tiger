@@ -5,6 +5,8 @@
 #include "tiger.h"
 #include <iterator>
 #include <boost/foreach.hpp>
+#include "TreeMatcher.h"
+#include "TreeUtils.h"
 
 Frame *
 Frame::newFrame(Symbol *name, const std::vector<int> &formals)
@@ -124,6 +126,10 @@ X86Frame::rv()
 tree::Stm *
 X86Frame::procEntryExit1(tree::Stm *body)
 {
+	if (!tree::isThereCALL(body)) {
+		//this is leaf function
+		//TODO:
+	}
 	Label *fname = gcnew(Label, (name->name));
 	tree::LABEL *l = _LABEL(fname);
 	tree::SEQMaker sm;
@@ -441,6 +447,7 @@ X86Frame::isCalleeSaveReg(Temp *r)
 {
 	return (r == ebx || r == esi || r == edi);
 }
+
 
 //------------------------------------------------------
 std::string 
