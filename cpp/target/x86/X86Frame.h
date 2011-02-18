@@ -42,6 +42,7 @@ class X86Frame : public Frame
 	};
 
  private:
+	bool isCalleeSaveReg(Temp *reg);
 	TempList findRegsInBody(const assem::InstructionList &body);
 
 	int frameOffset;

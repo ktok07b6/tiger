@@ -68,7 +68,6 @@ X86Frame::X86Frame(Symbol *n, const std::vector<int> &f)
 	regs.calleeSaves.push_back(ebx);
 	regs.calleeSaves.push_back(esi);
 	regs.calleeSaves.push_back(edi);
-	//regs.calleeSaves.push_back(ebp);
 	
 	regs.specials.push_back(ebp);
 	regs.specials.push_back(esp);
@@ -244,14 +243,24 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 {
 	/*
 	  the stack frame of x86-tiger
+	  
+	  ex: frameOffset = 8
+	      saveCalleeSave={ebx, edi}
+          maxArgSize = 2
 
 	       ...  lower address
 	           |--------------|
-	       -12 |    <empty>   |
-	           |--------------|
-	        -8 |      ...     |-+ <== esp
+	       -24 |    <empty>   |-+ <== esp
 	           |--------------| |
-	        -4 |      ...     | | local vars & args
+	       -20 |    <empty>   |-+ parameters of function call (maxArgSize*WORD_SIZE)
+	           |--------------| | 
+	       -16 |      edi     | |
+	           |--------------| |
+	       -12 |      ebx     |-+ callee saves (saveCalleeSave.size()*WORD_SIZE)
+	           |--------------| |
+	        -8 |      ...     | |
+	           |--------------| |
+	        -4 |      ...     |-+ local variables & spilled regs (frameOffset)
 	           |--------------| |
 	         0 | previous ebp |-+ <== ebp (old esp top)
 	           |--------------|
@@ -264,6 +273,15 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	       +16 |     arg 2    | // pushed by caller
 	           |--------------|
 	       ...  higher address
+
+
+		   Therefore ...
+		   * access to static link    ... 8(%ebp)
+		   * access to 1st arggument  ... 12(%ebp)
+		   * access to 1st local var  ... -4(%ebp)
+		   * access to 2nd local var  ... -8(%ebp)
+		   * access to 1st param of function call ... 0(%esp)
+		   * access to 2nd param of function call ... 4(%esp)
 	 */
 	assem::InstructionList proc;
 	std::string assem;
@@ -280,40 +298,65 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	proc.push_back(move_sp);
 
 	//usedRegs is passed by regalloc
-	//save callee saves
-	TempList::const_iterator it = usedRegs.begin();
-	while (it != usedRegs.end()) {
-		Temp *r = *it;
-		if (r == ebx || r == esi || r == edi) {
-			assem::OPER *callee_save = gcnew(assem::OPER, ("pushl", r->toString(), NULL, r));
-			proc.push_back(callee_save);
+	TempList savedCalleeSave;
+	{
+		TempList::const_iterator it = usedRegs.begin();
+		while (it != usedRegs.end()) {
+			Temp *r = *it;
+			if (isCalleeSaveReg(r)) {
+				savedCalleeSave.push_back(r);
+			}
+			++it;
 		}
-		++it;
 	}
 
-	assem = format("$%d, %%esp", frameOffset + maxArgSize*WORD_SIZE);
+	int stackFrameSize = frameOffset + savedCalleeSave.size()*WORD_SIZE + maxArgSize*WORD_SIZE;
+	assem = format("$%d, %%esp", stackFrameSize);
 	assem::OPER *expand_sp = gcnew(assem::OPER, ("subl", assem, esp, esp));
 	proc.push_back(expand_sp);
+
+	//CalleeSave registers is stored between the local variables and the parameters of the function call
+	{
+		TempList::const_iterator it = savedCalleeSave.begin();
+		int offset = frameOffset;
+		while (it != savedCalleeSave.end()) {
+			offset += 4;
+			assem = format("%s, %d(%%ebp)", (*it)->toString().c_str(), -offset);
+			assem::OPER *store_callee_save = gcnew(assem::OPER, ("movl", 
+																 assem,
+																 NULL, 
+																 (*it)));
+			proc.push_back(store_callee_save);
+			++it;
+		}
+	}
 
 	//body//////////////
 	std::copy(body.begin()+1, body.end(), std::back_inserter(proc));
 
 	//epilogue//////////
 
-	assem = format("$%d, %%esp", frameOffset + maxArgSize*WORD_SIZE);
+	assem = format("$%d, %%esp", stackFrameSize);
 	assem::OPER *unexpand_sp = gcnew(assem::OPER, ("addl", assem, esp, esp));
 	proc.push_back(unexpand_sp);
 
 	//restore callee saves
-	TempList::const_reverse_iterator rit = usedRegs.rbegin();
-	while (rit != usedRegs.rend()) {
-		Temp *r = *rit;
-		if (r == ebx || r == esi || r == edi) {
-			assem::OPER *callee_save = gcnew(assem::OPER, ("popl", r->toString(), r, NULL));
-			proc.push_back(callee_save);
+	{
+		TempList::const_reverse_iterator rit = savedCalleeSave.rbegin();
+		int offset = frameOffset;
+		while (rit != savedCalleeSave.rend()) {
+			offset += 4;
+			assem = format("%d(%%ebp), %s", -offset, (*rit)->toString().c_str());
+			assem::OPER *restore_callee_save = gcnew(assem::OPER, ("movl", 
+																   assem,
+																   (*rit), 
+																   NULL
+																   ));
+			proc.push_back(restore_callee_save);
+			++rit;
 		}
-		++rit;
 	}
+
 
 	//leave
 	assem::MOVE *rewind_sp = gcnew(assem::MOVE, ("movl", "%ebp, %esp", esp, ebp));
@@ -391,6 +434,12 @@ void
 X86Frame::argSize(int size)
 {
 	maxArgSize = (maxArgSize < size) ? size : maxArgSize;
+}
+
+bool 
+X86Frame::isCalleeSaveReg(Temp *r)
+{
+	return (r == ebx || r == esi || r == edi);
 }
 
 //------------------------------------------------------
