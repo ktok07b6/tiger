@@ -13,6 +13,8 @@
 
 using namespace std;
 //#define YYDEBUG 1
+#define YYERROR_VERBOSE 1
+
 extern "C" void yyerror(char *s) {
 	fprintf(stderr, "%s\n",s);
 }
@@ -20,6 +22,7 @@ extern "C" void yyerror(char *s) {
 int yylex(void);
 extern Absyn *result_syntax_tree;
 extern int yyget_lineno (void );
+
 %}
 %union {
 	Absyn *absyn;
@@ -116,6 +119,11 @@ program
 	result_syntax_tree = $1;
 	PARSER_DBG("program %p", result_syntax_tree);
 }
+| error
+{
+	yyerrok;
+	yyclearin;
+}
 ;
 
 //------------------------------------
@@ -136,10 +144,6 @@ expr
 | for_expr
 | break_expr
 | let_expr
-{
-	$$ = $1;
-	PARSER_DBG("expr %p", $$);
-}
 ;
 
 //------------------------------------
@@ -147,7 +151,7 @@ string_expr
 : STRING_CONSTANT
 {
 	PARSER_DBG("str = %s", $1);
-	$$ = gcnew(StringExp, ($1, 0));
+	$$ = gcnew(StringExp, ($1, &@1));
 	PARSER_DBG("StringExp %p", $$);
 }
 ;
@@ -156,7 +160,7 @@ string_expr
 integer_expr
 : INTEGER_CONSTANT
 {
-	$$ = gcnew(IntExp, ($1));
+	$$ = gcnew(IntExp, ($1, &@1));
 	PARSER_DBG("IntExp %p", $$);
 }
 ;
@@ -174,7 +178,7 @@ nil_expr
 lvalue_expr
 : lvalue
 {
-	$$ = gcnew(VarExp, ($1));
+	$$ = gcnew(VarExp, ($1, &@1));
 	PARSER_DBG("VarExp %p", $$);
 }
 ;
@@ -183,27 +187,27 @@ lvalue_expr
 lvalue
 : id
 {
-	$$ = gcnew(SimpleVar, ($1, 0));
+	$$ = gcnew(SimpleVar, ($1, &@1));
 	PARSER_DBG("SimpleVar %p", $$);
 }
 | lvalue '.' id
 {
-	$$ = gcnew(FieldVar, ($1, $3, 0));
+	$$ = gcnew(FieldVar, ($1, $3, &@1));
 	PARSER_DBG("FieldVar %p", $$);
 }
 | type_id
 {
-	$$ = gcnew(SimpleVar, ($1, 0));
+	$$ = gcnew(SimpleVar, ($1, &@1));
 	PARSER_DBG("SimpleVar %p", $$);
 }
 | lvalue '.' type_id
 {
-	$$ = gcnew(FieldVar, ($1, $3, 0));
+	$$ = gcnew(FieldVar, ($1, $3, &@1));
 	PARSER_DBG("FieldVar %p", $$);
 }
 | lvalue '[' expr ']'
 {
-	$$ = gcnew(SubscriptVar, ($1, $3, 0));
+	$$ = gcnew(SubscriptVar, ($1, $3, &@1));
 	PARSER_DBG("SubscriptVar %p", $$);
 }
 ;
@@ -212,7 +216,7 @@ lvalue
 neg_expr
 : MINUS expr
 {
-	$$ = gcnew(OpExp, (gcnew(IntExp, (0)), MinusOp, $2, 0));
+	$$ = gcnew(OpExp, (gcnew(IntExp, (0, &@2)), MinusOp, $2, &@2));
 	PARSER_DBG("OpExp %p", $$);
 }
 ;
@@ -221,62 +225,62 @@ neg_expr
 binary_op_expr
 : expr PLUS expr
 {
-	$$ = gcnew(OpExp, ($1, PlusOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, PlusOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr MINUS expr
 {
-	$$ = gcnew(OpExp, ($1, MinusOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, MinusOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr TIMES expr
 {
-	$$ = gcnew(OpExp, ($1, TimesOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, TimesOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr DIVIDE expr
 {
-	$$ = gcnew(OpExp, ($1, DivideOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, DivideOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr EQ expr
 {
-	$$ = gcnew(OpExp, ($1, EqOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, EqOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr NE expr
 {
-	$$ = gcnew(OpExp, ($1, NeOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, NeOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr LT expr
 {
-	$$ = gcnew(OpExp, ($1, LtOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, LtOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr LE expr
 {
-	$$ = gcnew(OpExp, ($1, LeOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, LeOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr GT expr
 {
-	$$ = gcnew(OpExp, ($1, GtOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, GtOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr GE expr
 {
-	$$ = gcnew(OpExp, ($1, GeOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, GeOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr AND expr
 {
-	$$ = gcnew(OpExp, ($1, AndOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, AndOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 | expr OR expr
 {
-	$$ = gcnew(OpExp, ($1, OrOp, $3, 0));
+	$$ = gcnew(OpExp, ($1, OrOp, $3, &@3));
 	PARSER_DBG("OpExp %p", $$);
 }
 
@@ -287,7 +291,7 @@ binary_op_expr
 assignment_expr
 : lvalue ASSIGN expr
 {
-	$$ = gcnew(AssignExp, ($1, $3, 0));
+	$$ = gcnew(AssignExp, ($1, $3, &@3));
 	PARSER_DBG("AssignExp %p", $$);
 }
 ;
@@ -296,7 +300,7 @@ assignment_expr
 function_call
 : id '(' expr_list ')'
 {
-	$$ = gcnew(CallExp, ($1, $3, 0));
+	$$ = gcnew(CallExp, ($1, $3, &@3));
 	PARSER_DBG("CallExp %p", $$);
 }
 ;
@@ -387,7 +391,7 @@ let_seq_expr
 record_creation_expr
 : type_id '{' record_field_list '}'
 {
-	$$ = gcnew(RecordExp, ($3, $1, 0));
+	$$ = gcnew(RecordExp, ($3, $1, &@1));
 	PARSER_DBG("RecordExp %p", $$);
 }
 ;
@@ -396,12 +400,12 @@ record_creation_expr
 record_field
 : id EQ expr
 {
-	$$ = gcnew(RecordField, ($1, $3, 0));
+	$$ = gcnew(RecordField, ($1, $3, &@1));
 	PARSER_DBG("RecordField %p", $$);
 }
 | type_id EQ expr
 {
-	$$ = gcnew(RecordField, ($1, $3, 0));
+	$$ = gcnew(RecordField, ($1, $3, &@1));
 	PARSER_DBG("RecordField %p", $$);
 }
 
@@ -428,7 +432,7 @@ record_field_list
 array_creation_expr
 : type_id '[' expr ']' OF expr
 {
-	$$ = gcnew(ArrayExp, ($1, $3, $6, 0));
+	$$ = gcnew(ArrayExp, ($1, $3, $6, &@1));
 	PARSER_DBG("ArrayExp %p", $$);
 }
 ;
@@ -437,12 +441,12 @@ array_creation_expr
 if_expr
 : IF expr THEN expr
 {
-	$$ = gcnew(IfExp, ($2, $4, 0));
+	$$ = gcnew(IfExp, ($2, $4, &@1));
 	PARSER_DBG("IfExp %p", $$);
 }
 | IF expr THEN expr ELSE expr
 {
-	$$ = gcnew(IfExp, ($2, $4, $6, 0)); 
+	$$ = gcnew(IfExp, ($2, $4, $6, &@1)); 
 	PARSER_DBG("IfExp %p", $$);
 }
 ;
@@ -451,7 +455,7 @@ if_expr
 while_expr
 : WHILE expr DO expr
 {
-	$$ = gcnew(WhileExp, ($2, $4, 0));
+	$$ = gcnew(WhileExp, ($2, $4, &@1));
 	PARSER_DBG("WhileExp %p", $$);
 }
 ;
@@ -460,12 +464,12 @@ while_expr
 for_expr
 : FOR id ASSIGN expr TO expr DO expr
 {
-	$$ = gcnew(ForExp, ($2, false, $4, $6, $8, 0));
+	$$ = gcnew(ForExp, ($2, false, $4, $6, $8, &@1));
 	PARSER_DBG("ForExp %p", $$);
 }
 | FOR type_id ASSIGN expr TO expr DO expr
 {
-	$$ = gcnew(ForExp, ($2, false, $4, $6, $8, 0));
+	$$ = gcnew(ForExp, ($2, false, $4, $6, $8, &@1));
 	PARSER_DBG("ForExp %p", $$);
 }
 
@@ -475,7 +479,7 @@ for_expr
 break_expr
 : BREAK
 {
-	$$ = gcnew(BreakExp, (0));
+	$$ = gcnew(BreakExp, (&@1));
 	PARSER_DBG("BreakExp %p", $$);
 }
 ;
@@ -484,7 +488,7 @@ break_expr
 let_expr
 : LET decs IN let_seq_expr END
 {
-	$$ = gcnew(LetExp, ($2, (SeqExp*)$4, 0));
+	$$ = gcnew(LetExp, ($2, (SeqExp*)$4, &@1));
 	PARSER_DBG("LetExp %p", $$);
 }
 ;
@@ -517,13 +521,13 @@ dec
 tydec
 : TYPE id EQ ty
 {
-	$$ = gcnew(TypeDec, ($2, $4, 0));
+	$$ = gcnew(TypeDec, ($2, $4, &@1));
 	typeIDs.insert($2->name);
 	PARSER_DBG("TypeDec %p", $$);
 }
 | TYPE type_id EQ ty
 {
-	$$ = gcnew(TypeDec, ($2, $4, 0));
+	$$ = gcnew(TypeDec, ($2, $4, &@1));
 	typeIDs.insert($2->name);
 	PARSER_DBG("TypeDec %p", $$);
 }
@@ -534,28 +538,28 @@ tydec
 ty
 : type_id
 {
-	$$ = gcnew(NameTy, ($1, 0));
+	$$ = gcnew(NameTy, ($1, &@1));
 	PARSER_DBG("NameTy %p", $$);
 }
 | id
 {
-	$$ = gcnew(NameTy, ($1, 0));
+	$$ = gcnew(NameTy, ($1, &@1));
 	PARSER_DBG("NameTy %p", $$);
 }
 
 | '{' tyfields '}'
 {
-	$$ = gcnew(RecordTy, ($2));
+	$$ = gcnew(RecordTy, ($2, &@2));
 	PARSER_DBG("RecordTy %p", $$);
 }
 | ARRAY OF type_id
 {
-	$$ = gcnew(ArrayTy, ($3, 0));
+	$$ = gcnew(ArrayTy, ($3, &@1));
 	PARSER_DBG("ArrayTy %p", $$);
 }
 | ARRAY OF id
 {
-	$$ = gcnew(ArrayTy, ($3, 0));
+	$$ = gcnew(ArrayTy, ($3, &@1));
 	PARSER_DBG("ArrayTy %p", $$);
 }
 ;
@@ -564,17 +568,17 @@ ty
 tyfield
 : id ':' type_id
 {
-	$$ = gcnew(TypeField, ($1, false, $3, 0));
+	$$ = gcnew(TypeField, ($1, false, $3, &@1));
 	PARSER_DBG("TypeField %p", $$);
 }
 | id ':' id
 {
-	$$ = gcnew(TypeField, ($1, false, $3, 0));
+	$$ = gcnew(TypeField, ($1, false, $3, &@1));
 	PARSER_DBG("TypeField %p", $$);
 }
 | type_id ':' type_id
 {
-	$$ = gcnew(TypeField, ($1, false, $3, 0));
+	$$ = gcnew(TypeField, ($1, false, $3, &@1));
 	PARSER_DBG("TypeField %p", $$);
 }
 ;
@@ -606,22 +610,22 @@ tyfields
 vardec
 : VAR id ASSIGN expr
 {
-	$$ = gcnew(VarDec, ($2, false, Symbol::symbol(""), $4, 0));
+	$$ = gcnew(VarDec, ($2, false, Symbol::symbol(""), $4, &@1));
 	PARSER_DBG("VarDec %p", $$);
 }
 | VAR id ':' type_id ASSIGN expr
 {
-	$$ = gcnew(VarDec, ($2, false, $4, $6, 0));
+	$$ = gcnew(VarDec, ($2, false, $4, $6, &@1));
 	PARSER_DBG("VarDec %p", $$);
 }
 | VAR type_id ASSIGN expr
 {
-	$$ = gcnew(VarDec, ($2, false, Symbol::symbol(""), $4, 0));
+	$$ = gcnew(VarDec, ($2, false, Symbol::symbol(""), $4, &@1));
 	PARSER_DBG("VarDec %p", $$);
 }
 | VAR type_id ':' type_id ASSIGN expr
 {
-	$$ = gcnew(VarDec, ($2, false, $4, $6, 0));
+	$$ = gcnew(VarDec, ($2, false, $4, $6, &@1));
 	PARSER_DBG("VarDec %p", $$);
 }
 ;
@@ -630,12 +634,12 @@ vardec
 fundec
 : FUNCTION id '(' tyfields ')' EQ expr
 {
-	$$ = gcnew(FunDec, ($2, $4, Symbol::symbol(""), $7, 0));
+	$$ = gcnew(FunDec, ($2, $4, Symbol::symbol(""), $7, &@1));
 	PARSER_DBG("FunDec %p", $$);
 }
 | FUNCTION id '(' tyfields ')' ':' type_id EQ expr
 {
-	$$ = gcnew(FunDec, ($2, $4, $7, $9, 0));
+	$$ = gcnew(FunDec, ($2, $4, $7, $9, &@1));
 	PARSER_DBG("FunDec %p", $$);
 }
 ;
