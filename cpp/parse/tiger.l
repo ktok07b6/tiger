@@ -3,10 +3,18 @@
 #include "Absyn.h"
 //#include "parser.hpp"
 #include "debug.h"
+#include "parserUtils.h"
 
 extern "C" int yywrap(void)
 {
     return 1;
+}
+
+
+#define YY_INPUT(buf,result,max_size)  {\
+  result = getNextChar(buf, max_size); \
+  if (result <= 0) \
+    result = YY_NULL; \
 }
 
 extern bool isTypeID(const char *id);
@@ -23,43 +31,45 @@ SYMBOLS [,.\:;()\{\}\[\]]
 IDENT [a-zA-Z][_a-zA-Z0-9]*
 %%
 
-if    { return IF;}
-then  { return THEN;}
-else  { return ELSE;}
-while { return WHILE;}
-do    { return DO;}
-for   {return FOR;}
-to    {return TO;}
-let   {return LET;}
-in    {return IN;}
-end   {return END;}
-function {return FUNCTION;}
-var   {return VAR;}
-array {return ARRAY;}
-of    {return OF;}
-break {return BREAK;}
-type  {return TYPE;}
-nil   {return NIL; }
-":="    {return ASSIGN;}
-"+"    {yylval.op = PlusOp; return PLUS; }
-"-"    {yylval.op = MinusOp; return MINUS; }
-"*"    {yylval.op = TimesOp; return TIMES; }
-"/"    {yylval.op = DivideOp; return DIVIDE; }
-"="    {yylval.op = EqOp; return EQ; }
-"<>"    {yylval.op = NeOp; return NE; }
-">"     {yylval.op = GtOp; return GT; }
-"<"     {yylval.op = LtOp; return LT; }
-">="    {yylval.op = GeOp; return GE; }
-"<="    {yylval.op = LeOp; return LE; }
-"&"     {yylval.op = AndOp; return AND; }
-"|"     {yylval.op = OrOp; return OR; }
+if    { beginToken(yytext); return IF;}
+then  { beginToken(yytext); return THEN;}
+else  { beginToken(yytext); return ELSE;}
+while { beginToken(yytext); return WHILE;}
+do    { beginToken(yytext); return DO;}
+for   { beginToken(yytext); return FOR;}
+to    { beginToken(yytext); return TO;}
+let   { beginToken(yytext); return LET;}
+in    { beginToken(yytext); return IN;}
+end   { beginToken(yytext); return END;}
+function { beginToken(yytext); return FUNCTION;}
+var   { beginToken(yytext); return VAR;}
+array { beginToken(yytext); return ARRAY;}
+of    { beginToken(yytext); return OF;}
+break { beginToken(yytext); return BREAK;}
+type  { beginToken(yytext); return TYPE;}
+nil   { beginToken(yytext); return NIL; }
+":="    { beginToken(yytext); return ASSIGN;}
+"+"    { beginToken(yytext); yylval.op = PlusOp; return PLUS; }
+"-"    { beginToken(yytext); yylval.op = MinusOp; return MINUS; }
+"*"    { beginToken(yytext); yylval.op = TimesOp; return TIMES; }
+"/"    { beginToken(yytext); yylval.op = DivideOp; return DIVIDE; }
+"="    { beginToken(yytext); yylval.op = EqOp; return EQ; }
+"<>"    { beginToken(yytext); yylval.op = NeOp; return NE; }
+">"     { beginToken(yytext); yylval.op = GtOp; return GT; }
+"<"     { beginToken(yytext); yylval.op = LtOp; return LT; }
+">="    { beginToken(yytext); yylval.op = GeOp; return GE; }
+"<="    { beginToken(yytext); yylval.op = LeOp; return LE; }
+"&"     { beginToken(yytext); yylval.op = AndOp; return AND; }
+"|"     { beginToken(yytext); yylval.op = OrOp; return OR; }
 
 {NUMBER} { 
+  beginToken(yytext); 
   sscanf(yytext, "%d", &yylval.n);
   return INTEGER_CONSTANT;
 }
 
 {IDENT} {
+  beginToken(yytext);
   yylval.s = yytext;
   if (isTypeID(yytext)) {
     return TIGER_TYPE_IDENT;
@@ -69,10 +79,11 @@ nil   {return NIL; }
 }
 
 {SYMBOLS} {
+  beginToken(yytext);
   return yytext[0];
 }
 
-{WSPACE} {}
+{WSPACE} { beginToken(yytext);}
 
 \" {BEGIN(STRING); yymore();}
 <STRING>\n {
@@ -81,6 +92,7 @@ nil   {return NIL; }
   return TIGER_ERROR;
 }
 <STRING>\"      { 
+  beginToken(yytext);
   yylval.s = yytext;
   BEGIN(INITIAL);
   return STRING_CONSTANT;
@@ -93,11 +105,12 @@ nil   {return NIL; }
 	BEGIN(INITIAL);
 }
 
-\n ;//{ return TIGER_EOL;}
+\n { beginToken(yytext);}
 
 <<EOF>> { return 0; }
 
 . {
+  beginToken(yytext);
   printf("unknown token %s\n", yytext);
   return TIGER_ERROR;
 }

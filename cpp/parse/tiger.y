@@ -10,13 +10,15 @@
 #include <string>
 #include "debug.h"
 #include "HeapManager.h"
+#include "parserUtils.h"
 
 using namespace std;
 //#define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 
 extern "C" void yyerror(char *s) {
-	fprintf(stderr, "%s\n",s);
+	//fprintf(stderr, "%s\n",s);
+	printError(s);
 }
 
 int yylex(void);
@@ -118,11 +120,12 @@ program
 {
 	result_syntax_tree = $1;
 	PARSER_DBG("program %p", result_syntax_tree);
+	parseComplete();
 }
 | error
 {
-	yyerrok;
-	yyclearin;
+	//yyerrok;
+	//yyclearin;
 }
 ;
 

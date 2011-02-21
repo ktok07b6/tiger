@@ -16,6 +16,7 @@ SOURCES_LIBCORE= \
 	Bitmap.cpp \
 	lexer.cpp \
 	parser.cpp \
+	parserUtils.cpp \
 	tiger.cpp \
 	Symbol.cpp \
 	Type.cpp \
