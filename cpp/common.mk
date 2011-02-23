@@ -1,5 +1,5 @@
 BUILD_DIR=$(TOP)/obj
-TARGET_CPU=arm
+TARGET_CPU=x86
 SUB_DIRS=asm ast canon common frame graph opt parse regalloc symbol temp translate tree type target/$(TARGET_CPU)
 INCS=-I$/usr/local/include -I$(HOME)/include -I$(TOP) $(addprefix -I$(TOP)/, $(SUB_DIRS))
 OPTS=-fno-exceptions -fno-rtti -O0 -g -Wall 

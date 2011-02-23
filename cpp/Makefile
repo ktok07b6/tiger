@@ -99,4 +99,4 @@ endif
 clean:
 	-@echo -@rm obj/* $(TARGET) libcore.a
 	-@rm obj/* $(TARGET) 
-	-@rm parse/*.cpp
+	-@rm parse/parser.cpp parse/lexer.cpp
