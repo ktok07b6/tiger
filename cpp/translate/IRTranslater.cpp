@@ -726,26 +726,70 @@ IRTranslater::visit(LetExp *exp)
 	tree::SEQ *seq = sm.make();
 	texp = gcnew(translate::Nx, (seq));
 }
-
+/*
+void
+IRTranslater::initArray
+*/
 void
 IRTranslater::visit(ArrayExp *exp)
 {
 	FUNCLOG;
-	//TODO
+
+	int wordSize = currentLevel->getFrame()->wordSize();
 
 	//exp->type->name;
 	exp->size->accept(this);
 	tree::Exp *size = texp->unEx();
 
-	exp->init->accept(this);
-	tree::Exp *init = texp->unEx();
+	if (exp->init_t->actual()->isIntT()) {
+		exp->init->accept(this);
+		tree::Exp *init = texp->unEx();
 
-	tree::ExpList arg;
-	arg.push_back(size);
-	arg.push_back(init);
-	tree::Exp *addr = currentLevel->getFrame()->externalCall("initArray", arg);
+		tree::ExpList arg;
+		arg.push_back(size);
+		arg.push_back(init);
+		tree::Exp *addr = currentLevel->getFrame()->externalCall("initArray", arg);
+		texp = gcnew(translate::Ex, (addr));
+	} else if (exp->init_t->actual()->isStrT() ||
+			   exp->init_t->actual()->isArrayT() ||
+			   exp->init_t->actual()->isRecordT()) {
+		exp->init->accept(this);
+		tree::Exp *init = texp->unEx();
 
-	texp = gcnew(translate::Ex, (addr));
+		tree::ExpList arg;
+		tree::BINOP *memsz = _(size) * _(_CONST(wordSize));
+		arg.push_back(memsz);
+		tree::Exp *addr = currentLevel->getFrame()->externalCall("alloc", arg);
+
+		tree::TEMP *ptr = _TEMP(gcnew(Temp,()));
+		tree::MOVE *ptr_init = _MOVE(ptr, addr);
+		tree::TEMP *var = _TEMP(gcnew(Temp,()));
+		Label *labelS = gcnew(Label, ());
+		Label *labelE = gcnew(Label, ());
+		tree::LABEL *l_S = _LABEL(labelS);
+		tree::LABEL *l_E = _LABEL(labelE);
+		tree::MOVE *var_init = _MOVE(var, _CONST(0));
+		tree::BINOP *offset = _(var) * _(_CONST(wordSize));
+		tree::MEM *mem = _MEM(_(ptr)+_(offset));
+		tree::MOVE *store = _MOVE(mem, init);
+		tree::BINOP *var_inc = _(var) + _(_CONST(1));
+		tree::MOVE *var_update = _MOVE(var, var_inc);
+		tree::CJUMP *cmp = _CJUMP(tree::CJUMP::oLT, var, size, labelS, labelE); 
+		tree::SEQMaker sm;
+		sm.add(ptr_init);
+		sm.add(var_init);
+		sm.add(cmp);
+		sm.add(l_S);
+		sm.add(store);
+		sm.add(var_update);
+		sm.add(cmp);
+		sm.add(l_E);
+		tree::SEQ *seq = sm.make();
+		tree::ESEQ *eseq = _ESEQ(seq, ptr);
+		texp = gcnew(translate::Ex, (eseq));
+	} else {
+		assert(0);
+	}
 }
 
 void

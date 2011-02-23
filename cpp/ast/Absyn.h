@@ -306,6 +306,7 @@ struct ArrayExp : Exp
 	Symbol *type;
 	Exp *size;
 	Exp *init;
+	Type *init_t;
 	ACCEPTOR;
 };
 

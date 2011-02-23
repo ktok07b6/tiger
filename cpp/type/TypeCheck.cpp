@@ -418,10 +418,10 @@ void TypeCheck::visit(ArrayExp *exp)
 		error("int type expected");
 	}
 	exp->init->accept(this);
-	Type *init_t = pop();
+	exp->init_t = pop();
 	
 	Type *elem_t = static_cast<ArrayT*>(arr_t->actual())->element;
-	if (!init_t->coerceTo(elem_t)) {
+	if (!exp->init_t->coerceTo(elem_t)) {
 		error("array type is different");
 	}
 	push(arr_t);
