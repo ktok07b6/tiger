@@ -30,8 +30,9 @@ class ARMFrame : public Frame
 		WORD_SIZE = 4,
 		MAX_REG = 16
 	};
- private:
+private:
 	TempList findRegsInBody(const assem::InstructionList &body);
+	bool isCalleeSaveReg(Temp *r);
 
 	int frameOffset;
 	int maxExtraArgSize;
@@ -44,12 +45,13 @@ class ARMFrame : public Frame
 
 class InFrame : public Frame::Access
 {
- public:
- InFrame(int offset) : offset(offset) {}
+public:
+ InFrame(int offset) 
+	 : offset(offset) {}
 
 	virtual std::string toString();
 	virtual tree::Exp *exp(tree::Exp *fp);
- private:
+private:
 	int offset;
 };
 

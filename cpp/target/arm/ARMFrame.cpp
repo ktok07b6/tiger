@@ -157,7 +157,7 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 	sm.add(l);
 
 	int i = 0;
-	int offset = 4;
+	int extraArgOffset = 12;
 	std::vector<Access*>::iterator it = formals.begin();
 	while (it != formals.end()) {
 		if (i < 4) {
@@ -165,12 +165,12 @@ ARMFrame::procEntryExit1(tree::Stm *body)
 			tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
 			sm.add(_MOVE(tmp, r));
 		} else {
-			tree::CONST *offs = _CONST(offset);
+			tree::CONST *offs = _CONST(extraArgOffset);
 			tree::TEMP *base = _TEMP(fp());
 			tree::MEM *m = _MEM(_(base) + _(offs));
 			tree::Exp *tmp = (*it)->exp(_TEMP(fp()));
 			sm.add(_MOVE(tmp, m));
-			offset += WORD_SIZE;
+			extraArgOffset += WORD_SIZE;
 		}
 		++it;
 		++i;
@@ -273,84 +273,120 @@ assem::InstructionList
 ARMFrame::procEntryExit3(const assem::InstructionList &body)
 {
 	/*
-	  stack frame example
+	  the stack frame of arm-tiger
+	  
+	  ex: frameOffset = 8
+	      callee save = {r4, r5, fp, lr}
+		  baseOffset = 16 (four callee saves * WORD_SIZE)
+          maxExtraArgSize = 2
 
 	       ...  lower address
-	  XXXXFFFC |--------------|
-	  XXXX0000 |    <empty>   |
-	  XXXX0004 |--------------|
-	  XXXX0008 |      ...     |-+ <== sp
-	  XXXX000C |--------------| |
-	  XXXX0010 |      ...     | | local vars & args
-	  XXXX0014 |--------------| |
-	  XXXX0018 | static link  |-+ <== fp
-	  XXXX001C |--------------|
-	  XXXX0020 |      lr      |-+
-	  XXXX0024 |--------------| | 
-	  XXXX0028 |      fp      | | callee save regs
-	  XXXX002C |--------------| |
-	  XXXX0030 |      ...     |-+
-	  XXXX0034 |--------------|
-	  XXXX0038 |      ...     | <== old sp
-	  XXXX003C |--------------|
+	           |--------------|
+	       -24 |    <empty>   |-+ <== new sp
+	           |--------------| | extra parameters for function call
+	       -20 |    <empty>   |-+ 
+	           |--------------| 
+	       -16 |      r5      | | callee saves 2
+	           |--------------| |
+	       -12 |      r4      |-+ 
+	           |--------------| 
+	        -8 |      ...     |-+ 
+	           |--------------| | local variables & spilled regs (frameOffset)
+	        -4 |      ...     |-+ 
+	           |--------------| 
+	         0 | static link  | <== new fp
+	           |--------------|
+	        +4 |   (old)lr    |-+
+	           |--------------| | callee saves 1
+	        +8 |   (old)fp    |-+
+	           |--------------|
+	       +12 |     arg5     | <== old sp 
+	           |--------------|
+	       +16 |     arg6     |
+	           |--------------|
 	       ...  higher address
+
+
+		   Therefore ...
+		   * access to static link    ... fp[0]
+		   * access to 1st argument   ... r0
+		   * access to 5th argument   ... fp[12]
+		   * access to 6th argument   ... fp[16]
+		   * access to 1st local var  ... fp[-4]
+		   * access to 2nd local var  ... fp[-8]
+		   * old fp is saved at       ... fp[4]
+		   * store to 1st param of function call ... r0
+		   * store to 5th param of function call ... sp[0]
 	 */
+
 	assem::InstructionList proc;
 	std::string assem;
-
-	std::string saveRegStr;
+	std::string strCalleeSaveReg;
+	int numCalleeSaveReg = 0;
 	//usedRegs is passed by regalloc
-	bool fpExist = false;
 	TempList::const_iterator it = usedRegs.begin();
 	while (it != usedRegs.end()) {
 		Temp *r = *it;
-#ifdef DO_NOT_SAVE_ARGUMENT_REGISTERS
-		if (r == regs.all[0] || r == regs.all[1] || r == regs.all[2] || r == regs.all[3]) {
-			++it;
-			continue;
-		} else
-#endif
-		if (r == regs.all[0]) {
-			++it;
-			continue;
-		} else if (r == regs.all[11]) {
-			fpExist = true;
+		if (isCalleeSaveReg(r)) {
+			if (numCalleeSaveReg) {
+				strCalleeSaveReg += ",";
+			}
+			strCalleeSaveReg += r->toString();
+			numCalleeSaveReg++;
 		}
-		saveRegStr += r->toString();
-		saveRegStr += ",";
 		++it;
-	}
-	//fp is always used by frame
-	if (!fpExist) {
-		saveRegStr += "fp,";
 	}
 
 	//prologue//////////
 	assem::Instruction *funcLabel = body.front();
 	assert(funcLabel->isLABEL());
 	proc.push_back(funcLabel);
-	
-	assem = format("sp!, {%s lr}", saveRegStr.c_str());
-	assem::OPER *stmfd = gcnew(assem::OPER, ("stmfd", assem, TempList(), TempList()));
-	proc.push_back(stmfd);
 
-	assem::OPER *set_fp = gcnew(assem::OPER, ("sub", "fp, sp, #4", TempList(), TempList()));
+	assem::OPER *save_fp = gcnew(assem::OPER, ("stmfd", "sp!, {fp, lr}", NULL, NULL));
+	proc.push_back(save_fp);
+
+	assem::OPER *set_fp = gcnew(assem::OPER, ("sub", "fp, sp, #4", NULL, NULL));
 	proc.push_back(set_fp);
 
-	assem = format("sp, sp, #%d", frameOffset + maxExtraArgSize);
-	assem::OPER *set_sp = gcnew(assem::OPER, ("sub", assem, TempList(), TempList()));
-	proc.push_back(set_sp);
+	if (frameOffset) {
+		assem = format("sp, sp, #%d", frameOffset);
+		assem::OPER *expand_local_temp_space = gcnew(assem::OPER, ("sub", assem, NULL, NULL));
+		proc.push_back(expand_local_temp_space);
+	}
+	
+	if (numCalleeSaveReg) {
+		assem = format("sp!, {%s}", strCalleeSaveReg.c_str());
+		assem::OPER *store_callee_saves = gcnew(assem::OPER, ("stmfd", assem, NULL, NULL));
+		proc.push_back(store_callee_saves);
+	}
+
+	if (maxExtraArgSize) {
+		assem = format("sp, sp, #%d", maxExtraArgSize);
+		assem::OPER *expand_extra_arg_space = gcnew(assem::OPER, ("sub", assem, NULL, NULL));
+		proc.push_back(expand_extra_arg_space);
+	}
 
 	//body//////////////
 	std::copy(body.begin()+1, body.end(), std::back_inserter(proc));
 
 	//epilogue//////////
-	assem::OPER *rewind_sp = gcnew(assem::OPER, ("add", "sp, fp, #4", TempList(), TempList()));
-	proc.push_back(rewind_sp);
+	if (maxExtraArgSize) {
+		assem = format("sp, sp, #%d", maxExtraArgSize);
+		assem::OPER *rewind_extra_arg_space = gcnew(assem::OPER, ("sub", assem, NULL, NULL));
+		proc.push_back(rewind_extra_arg_space);
+	}
 	
-	assem = format("sp!, {%s pc}", saveRegStr.c_str());
-	assem::OPER *ldmfd = gcnew(assem::OPER, ("ldmfd", assem, TempList(), TempList()));
-	proc.push_back(ldmfd);
+	if (numCalleeSaveReg) {
+		assem = format("sp!, {%s}", strCalleeSaveReg.c_str());
+		assem::OPER *restore_callee_saves = gcnew(assem::OPER, ("ldmfd", assem, NULL, NULL));
+		proc.push_back(restore_callee_saves);
+	}
+
+	assem::OPER *rewind_sp = gcnew(assem::OPER, ("add", "sp, fp, #4", NULL, NULL));
+	proc.push_back(rewind_sp);
+
+	assem::OPER *restore_and_ret = gcnew(assem::OPER, ("ldmfd", "sp!, {fp, pc}", NULL, NULL));
+	proc.push_back(restore_and_ret);
 
 	return proc;
 }
@@ -383,7 +419,7 @@ ARMFrame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 		TempList use = inst->use();
 		if (std::find(use.begin(), use.end(), spill) != use.end()) {
 			Temp *tmp = gcnew(Temp, ());
-			std::string operand = format("$d0, [fp, #%d]", -frameOffset);
+			std::string operand = format("'d0, [fp, #%d]", -frameOffset);
 			assem::OPER *ldr = gcnew(assem::OPER, ("ldr", operand, tmp, NULL));
 			result.push_back(ldr);
 			inst->replaceUse(spill, tmp);
@@ -394,7 +430,7 @@ ARMFrame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 		TempList def = inst->def();
 		if (std::find(def.begin(), def.end(), spill) != def.end()) {
 			Temp *tmp = gcnew(Temp, ());
-			std::string operand = format("$s0, [fp, #%d]", -frameOffset);
+			std::string operand = format("'s0, [fp, #%d]", -frameOffset);
 			assem::OPER *str = gcnew(assem::OPER, ("str", operand, NULL, tmp));
 			result.push_back(str);
 			inst->replaceDef(spill, tmp);
@@ -419,6 +455,21 @@ ARMFrame::extraArgSize(int size)
 {
 	maxExtraArgSize = (maxExtraArgSize < size) ? size : maxExtraArgSize;
 }
+
+
+bool 
+ARMFrame::isCalleeSaveReg(Temp *r)
+{
+	TempList::iterator it = regs.calleeSaves.begin();
+	while (it != regs.calleeSaves.end()) {
+		if (r == *it) {
+			return true;
+		}
+		++it;
+	}
+	return false;
+}
+
 
 //------------------------------------------------------
 std::string 
