@@ -1,7 +1,9 @@
 let
     type vector = array of int
     type matrix = array of vector
+    type cube = array of matrix
 	var a:matrix := matrix[2] of vector[2] of 1
+	var b:cube := cube[2] of matrix[2] of vector[2] of 1
 in
     test(a[0][0] = 1);
     test(a[0][1] = 1);
@@ -15,6 +17,28 @@ in
     test(a[0][1] = 0);
     test(a[1][0] = 0);
     test(a[1][1] = 1);
+
+    test(b[0][0][0] = 1);
+    test(b[0][0][1] = 1);
+    test(b[0][1][0] = 1);
+    test(b[0][1][1] = 1);
+    test(b[1][0][0] = 1);
+    test(b[1][0][1] = 1);
+    test(b[1][1][0] = 1);
+    test(b[1][1][1] = 1);
+
+	b[0][0][1] := 0;
+	b[0][1][0] := 0;
+	b[1][0][0] := 0;
+
+    test(b[0][0][0] = 1);
+    test(b[0][0][1] = 0);
+    test(b[0][1][0] = 0);
+    test(b[0][1][1] = 1);
+    test(b[1][0][0] = 0);
+    test(b[1][0][1] = 1);
+    test(b[1][1][0] = 1);
+    test(b[1][1][1] = 1);
 
     print("ok\n")
 end

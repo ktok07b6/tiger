@@ -1,23 +1,32 @@
 let
+  function mod(m:int, n:int):int =
+    m-((m/n)*n)
  
   function power(m:int, n:int):int =
         let 
             var n2 := 0
-            function mod(m:int, n:int):int =
-                m-((m/n)*n)
         in
             if n = 0 then 1
             else if n = 1 then m
             else (n2 := power(m, n/2); n2*n2*power(m, mod(n,2)))
         end
 in
+/*
+    test(mod(1,2) = 1);
+    test(mod(2,2) = 0);
+    test(mod(3,2) = 1);
+    test(mod(4,2) = 0);
+    test(mod(5,2) = 1);
+    test(mod(6,2) = 0);
+    test(mod(7,2) = 1);
 
     test(power(1,0) = 1);
     test(power(1,1) = 1);
+*/
     test(power(1,2) = 1);
-
     test(power(2,0) = 1);
     test(power(2,1) = 2);
+
     test(power(2,2) = 4);
     test(power(2,3) = 8);
     test(power(2,4) = 16);
@@ -29,5 +38,7 @@ in
     test(power(3,3) = 27);
 
     test(power(power(2,2), power(2,2)) = 4*4*4*4);
+
+
     print("ok\n")
 end
