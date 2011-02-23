@@ -48,11 +48,9 @@ int count = 0;
 void
 RegAlloc::allocate()
 {
-	DBG("allocate");
+	DBG("allocate %d", count);
 	count++;
-	if (count == 10) {
-		return;
-	}
+
 	const graph::AsmFlowGraph flow(proc);
 	const Liveness liveness(flow);
 	const graph::InterferenceGraph *igraph = liveness.getInterferenceGraph();

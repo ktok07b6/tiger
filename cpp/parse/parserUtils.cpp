@@ -37,10 +37,10 @@ LineBuffer::LineBuffer(FILE *fp)
 			ERROR("Failed to read line");
 		}
 		eof = true;
-		DBG("EOF");
+		VDBG("EOF");
 		return;
 	} else {
-		DBG("%s", buf);
+		VDBG("%s", buf);
 		length = strlen(buf);
 		pos = 0;
 	}
@@ -117,7 +117,7 @@ int getNextChar(char *b, int maxBuffer)
 	}
 
 	b[0] = lineBuffer->getNextChar();
-	DBG("getNextChar() => '%c'0x%02x at %d",
+	VDBG("getNextChar() => '%c'0x%02x at %d",
 		b[0], b[0], lineBuffer->getPos());
 	
 	if (b[0] != 0) {
@@ -140,7 +140,7 @@ void beginToken(char *t)
 	yylloc.first_column = tokenStartPos;
 	yylloc.last_line = lineBuffer->getRow();
 	yylloc.last_column = tokenStartPos + tokenLength - 1;
-	DBG("beginToken %s (line[%d]:%d-%d)", t, yylloc.first_line, yylloc.first_column, yylloc.last_column);
+	VDBG("beginToken %s (line[%d]:%d-%d)", t, yylloc.first_line, yylloc.first_column, yylloc.last_column);
 }
 
 

@@ -1,5 +1,5 @@
 //#define ENABLE_FUNCLOG
-#define LOG_MASK (ERROR_ON | WARN_ON | INFO_ON | DEBUG_ON | VERBOSE_ON)
+//#define LOG_MASK (ERROR_ON | WARN_ON | INFO_ON | DEBUG_ON | VERBOSE_ON)
 #include <boost/foreach.hpp>
 #include "Color.h"
 #include "InterferenceGraph.h"
