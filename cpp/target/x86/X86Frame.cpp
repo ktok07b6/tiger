@@ -322,9 +322,9 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	proc.push_back(expand_sp);
 
 	//CalleeSave registers is stored between the local variables and the parameters of the function call
+	int offset = frameOffset;
 	{
 		TempList::const_iterator it = savedCalleeSave.begin();
-		int offset = frameOffset;
 		while (it != savedCalleeSave.end()) {
 			offset += 4;
 			assem = format("%s, %d(%%ebp)", (*it)->toString().c_str(), -offset);
@@ -349,9 +349,7 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	//restore callee saves
 	{
 		TempList::const_reverse_iterator rit = savedCalleeSave.rbegin();
-		int offset = frameOffset;
 		while (rit != savedCalleeSave.rend()) {
-			offset += 4;
 			assem = format("%d(%%ebp), %s", -offset, (*rit)->toString().c_str());
 			assem::OPER *restore_callee_save = gcnew(assem::OPER, ("movl", 
 																   assem,
@@ -359,6 +357,7 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 																   NULL
 																   ));
 			proc.push_back(restore_callee_save);
+			offset -= 4;
 			++rit;
 		}
 	}
