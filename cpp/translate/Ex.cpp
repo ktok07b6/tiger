@@ -19,7 +19,7 @@ Ex::unEx()
 tree::Stm *
 Ex::unNx()
 {
-	return gcnew(tree::EXPR, (exp));
+	return _EXPR(exp);
 }
 
 tree::CJUMP *
