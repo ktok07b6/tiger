@@ -185,15 +185,16 @@ Canon::do_stm(tree::MOVE *move)
 	FUNCLOG;
 	tree::TEMP *temp;
 	tree::CALL *call;
+	tree::BINOP *binop;
 	tree::ESEQ *eseq;
 	if (_M0(TEMP_T, temp) == move->dst && _M0(CALL_T, call) == move->src) {
 		return reorder_stm(gcnew(MoveCall, (temp, call)));
 	}
-	/*
-	else if (move->dst->isTEMP_T() && move->src->isBINOP_T()) {
-		return reorder_stm(gcnew(MoveBinop, ((tree::TEMP*)move->dst, (tree::BINOP*)move->src)));
+	
+	else if (_M0(TEMP_T, temp) == move->dst && _M0(BINOP_T, binop) == move->src) {
+		return reorder_stm(gcnew(MoveBinop, (temp, binop)));
 	}
-	*/
+
 	else if(_M0(ESEQ_T, eseq) == move->dst) {
 		//remove ESEQ
 		tree::MOVE *move2 = _MOVE(eseq->exp, move->src);
@@ -324,7 +325,10 @@ Canon::reorder(tree::ExpList kids)
 	//DBG("reorder kids ------------------ end");
 
 	tree::Exp *a = kids.pop_front();
-	if (a->isCALL_T()/* || a->isBINOP_T()*/) {
+	//FIXME:
+	//Because div BINOP becomes a function call in ARM, 
+	//BINOP is put out ahead of the expression. 
+	if (a->isCALL_T() || a->isBINOP_T()) {
 		//replace CALL
 		Temp *t = gcnew(Temp, ());
 		tree::TEMP *tmp = _TEMP(t);
