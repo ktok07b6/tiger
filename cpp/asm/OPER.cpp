@@ -73,14 +73,14 @@ OPER::replaceDef(Temp *oldt, Temp *newt)
 }
 
 void 
-OPER::replaceUse(int index, Temp *newt)
+OPER::replaceUse(unsigned int index, Temp *newt)
 {
 	assert(0 <= index && index < src.size());
 	src[index] = newt;
 }
 
 void 
-OPER::replaceDef(int index, Temp *newt)
+OPER::replaceDef(unsigned int index, Temp *newt)
 {
 	assert(0 <= index && index < dst.size());
 	dst[index] = newt;

@@ -196,8 +196,8 @@ X86Frame::procEntryExit2(const assem::InstructionList &body)
 		comment += " ";
 	}
 #endif		
-	assem::OPER *sink1 = gcnew(assem::OPER, ("", "", alive_regs, TempList(), "@def " + comment));
-	assem::OPER *sink2 = gcnew(assem::OPER, ("", "", TempList(), alive_regs, "@use " + comment));
+	assem::OPER *sink1 = _aOPER5("", "", alive_regs, TempList(), "@def " + comment);
+	assem::OPER *sink2 = _aOPER5("", "", TempList(), alive_regs, "@use " + comment);
 	
 	assem::Instruction *funcLabel = body.front();
 	assert(funcLabel->isLABEL());
@@ -209,7 +209,7 @@ X86Frame::procEntryExit2(const assem::InstructionList &body)
 	//insert end label
 	assert(endFuncLabel);
 	std::string assem = format("%s:", endFuncLabel->toString().c_str());
-	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
+	assem::LABEL *end_lab = _aLABEL(assem, endFuncLabel);
 	newbody.push_back(end_lab);
 
 	newbody.push_back(sink2);
@@ -297,10 +297,10 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	assert(funcLabel->isLABEL());
 	proc.push_back(funcLabel);
 	
-	assem::OPER *save_bp = gcnew(assem::OPER, ("pushl", "%ebp", NULL, ebp));
+	assem::OPER *save_bp = _aOPER("pushl", "%ebp", NULL, ebp);
 	proc.push_back(save_bp);
 
-	assem::MOVE *move_sp = gcnew(assem::MOVE, ("movl", "%esp, %ebp", ebp, esp));
+	assem::MOVE *move_sp = _aMOVE("movl", "%esp, %ebp", ebp, esp);
 	proc.push_back(move_sp);
 
 	//usedRegs is passed by regalloc
@@ -318,7 +318,7 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 
 	int stackFrameSize = frameOffset + savedCalleeSave.size()*WORD_SIZE + maxArgSize*WORD_SIZE;
 	assem = format("$%d, %%esp", stackFrameSize);
-	assem::OPER *expand_sp = gcnew(assem::OPER, ("subl", assem, esp, esp));
+	assem::OPER *expand_sp = _aOPER("subl", assem, esp, esp);
 	proc.push_back(expand_sp);
 
 	//CalleeSave registers is stored between the local variables and the parameters of the function call
@@ -328,10 +328,10 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 		while (it != savedCalleeSave.end()) {
 			offset += 4;
 			assem = format("%s, %d(%%ebp)", (*it)->toString().c_str(), -offset);
-			assem::OPER *store_callee_save = gcnew(assem::OPER, ("movl", 
-																 assem,
-																 NULL, 
-																 (*it)));
+			assem::OPER *store_callee_save = _aOPER("movl", 
+													assem,
+													NULL, 
+													(*it));
 			proc.push_back(store_callee_save);
 			++it;
 		}
@@ -343,7 +343,7 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	//epilogue//////////
 
 	assem = format("$%d, %%esp", stackFrameSize);
-	assem::OPER *unexpand_sp = gcnew(assem::OPER, ("addl", assem, esp, esp));
+	assem::OPER *unexpand_sp = _aOPER("addl", assem, esp, esp);
 	proc.push_back(unexpand_sp);
 
 	//restore callee saves
@@ -351,11 +351,11 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 		TempList::const_reverse_iterator rit = savedCalleeSave.rbegin();
 		while (rit != savedCalleeSave.rend()) {
 			assem = format("%d(%%ebp), %s", -offset, (*rit)->toString().c_str());
-			assem::OPER *restore_callee_save = gcnew(assem::OPER, ("movl", 
-																   assem,
-																   (*rit), 
-																   NULL
-																   ));
+			assem::OPER *restore_callee_save = _aOPER("movl", 
+													  assem,
+													  (*rit), 
+													  NULL
+													  );
 			proc.push_back(restore_callee_save);
 			offset -= 4;
 			++rit;
@@ -364,13 +364,13 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 
 
 	//leave
-	assem::MOVE *rewind_sp = gcnew(assem::MOVE, ("movl", "%ebp, %esp", esp, ebp));
+	assem::MOVE *rewind_sp = _aMOVE("movl", "%ebp, %esp", esp, ebp);
 	proc.push_back(rewind_sp);
 
-	assem::OPER *load_bp = gcnew(assem::OPER, ("popl", "%ebp", ebp, NULL));
+	assem::OPER *load_bp = _aOPER("popl", "%ebp", ebp, NULL);
 	proc.push_back(load_bp);
 	
-	assem::OPER *ret = gcnew(assem::OPER, ("ret", "", NULL, NULL));
+	assem::OPER *ret = _aOPER("ret", "", NULL, NULL);
 	proc.push_back(ret);
 
 	return proc;
@@ -405,7 +405,7 @@ X86Frame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 		if (std::find(use.begin(), use.end(), spill) != use.end()) {
 			Temp *tmp = gcnew(Temp, ());
 			std::string operand = format("%d(%%ebp), 'd0\t# loaded spill ", -frameOffset);
-			assem::OPER *ldr = gcnew(assem::OPER, ("movl", operand, tmp, NULL));
+			assem::OPER *ldr = _aOPER("movl", operand, tmp, NULL);
 			result.push_back(ldr);
 			inst->replaceUse(spill, tmp);
 		}
@@ -416,7 +416,7 @@ X86Frame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 		if (std::find(def.begin(), def.end(), spill) != def.end()) {
 			Temp *tmp = gcnew(Temp, ());
 			std::string operand = format("'s0, %d(%%ebp)\t# stored spill", -frameOffset);
-			assem::OPER *str = gcnew(assem::OPER, ("movl", operand, NULL, tmp));
+			assem::OPER *str = _aOPER("movl", operand, NULL, tmp);
 			result.push_back(str);
 			inst->replaceDef(spill, tmp);
 		}

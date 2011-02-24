@@ -62,7 +62,7 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 				TempList tl;
 				tl.push_back(munchExp(binop->l));
 				tl.push_back(munchExp(src));
-				emit(gcnew(assem::OPER, ("str", assem, TempList(), tl)));
+				emit(_aOPER("str", assem, TempList(), tl));
 					return;
 			}
 		} else if (_M0(CONST_T, konst) == binop->l &&
@@ -74,7 +74,7 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 				TempList tl;
 				tl.push_back(munchExp(binop->r));
 				tl.push_back(munchExp(src));
-				emit(gcnew(assem::OPER, ("str", assem, TempList(), tl)));
+				emit(_aOPER("str", assem, TempList(), tl));
 				return;
 			}
 		} 
@@ -84,50 +84,21 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		TempList tsrc;
 		tsrc.push_back(munchExp(mem->exp));
 		tsrc.push_back(munchExp(src));
-		emit(gcnew(assem::OPER, ("str", "'s1, ['s0]", TempList(), tsrc)));
+		emit(_aOPER("str", "'s1, ['s0]", TempList(), tsrc));
 		return;
 	}
-	/*
-	//(TEMP(i), BINOP(...))
-	if (_M0(TEMP_T, temp) == dst && _M0(BINOP_T, binop) == src) {
-		if (binop->op == tree::BINOP::oPLUS) {
-			if (_M0(TEMP_T, temp2) == binop->l && _M0(CONST_T, konst) == binop->r) {
-				if (temp == temp2) {
-					string assem = format("add 'd0, 's0, #%d", konst->value);
-					TempList tdst, tsrc;
-					tdst.push_back(temp->temp);
-					tsrc.push_back(temp->temp);
-					emit(gcnew(assem::OPER, (assem, tdst, tsrc)));
-					return;
-				}
-			} else if (_M0(TEMP_T, temp2) == binop->r && _M0(CONST_T, konst) == binop->l) {
-				if (temp == temp2) {
-					string assem = format("add 'd0, 's0, #%d", konst->value);
-					TempList tdst, tsrc;
-					tdst.push_back(temp->temp);
-					tsrc.push_back(temp->temp);
-					emit(gcnew(assem::OPER, (assem, tdst, tsrc)));
-					return;
-				}
-			}
 
-		} else if (binop->op == tree::BINOP::oMINUS) {
-		} else if (binop->op == tree::BINOP::oMUL) {
-		} else if (binop->op == tree::BINOP::oDIV) {
-		}
-	}
-	*/
 	//(TEMP(i), CONST(e2))
 	if (_M0(TEMP_T, temp) == dst && _M0(CONST_T, konst) == src) {
 		std::string assem = format("'d0, =%d", konst->value);
-		emit(gcnew(assem::MOVE, ("ldr", assem, temp->temp, NULL)));
+		emit(_aMOVE("ldr", assem, temp->temp, NULL));
 		return;
 	}
 
 	//(TEMP(i), e2)
 	if (_M0(TEMP_T, temp) == dst) {
 		Temp *ts = munchExp(src);
-		emit(gcnew(assem::MOVE, ("mov", "'d0, 's0", temp->temp, ts)));
+		emit(_aMOVE("mov", "'d0, 's0", temp->temp, ts));
 		return;
 	}
 }
@@ -135,7 +106,7 @@ ARMCodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 void
 ARMCodeGen::munchLABEL(Label *lab)
 {
-	emit(gcnew(assem::LABEL, (lab->toString() + ":", lab)));
+	emit(_aLABEL(lab->toString() + ":", lab));
 }
 
 void 
@@ -143,7 +114,7 @@ ARMCodeGen::munchJUMP(Label *lab)
 {
 	LabelList targets;
 	targets.push_back(lab);
-	assem::OPER *op = gcnew(assem::OPER, ("b", "'j0", NULL, NULL));
+	assem::OPER *op = _aOPER("b", "'j0", NULL, NULL);
 	op->setJumpTargets(targets);
 	emit(op);
 }
@@ -179,12 +150,12 @@ ARMCodeGen::munchCJUMP(tree::CJUMP *cj)
 		tsrc.push_back(munchExp(cj->l));
 		tsrc.push_back(munchExp(cj->r));
 	}
-	emit(gcnew(assem::OPER, ("cmp", assem, TempList(), tsrc)));
+	emit(_aOPER("cmp", assem, TempList(), tsrc));
 	LabelList targets;
 	targets.push_back(cj->truelab);
 	targets.push_back(cj->falselab);
 	assem = format("b%s", reverse ? cond_r[cj->relop] : cond[cj->relop]);
-	assem::OPER *op = gcnew(assem::OPER, (assem, "'j0", NULL, NULL));
+	assem::OPER *op = _aOPER(assem, "'j0", NULL, NULL);
 	op->setJumpTargets(targets);
 	emit(op);
 }
@@ -200,7 +171,7 @@ ARMCodeGen::munchEXPR(tree::Exp *exp)
 		LabelList targets;
 		targets.push_back(call->func->label);
 		//TODO: r0-r3 will be destoryed in c function
-		assem::OPER *op = gcnew(assem::OPER, ("bl", "'j0", frame->registers().args, tsrc));
+		assem::OPER *op = _aOPER("bl", "'j0", frame->registers().args, tsrc);
 		op->setJumpTargets(targets);
 		emit(op);
 	}
@@ -213,6 +184,7 @@ ARMCodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 	tree::ExpList::const_iterator exp;
 	tree::ExpList::const_iterator exp_end = exps.end();
 	tree::CONST *konst;
+	//the extra argument is pushed at [sp, #0] 
 	if (regs.args.size() < exps.size()) {
 		exp = exps.begin();
 		std::advance(exp, regs.args.size());
@@ -223,15 +195,14 @@ ARMCodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 			Temp *tmp = gcnew(Temp, ());
 			if (_M0(CONST_T, konst) == e) {
 				std::string assem = format("'d0, =%d", konst->value);
-				emit(gcnew(assem::MOVE, ("ldr", assem, tmp, NULL)));
-				//FIXME:
+				emit(_aMOVE("ldr", assem, tmp, NULL));
 				assem = format("'s0, [sp, #%d]", offset);
-				emit(gcnew(assem::OPER, ("str", assem, regs.all[13], tmp)));
+				emit(_aOPER("str", assem, NULL, tmp));
 			} else {
 				Temp *src = munchExp(e);
-				emit(gcnew(assem::MOVE, ("mov", "'d0, 's0", tmp, src)));
+				emit(_aMOVE("mov", "'d0, 's0", tmp, src));
 				std::string assem = format("'s0, [sp, #%d]", offset);
-				emit(gcnew(assem::OPER, ("str", assem, regs.all[13], tmp)));
+				emit(_aOPER("str", assem, NULL, tmp));
 			}
 			++exp;
 			offset += frame->wordSize();
@@ -248,10 +219,10 @@ ARMCodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 		Temp *dst = *arg_reg;
 		if (_M0(CONST_T, konst) == e) {
 			std::string assem = format("'d0, =%d", konst->value);
-			emit(gcnew(assem::MOVE, ("ldr", assem, dst, NULL)));
+			emit(_aMOVE("ldr", assem, dst, NULL));
 		} else {
 			Temp *src = munchExp(e);
-			emit(gcnew(assem::MOVE, ("mov", "'d0, 's0", dst, src)));
+			emit(_aMOVE("mov", "'d0, 's0", dst, src));
 		}
 		tsrc->push_back(dst);
 		++exp;
@@ -277,10 +248,7 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 			if (konst->value <= IMMEDIATE_MAX) {
 				assem = format("'d0, ['s0, #%d]", konst->value);
 				Temp *r = gcnew(Temp, ());
-				emit(gcnew(assem::OPER, ("ldr", 
-										 assem, 
-										 r, 
-										 munchExp(binop->l))));
+				emit(_aOPER("ldr", assem, r, munchExp(binop->l)));
 				return r;
 			}
 		}
@@ -291,10 +259,7 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 			if (konst->value <= IMMEDIATE_MAX) {
 				assem = format("'d0, ['s0, #%d]", konst->value);
 				Temp *r = gcnew(Temp, ());
-				emit(gcnew(assem::OPER, ("ldr", 
-										 assem, 
-										 r, 
-										 munchExp(binop->r))));
+				emit(_aOPER("ldr", assem, r, munchExp(binop->r)));
 				return r;
 			}
 		}
@@ -303,10 +268,10 @@ ARMCodeGen::munchMEM(tree::MEM *mem)
 	{
 		//(e1)
 		Temp *r = gcnew(Temp, ());
-		emit(gcnew(assem::OPER, ("ldr", 
-								 "'d0, ['s0]", 
-								 r, 
-								 munchExp(mem->exp))));
+		emit(_aOPER("ldr", 
+					"'d0, ['s0]", 
+					r, 
+					munchExp(mem->exp)));
 		return r;
 	}
 }
@@ -339,7 +304,7 @@ ARMCodeGen::munchBINOP_PLUS(tree::BINOP *binop)
 
 		Temp *r = gcnew(Temp, ());
 		std::string assem = format("'d0, =%d", value);
-		emit(gcnew(assem::MOVE, ("ldr", assem, r, NULL)));
+		emit(_aMOVE("ldr", assem, r, NULL));
 		return r;
 	}
 	//(op,e1,CONST(i))
@@ -352,7 +317,7 @@ ARMCodeGen::munchBINOP_PLUS(tree::BINOP *binop)
 		if (konst->value <= IMMEDIATE_MAX) {
 			std::string assem = format("'d0, 's0, #%d", konst->value);
 			Temp *r = gcnew(Temp, ());
-			emit(gcnew(assem::OPER, ("add", assem, r, munchExp(binop->l))));
+			emit(_aOPER("add", assem, r, munchExp(binop->l)));
 			return r;
 		} 
 	}
@@ -367,7 +332,7 @@ ARMCodeGen::munchBINOP_PLUS(tree::BINOP *binop)
 			std::string assem = format("'d0, 's0, #%d", konst->value);
 
 			Temp *r = gcnew(Temp, ());
-			emit(gcnew(assem::OPER, ("add", assem, r, munchExp(binop->r))));
+			emit(_aOPER("add", assem, r, munchExp(binop->r)));
 			return r;
 		}
 	}
@@ -379,7 +344,7 @@ ARMCodeGen::munchBINOP_PLUS(tree::BINOP *binop)
 		tdst.push_back(r);
 		tsrc.push_back(munchExp(binop->l));
 		tsrc.push_back(munchExp(binop->r));
-		emit(gcnew(assem::OPER, ("add", "'d0, 's0, 's1", tdst, tsrc)));
+		emit(_aOPER("add", "'d0, 's0, 's1", tdst, tsrc));
 		return r;
 	}
 }
@@ -398,7 +363,7 @@ ARMCodeGen::munchBINOP_MINUS(tree::BINOP *binop)
 
 		Temp *r = gcnew(Temp, ());
 		std::string assem = format("'d0, =%d", value);
-		emit(gcnew(assem::MOVE, ("ldr", assem, r, NULL)));
+		emit(_aMOVE("ldr", assem, r, NULL));
 		return r;
 	}
 	//(op,e1,CONST(i))
@@ -411,7 +376,7 @@ ARMCodeGen::munchBINOP_MINUS(tree::BINOP *binop)
 		if (konst->value <= IMMEDIATE_MAX) {
 			std::string assem = format("'d0, 's0, #%d", konst->value);
 			Temp *r = gcnew(Temp, ());
-			emit(gcnew(assem::OPER, ("sub", assem, r, munchExp(binop->l))));
+			emit(_aOPER("sub", assem, r, munchExp(binop->l)));
 			return r;
 		} 
 	}
@@ -427,7 +392,7 @@ ARMCodeGen::munchBINOP_MINUS(tree::BINOP *binop)
 		tdst.push_back(r);
 		tsrc.push_back(munchExp(binop->l));
 		tsrc.push_back(munchExp(binop->r));
-		emit(gcnew(assem::OPER, ("sub", "'d0, 's0, 's1", tdst, tsrc)));
+		emit(_aOPER("sub", "'d0, 's0, 's1", tdst, tsrc));
 		return r;
 	}
 }
@@ -445,7 +410,7 @@ ARMCodeGen::munchBINOP_MUL(tree::BINOP *binop)
 
 		Temp *r = gcnew(Temp, ());
 		std::string assem = format("'d0, =%d", value);
-		emit(gcnew(assem::MOVE, ("ldr", assem, r, NULL)));
+		emit(_aMOVE("ldr", assem, r, NULL));
 		return r;
 	}
 	//(op,e1,CONST(i))
@@ -457,14 +422,14 @@ ARMCodeGen::munchBINOP_MUL(tree::BINOP *binop)
 
 		Temp *rs = gcnew(Temp, ());
 		std::string assem = format("'d0, =%d", konst->value);
-		emit(gcnew(assem::MOVE, ("ldr", assem, rs, NULL)));
+		emit(_aMOVE("ldr", assem, rs, NULL));
 			
 		Temp *rm = munchExp(binop->l);
 		TempList tdst, tsrc;
 		tdst.push_back(rs);//Rd
 		tsrc.push_back(rm);
 		tsrc.push_back(rs);
-		emit(gcnew(assem::OPER, ("mul", "'d0, 's0, 's1", tdst, tsrc)));
+		emit(_aOPER("mul", "'d0, 's0, 's1", tdst, tsrc));
 		return rs;
 	}
 	//(op,CONST(i),e1)
@@ -476,14 +441,14 @@ ARMCodeGen::munchBINOP_MUL(tree::BINOP *binop)
 
 		Temp *rs = gcnew(Temp, ());
 		std::string assem = format("'d0, =%d", konst->value);
-		emit(gcnew(assem::MOVE, ("ldr", assem, rs, NULL)));
+		emit(_aMOVE("ldr", assem, rs, NULL));
 		
 		Temp *rm = munchExp(binop->r);
 		TempList tdst, tsrc;
 		tdst.push_back(rs);//Rd
 		tsrc.push_back(rm);
 		tsrc.push_back(rs);
-		emit(gcnew(assem::OPER, ("mul", "'d0, 's0, 's1", tdst, tsrc)));
+		emit(_aOPER("mul", "'d0, 's0, 's1", tdst, tsrc));
 		return rs;
 	}
 		
@@ -494,7 +459,7 @@ ARMCodeGen::munchBINOP_MUL(tree::BINOP *binop)
 		tdst.push_back(r);
 		tsrc.push_back(munchExp(binop->l));
 		tsrc.push_back(munchExp(binop->r));
-		emit(gcnew(assem::OPER, ("mul", "'d0, 's0, 's1", tdst, tsrc)));
+		emit(_aOPER("mul", "'d0, 's0, 's1", tdst, tsrc));
 		return r;
 	}
 
@@ -514,7 +479,7 @@ ARMCodeGen::munchBINOP_DIV(tree::BINOP *binop)
 
 		Temp *r = gcnew(Temp, ());
 		std::string assem = format("'d0, =%d", value);
-		emit(gcnew(assem::MOVE, ("ldr", assem, r, NULL)));
+		emit(_aMOVE("ldr", assem, r, NULL));
 		return r;
 	}
 	//(op,e1,CONST(i))
@@ -536,7 +501,7 @@ ARMCodeGen::munchBINOP_DIV(tree::BINOP *binop)
 		args.push_back(binop->l);
 		args.push_back(binop->r);
 		munchArgs(args, &tsrc);
-		emit(gcnew(assem::OPER, ("bl", "__aeabi_idiv", frame->registers().args, tsrc)));
+		emit(_aOPER("bl", "__aeabi_idiv", frame->registers().args, tsrc));
 		return frame->rv();
 	}
 }
@@ -556,7 +521,7 @@ ARMCodeGen::munchCALL(tree::CALL *c)
 	LabelList targets;
 	targets.push_back(c->func->label);
 	//TODO: r0-r3 will be destoryed in c function
-	assem::OPER *op = gcnew(assem::OPER, ("bl", "'j0", frame->registers().args, tsrc));
+	assem::OPER *op = _aOPER("bl", "'j0", frame->registers().args, tsrc);
 	op->setJumpTargets(targets);
 	emit(op);
 	return rv;
@@ -569,7 +534,7 @@ ARMCodeGen::munchCONST(tree::CONST *c)
 	std::string assem = format("'d0, =%d", c->value);
 
 	Temp *r = gcnew(Temp, ());
-	emit(gcnew(assem::OPER, ("ldr", assem, r, NULL)));
+	emit(_aOPER("ldr", assem, r, NULL));
 	return r;
 }
 
@@ -584,7 +549,7 @@ ARMCodeGen::munchNAME(tree::NAME *n)
 {
 	std::string assem = format("'d0, %s", n->label->toString().c_str());
 	Temp *r = gcnew(Temp, ());
-	emit(gcnew(assem::OPER, ("ldr", assem, r, NULL)));
+	emit(_aOPER("ldr", assem, r, NULL));
 	return r;
 }
 

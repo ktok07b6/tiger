@@ -55,13 +55,13 @@ MOVE::replaceDef(Temp *oldt, Temp *newt)
 }
 
 void 
-MOVE::replaceUse(int index, Temp *newt)
+MOVE::replaceUse(unsigned int index, Temp *newt)
 {
 	src = newt;
 }
 
 void 
-MOVE::replaceDef(int index, Temp *newt)
+MOVE::replaceDef(unsigned int index, Temp *newt)
 {
 	dst = newt;
 }

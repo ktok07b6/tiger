@@ -39,13 +39,13 @@ LABEL::replaceDef(Temp *oldt, Temp *newt)
 }
 
 void 
-LABEL::replaceUse(int index, Temp *newt)
+LABEL::replaceUse(unsigned int index, Temp *newt)
 {
 	assert(!"do not reach here");
 }
 
 void 
-LABEL::replaceDef(int index, Temp *newt)
+LABEL::replaceDef(unsigned int index, Temp *newt)
 {
 	assert(!"do not reach here");
 }

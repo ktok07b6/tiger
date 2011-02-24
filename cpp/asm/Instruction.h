@@ -26,9 +26,9 @@ class Instruction : public Object
 	virtual LabelList jumps() = 0;
 
 	virtual void replaceUse(Temp *oldt, Temp *newt) = 0;
-	virtual void replaceUse(int index, Temp *newt) = 0;
+	virtual void replaceUse(unsigned int index, Temp *newt) = 0;
 	virtual void replaceDef(Temp *oldt, Temp *newt) = 0;
-	virtual void replaceDef(int index, Temp *newt) = 0;
+	virtual void replaceDef(unsigned int index, Temp *newt) = 0;
 	
 	virtual bool isMOVE() {return false;}
 	virtual bool isLABEL() {return false;}
@@ -81,9 +81,9 @@ class OPER : public Instruction
 	virtual TempList def();
 	virtual LabelList jumps();
 	virtual void replaceUse(Temp *oldt, Temp *newt);
-	virtual void replaceUse(int index, Temp *newt);
+	virtual void replaceUse(unsigned int index, Temp *newt);
 	virtual void replaceDef(Temp *oldt, Temp *newt);
-	virtual void replaceDef(int index, Temp *newt);
+	virtual void replaceDef(unsigned int index, Temp *newt);
 
 	void setJumpTargets(const LabelList &jmps);
 private:
@@ -106,9 +106,9 @@ class MOVE : public Instruction
 	virtual TempList def();
 	virtual LabelList jumps();
 	virtual void replaceUse(Temp *oldt, Temp *newt);
-	virtual void replaceUse(int index, Temp *newt);
+	virtual void replaceUse(unsigned int index, Temp *newt);
 	virtual void replaceDef(Temp *oldt, Temp *newt);
-	virtual void replaceDef(int index, Temp *newt);
+	virtual void replaceDef(unsigned int index, Temp *newt);
 
 	virtual bool isMOVE() {return true;}
 
@@ -128,14 +128,20 @@ class LABEL : public Instruction
 	virtual TempList def();
 	virtual LabelList jumps();
 	virtual void replaceUse(Temp *oldt, Temp *newt);
-	virtual void replaceUse(int index, Temp *newt);
+	virtual void replaceUse(unsigned int index, Temp *newt);
 	virtual void replaceDef(Temp *oldt, Temp *newt);
-	virtual void replaceDef(int index, Temp *newt);
+	virtual void replaceDef(unsigned int index, Temp *newt);
 	virtual bool isLABEL() {return true;}
 	Label *label() {return lab;}
  private:
 	Label *lab;
 };
+ 
+#define _aOPER(opc, opr, dst, src) gcnew(assem::OPER, (opc, opr, dst, src))
+#define _aOPER5(opc, opr, dst, src, comm) gcnew(assem::OPER, (opc, opr, dst, src, comm))
+#define _aMOVE(opc, opr, dst, src) gcnew(assem::MOVE, (opc, opr, dst, src))
+#define _aMOVE5(opc, opr, dst, src, comm) gcnew(assem::MOVE, (opc, opr, dst, src, comm))
+#define _aLABEL(s, l) gcnew(assem::LABEL, (s, l))
 
 }//namespace assem
 

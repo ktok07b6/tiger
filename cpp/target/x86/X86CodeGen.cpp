@@ -41,7 +41,7 @@ X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 			tsrc.push_back(munchExp(binop->l));
 			tsrc.push_back(munchExp(src));
 			assem = format("'s1, %d('s0)", konst->value);
-			emit(gcnew(assem::OPER, ("movl", assem, TempList(), tsrc)));
+			emit(_aOPER("movl", assem, TempList(), tsrc));
 			return;
 		} else if (_M0(CONST_T, konst) == binop->l &&
 				   _M0(CONST_T, konst2) != binop->r) {
@@ -51,7 +51,7 @@ X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 			tsrc.push_back(munchExp(binop->r));
 			tsrc.push_back(munchExp(src));
 			assem = format("'s1, %d('s0)", konst->value);
-			emit(gcnew(assem::OPER, ("movl", assem, TempList(), tsrc)));
+			emit(_aOPER("movl", assem, TempList(), tsrc));
 			return;
 		} 
 	}
@@ -61,21 +61,21 @@ X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 		TempList tsrc;
 		tsrc.push_back(munchExp(mem->exp));
 		tsrc.push_back(munchExp(src));
-		emit(gcnew(assem::OPER, ("movl", "'s1, ('s0)", TempList(), tsrc)));
+		emit(_aOPER("movl", "'s1, ('s0)", TempList(), tsrc));
 		return;
 	}
 
 	//(TEMP(i), CONST(e2))
 	if (_M0(TEMP_T, temp) == dst && _M0(CONST_T, konst) == src) {
 		std::string assem = format("$%d, 'd0", konst->value);
-		emit(gcnew(assem::MOVE, ("movl", assem, temp->temp, NULL)));
+		emit(_aMOVE("movl", assem, temp->temp, NULL));
 		return;
 	}
 
 	//(TEMP(i), e2)
 	if (_M0(TEMP_T, temp) == dst) {
 		Temp *ts = munchExp(src);
-		emit(gcnew(assem::MOVE, ("movl", "'s0, 'd0", temp->temp, ts)));
+		emit(_aMOVE("movl", "'s0, 'd0", temp->temp, ts));
 		return;
 	}
 }
@@ -83,7 +83,7 @@ X86CodeGen::munchMOVE(tree::Exp *dst, tree::Exp *src)
 void
 X86CodeGen::munchLABEL(Label *lab)
 {
-	emit(gcnew(assem::LABEL, (lab->toString() + ":", lab)));
+	emit(_aLABEL(lab->toString() + ":", lab));
 }
 
 void 
@@ -91,8 +91,7 @@ X86CodeGen::munchJUMP(Label *lab)
 {
 	LabelList targets;
 	targets.push_back(lab);
-	//TODO:
-	assem::OPER *op = gcnew(assem::OPER, ("jmp", "'j0", NULL, NULL));
+	assem::OPER *op = _aOPER("jmp", "'j0", NULL, NULL);
 	op->setJumpTargets(targets);
 	emit(op);
 }
@@ -104,7 +103,6 @@ X86CodeGen::munchCJUMP(tree::CJUMP *cj)
 	std::string assem;
 	TempList tsrc;
 
-	//TODO:
 	const char *cond[] = {"e", "ne", 
 						  "l", "g", 
 						  "le", "ge"
@@ -127,12 +125,12 @@ X86CodeGen::munchCJUMP(tree::CJUMP *cj)
 		tsrc.push_back(munchExp(cj->l));
 		tsrc.push_back(munchExp(cj->r));
 	}
-	emit(gcnew(assem::OPER, ("cmpl", assem, TempList(), tsrc)));
+	emit(_aOPER("cmpl", assem, TempList(), tsrc));
 	LabelList targets;
 	targets.push_back(cj->truelab);
 	targets.push_back(cj->falselab);
 	assem = format("j%s", reverse ? cond_r[cj->relop] : cond[cj->relop]);
-	assem::OPER *op = gcnew(assem::OPER, (assem, "'j0", NULL, NULL));
+	assem::OPER *op = _aOPER(assem, "'j0", NULL, NULL);
 	op->setJumpTargets(targets);
 	emit(op);
 }
@@ -147,8 +145,8 @@ X86CodeGen::munchEXPR(tree::Exp *exp)
 
 		LabelList targets;
 		targets.push_back(call->func->label);
-		//TODO: eax, ecx, edx will be destoryed in c function
-		assem::OPER *op = gcnew(assem::OPER, ("call", "'j0", frame->registers().callerSaves, tsrc));
+		//eax, ecx, edx will be destoryed in c function
+		assem::OPER *op = _aOPER("call", "'j0", frame->registers().callerSaves, tsrc);
 		op->setJumpTargets(targets);
 		emit(op);
 	}
@@ -166,11 +164,11 @@ X86CodeGen::munchArgs(const tree::ExpList &exps, TempList *tsrc)
 		tree::Exp *e = *exp;
 		if (_M0(CONST_T, konst) == e) {
 			std::string assem = format("$%d, %d(%%esp)", konst->value, offset);
-			emit(gcnew(assem::OPER, ("movl", assem, NULL, NULL)));
+			emit(_aOPER("movl", assem, NULL, NULL));
 		} else {
 			Temp *src = munchExp(e);
 			std::string assem = format("'s0, %d(%%esp)", offset);
-			emit(gcnew(assem::OPER, ("movl", assem, NULL, src)));
+			emit(_aOPER("movl", assem, NULL, src));
 		}
 		++exp;
 	}
@@ -190,7 +188,7 @@ X86CodeGen::munchMEM(tree::MEM *mem)
 			_M0(TEMP_T, temp) == binop->l) {
 			Temp *r = gcnew(Temp, ());
 			string assem = format("%d('s0), 'd0", konst->value); 
-			emit(gcnew(assem::OPER, ("movl", assem, r, temp->temp)));
+			emit(_aOPER("movl", assem, r, temp->temp));
 			return r;
 		}
 	}
@@ -200,17 +198,17 @@ X86CodeGen::munchMEM(tree::MEM *mem)
 			_M0(MEM_T, mem2) == binop->l) {
 			Temp *r = gcnew(Temp, ());
 			string assem = format("%d('s0), 'd0", konst->value); 
-			emit(gcnew(assem::OPER, ("movl", assem, r, munchExp(mem2))));
+			emit(_aOPER("movl", assem, r, munchExp(mem2)));
 			return r;
 		}
 	}
 	
 	{
 		Temp *r = gcnew(Temp, ());
-		emit(gcnew(assem::OPER, ("movl", 
-								 "('s0), 'd0", 
-								 r, 
-								 munchExp(mem->exp))));
+		emit(_aOPER("movl", 
+					"('s0), 'd0", 
+					r, 
+					munchExp(mem->exp)));
 		return r;
 	}
 }
@@ -239,12 +237,12 @@ X86CodeGen::munchBINOP_PLUS(tree::BINOP *binop)
 
 	l = munchExp(binop->l);
 	tmp = gcnew(Temp, ());
-	emit(gcnew(assem::MOVE, ("movl", "'s0, 'd0", tmp, l)));
+	emit(_aMOVE("movl", "'s0, 'd0", tmp, l));
 		
 	tsrc.push_back(munchExp(binop->r));
 	tsrc.push_back(tmp);
 	tdst.push_back(tmp);
-	emit(gcnew(assem::OPER, ("addl", "'s0, 'd0", tdst, tsrc)));
+	emit(_aOPER("addl", "'s0, 'd0", tdst, tsrc));
 	return tmp;
 }
 
@@ -258,12 +256,12 @@ X86CodeGen::munchBINOP_MINUS(tree::BINOP *binop)
 
 	l = munchExp(binop->l);
 	tmp = gcnew(Temp, ());
-	emit(gcnew(assem::MOVE, ("movl", "'s0, 'd0", tmp, l)));
+	emit(_aMOVE("movl", "'s0, 'd0", tmp, l));
 
 	tsrc.push_back(munchExp(binop->r));
 	tsrc.push_back(tmp);
 	tdst.push_back(tmp);
-	emit(gcnew(assem::OPER, ("subl", "'s0, 'd0", tdst, tsrc)));
+	emit(_aOPER("subl", "'s0, 'd0", tdst, tsrc));
 	return tmp;
 }
 
@@ -277,13 +275,13 @@ X86CodeGen::munchBINOP_MUL(tree::BINOP *binop)
 
 	l = munchExp(binop->l);
 	tmp = gcnew(Temp, ());
-	emit(gcnew(assem::MOVE, ("movl", "'s0, 'd0", tmp, l)));
+	emit(_aMOVE("movl", "'s0, 'd0", tmp, l));
 
 	tsrc.push_back(munchExp(binop->r));
 	tsrc.push_back(tmp);
 	tdst.push_back(tmp);
 
-	emit(gcnew(assem::OPER, ("imull", "'s0, 'd0", tdst, tsrc)));
+	emit(_aOPER("imull", "'s0, 'd0", tdst, tsrc));
 	return tmp;
 }
 
@@ -297,16 +295,15 @@ X86CodeGen::munchBINOP_DIV(tree::BINOP *binop)
 	Temp *edx = frame->registers().all[X86Frame::EDX];
 	
 	l = munchExp(binop->l);
-	emit(gcnew(assem::MOVE, ("movl", "'s0, 'd0", eax, l)));
-	//emit(gcnew(assem::OPER, ("sarl", "$31, %edx", edx, NULL)));//clear edx
-	emit(gcnew(assem::OPER, ("cltd", "", edx, NULL)));//eax -> edx:eax
+	emit(_aMOVE("movl", "'s0, 'd0", eax, l));
+	emit(_aOPER("cltd", "", edx, NULL));//eax -> edx:eax
 	tsrc.push_back(munchExp(binop->r));
 	tsrc.push_back(eax);
 	tsrc.push_back(edx);
 	tdst.push_back(eax);//Quotient
 	tdst.push_back(edx);//Remainder
 	
-	emit(gcnew(assem::OPER, ("idivl", "'s0", tdst, tsrc)));
+	emit(_aOPER("idivl", "'s0", tdst, tsrc));
 	return eax;
 }
 
@@ -321,7 +318,7 @@ X86CodeGen::munchCALL(tree::CALL *c)
 	LabelList targets;
 	targets.push_back(c->func->label);
 	//eax, ecx, edx will be destoryed in c function
-	assem::OPER *op = gcnew(assem::OPER, ("call", "'j0", frame->registers().callerSaves, tsrc));
+	assem::OPER *op = _aOPER("call", "'j0", frame->registers().callerSaves, tsrc);
 	op->setJumpTargets(targets);
 	emit(op);
 	return frame->rv();
@@ -333,7 +330,7 @@ X86CodeGen::munchCONST(tree::CONST *c)
 	//(i)
 	std::string assem = format("$%d, 'd0", c->value);
 	Temp *r = gcnew(Temp, ());
-	emit(gcnew(assem::OPER, ("movl", assem, r, NULL)));
+	emit(_aOPER("movl", assem, r, NULL));
 	return r;
 }
 
@@ -348,7 +345,7 @@ X86CodeGen::munchNAME(tree::NAME *n)
 {
 	std::string assem = format("%s, 'd0", n->label->toString().c_str());
 	Temp *r = gcnew(Temp, ());
-	emit(gcnew(assem::OPER, ("movl", assem, r, NULL)));
+	emit(_aOPER("movl", assem, r, NULL));
 	return r;
 }
 

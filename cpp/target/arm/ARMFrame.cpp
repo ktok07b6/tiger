@@ -221,8 +221,8 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 		comment += " ";
 	}
 #endif		
-	assem::OPER *sink1 = gcnew(assem::OPER, ("", "", alive_regs, TempList(), "@def " + comment));
-	assem::OPER *sink2 = gcnew(assem::OPER, ("", "", TempList(), alive_regs, "@use " + comment));
+	assem::OPER *sink1 = _aOPER5("", "", alive_regs, TempList(), "@def " + comment);
+	assem::OPER *sink2 = _aOPER5("", "", TempList(), alive_regs, "@use " + comment);
 	
 	assem::Instruction *funcLabel = body.front();
 	assert(funcLabel->isLABEL());
@@ -234,7 +234,7 @@ ARMFrame::procEntryExit2(const assem::InstructionList &body)
 	//insert end label
 	assert(endFuncLabel);
 	std::string assem = format("%s:", endFuncLabel->toString().c_str());
-	assem::LABEL *end_lab = gcnew(assem::LABEL, (assem, endFuncLabel));
+	assem::LABEL *end_lab = _aLABEL(assem, endFuncLabel);
 	newbody.push_back(end_lab);
 
 	newbody.push_back(sink2);
@@ -342,27 +342,27 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	assert(funcLabel->isLABEL());
 	proc.push_back(funcLabel);
 
-	assem::OPER *save_fp = gcnew(assem::OPER, ("stmfd", "sp!, {fp, lr}", NULL, NULL));
+	assem::OPER *save_fp = _aOPER("stmfd", "sp!, {fp, lr}", NULL, NULL);
 	proc.push_back(save_fp);
 
-	assem::OPER *set_fp = gcnew(assem::OPER, ("sub", "fp, sp, #4", NULL, NULL));
+	assem::OPER *set_fp = _aOPER("sub", "fp, sp, #4", NULL, NULL);
 	proc.push_back(set_fp);
 
 	if (frameOffset) {
 		assem = format("sp, sp, #%d", frameOffset);
-		assem::OPER *expand_local_temp_space = gcnew(assem::OPER, ("sub", assem, NULL, NULL));
+		assem::OPER *expand_local_temp_space = _aOPER("sub", assem, NULL, NULL);
 		proc.push_back(expand_local_temp_space);
 	}
 	
 	if (numCalleeSaveReg) {
 		assem = format("sp!, {%s}", strCalleeSaveReg.c_str());
-		assem::OPER *store_callee_saves = gcnew(assem::OPER, ("stmfd", assem, NULL, NULL));
+		assem::OPER *store_callee_saves = _aOPER("stmfd", assem, NULL, NULL);
 		proc.push_back(store_callee_saves);
 	}
 
 	if (maxExtraArgSize) {
 		assem = format("sp, sp, #%d", maxExtraArgSize);
-		assem::OPER *expand_extra_arg_space = gcnew(assem::OPER, ("sub", assem, NULL, NULL));
+		assem::OPER *expand_extra_arg_space = _aOPER("sub", assem, NULL, NULL);
 		proc.push_back(expand_extra_arg_space);
 	}
 
@@ -372,20 +372,20 @@ ARMFrame::procEntryExit3(const assem::InstructionList &body)
 	//epilogue//////////
 	if (maxExtraArgSize) {
 		assem = format("sp, sp, #%d", maxExtraArgSize);
-		assem::OPER *rewind_extra_arg_space = gcnew(assem::OPER, ("sub", assem, NULL, NULL));
+		assem::OPER *rewind_extra_arg_space = _aOPER("sub", assem, NULL, NULL);
 		proc.push_back(rewind_extra_arg_space);
 	}
 	
 	if (numCalleeSaveReg) {
 		assem = format("sp!, {%s}", strCalleeSaveReg.c_str());
-		assem::OPER *restore_callee_saves = gcnew(assem::OPER, ("ldmfd", assem, NULL, NULL));
+		assem::OPER *restore_callee_saves = _aOPER("ldmfd", assem, NULL, NULL);
 		proc.push_back(restore_callee_saves);
 	}
 
-	assem::OPER *rewind_sp = gcnew(assem::OPER, ("add", "sp, fp, #4", NULL, NULL));
+	assem::OPER *rewind_sp = _aOPER("add", "sp, fp, #4", NULL, NULL);
 	proc.push_back(rewind_sp);
 
-	assem::OPER *restore_and_ret = gcnew(assem::OPER, ("ldmfd", "sp!, {fp, pc}", NULL, NULL));
+	assem::OPER *restore_and_ret = _aOPER("ldmfd", "sp!, {fp, pc}", NULL, NULL);
 	proc.push_back(restore_and_ret);
 
 	return proc;
@@ -420,7 +420,7 @@ ARMFrame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 		if (std::find(use.begin(), use.end(), spill) != use.end()) {
 			Temp *tmp = gcnew(Temp, ());
 			std::string operand = format("'d0, [fp, #%d]", -frameOffset);
-			assem::OPER *ldr = gcnew(assem::OPER, ("ldr", operand, tmp, NULL));
+			assem::OPER *ldr = _aOPER("ldr", operand, tmp, NULL);
 			result.push_back(ldr);
 			inst->replaceUse(spill, tmp);
 		}
@@ -431,7 +431,7 @@ ARMFrame::spillTemp(const assem::InstructionList &proc, Temp *spill)
 		if (std::find(def.begin(), def.end(), spill) != def.end()) {
 			Temp *tmp = gcnew(Temp, ());
 			std::string operand = format("'s0, [fp, #%d]", -frameOffset);
-			assem::OPER *str = gcnew(assem::OPER, ("str", operand, NULL, tmp));
+			assem::OPER *str = _aOPER("str", operand, NULL, tmp);
 			result.push_back(str);
 			inst->replaceDef(spill, tmp);
 		}
