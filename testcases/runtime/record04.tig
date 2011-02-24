@@ -1,0 +1,28 @@
+let
+    type ints = array of int
+    type strings = array of string
+    type rec = {ids:ints, names:strings}
+    var a:rec := rec{ids=ints[10] of 3, names=strings[10] of "a"}
+    
+in
+    for i:=0 to 10 do (
+      test(a.ids[i] = 3);
+      test(a.names[i] = "a")
+    );
+
+    a.ids[0] := 0;
+    a.names[0] := "";
+    a.ids[2] := 2;
+    a.names[2] := "aa";
+    a.ids[9] := 9;
+    a.names[9] := "aaaaaaaaa";
+
+    test(a.ids[0] = 0);
+    test(a.names[0] = "");
+    test(a.ids[2] = 2);
+    test(a.names[2] = "aa");
+    test(a.ids[9] = 9);
+    test(a.names[9] = "aaaaaaaaa");
+
+    print("ok\n")
+end

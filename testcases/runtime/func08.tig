@@ -1,0 +1,23 @@
+let
+ 
+  type strings = array of string
+
+  var s:= "1"
+  var ss:strings := strings[3] of "1"
+
+  /* argument of string type has value semantics */
+  function fun1(a:string) = (test(a = "1"); a := "2")
+
+  /* argument of array of string type has pointer semantics */
+  function fun2(a:strings) = (test(a[0] = "1"); a[0] := "2")
+in
+  test(s = "1");
+  fun1(s);
+  test(s = "1");
+
+  test(ss[0] = "1");
+  fun2(ss);
+  test(ss[0] = "2");
+
+  print("ok\n")
+end

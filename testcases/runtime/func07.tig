@@ -1,0 +1,18 @@
+let
+  type ints = array of int
+  type strings = array of string
+  var n := 3
+  var vals:ints := ints[n] of 2
+  function fun(vals:ints) =
+     for i := 0 to n do vals[i] := vals[i]*2
+in
+  vals[0] := 2;
+  vals[1] := 4;
+  vals[2] := 6;
+  fun(vals);
+  test(vals[0] = 4);
+  test(vals[1] = 8);
+  test(vals[2] = 12);
+
+  print("ok\n")
+end

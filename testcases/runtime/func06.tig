@@ -1,0 +1,17 @@
+let
+  function fun(result:int, count:int):int =
+    if count <= 0 then result
+                 else fun(result+1, count-1) 
+in
+  test(fun(0, 0) = 0);
+  test(fun(0, 1) = 1);
+  test(fun(0, 2) = 2);
+  test(fun(0, 10) = 10);
+  test(fun(0, 100) = 100);
+  test(fun(0, 1000) = 1000);
+
+  test(fun(1, 1000) = 1001);
+  test(fun(1000, 1000) = 2000);
+
+  print("ok\n")
+end

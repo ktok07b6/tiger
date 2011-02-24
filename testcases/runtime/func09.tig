@@ -1,0 +1,21 @@
+let
+  var a := 10
+  function f():int = 
+    let
+      var b := 20
+      function g():int =
+        let
+          var c := 30
+          function h():int = a + b + c
+        in
+          a + b + h()
+        end
+    in
+      a + g()
+    end
+in
+  /* f() = a + (a + b + (a + b + c)) */
+  test(f()=10+10+20+10+20+30);
+
+  print("ok\n")
+end
