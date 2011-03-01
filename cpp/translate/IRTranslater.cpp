@@ -679,6 +679,7 @@ IRTranslater::visit(BreakExp *exp)
 	texp = gcnew(translate::Nx, (jmp));
 }
 
+#include "TreePrinter.h"
 void
 IRTranslater::visit(LetExp *exp)
 {
@@ -705,6 +706,8 @@ IRTranslater::visit(LetExp *exp)
 	}
  
 	exp->body->accept(this);
+	DBG("$$$");
+	tree::TreePrinter::printTree(texp->unNx());
 
 	//letも値を返す
 	if (texp) {
@@ -724,6 +727,7 @@ IRTranslater::visit(LetExp *exp)
 		}
 	} 
 	tree::SEQ *seq = sm.make();
+
 	texp = gcnew(translate::Nx, (seq));
 }
 /*
@@ -796,13 +800,7 @@ void
 IRTranslater::visit(TypeField *field)
 {
 	FUNCLOG;
-	//TODO
-	//field->name->name;
-	//field->escape;
-	//field->type->name;
-
-	//tree::Exp *arg = field->symInfo->access->simpleVar(currentLevel);
-	texp = NULL;
+	assert(0);
 }
 
 void
@@ -901,35 +899,28 @@ void
 IRTranslater::visit(TypeDec *dec)
 {
 	FUNCLOG;
-	//dec->name->name;
-	dec->ty->accept(this);
+	texp = NULL;
 }
 
 void
 IRTranslater::visit(NameTy *ty)
 {
 	FUNCLOG;
-	//ty->name->name;
+	assert(0);
 }
 
 void
 IRTranslater::visit(RecordTy *ty)
 {
 	FUNCLOG;
-	TypeFieldList::iterator it;
-	it = ty->fields->begin();
-	while (it != ty->fields->end()) {
-		TypeField *f = *it;
-		f->accept(this);
-		++it;
-	}
+	assert(0);
 }
 
 void
 IRTranslater::visit(ArrayTy *ty)
 {
 	FUNCLOG;
-	//ty->name->name;
+	assert(0);
 }
 
 tree::Exp *
