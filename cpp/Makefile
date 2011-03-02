@@ -85,7 +85,7 @@ libcore.a: $(DEPS_LIBCORE) $(OBJECTS_LIBCORE)
 	$(AR) -q libcore.a $(OBJECTS_LIBCORE)
 
 parse/parser.cpp: parse/tiger.y
-	yacc -v -oparse/parser.cpp -d parse/tiger.y
+	bison -v -oparse/parser.cpp -d parse/tiger.y
 	-@mv parse/parser.cpp.h parse/parser.hpp
 
 parse/lexer.cpp: parse/tiger.l parse/parser.cpp

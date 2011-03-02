@@ -349,7 +349,8 @@ X86Frame::procEntryExit3(const assem::InstructionList &body)
 	//restore callee saves
 	{
 		TempList::const_reverse_iterator rit = savedCalleeSave.rbegin();
-		while (rit != savedCalleeSave.rend()) {
+		TempList::const_reverse_iterator rend = savedCalleeSave.rend();
+		while (rit != rend) {
 			assem = format("%d(%%ebp), %s", -offset, (*rit)->toString().c_str());
 			assem::OPER *restore_callee_save = _aOPER("movl", 
 													  assem,

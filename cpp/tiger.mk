@@ -15,6 +15,6 @@ LD=$(PREFIX)ld
 
 all:obj/$(filename).S
 	$(SILENT) $(CC) -g $(INCS) -c runtime/runtime.c -o obj/runtime.o 
-	$(SILENT) $(AS) -g obj/$(filename).S -o obj/$(filename).o
+	$(SILENT) $(AS) obj/$(filename).S -o obj/$(filename).o
 	$(SILENT) $(CC) -g $(LIBDIRS) -static -lc $(LIBGCC) obj/runtime.o  obj/$(filename).o  -o bin/$(filename)
 
