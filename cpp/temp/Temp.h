@@ -15,11 +15,14 @@ typedef std::vector<Temp*> TempList;
 class Temp : public Object
 {
  public:
- Temp() : num(count++), specialName() {}
- Temp(const std::string &specialName) : num(count++), specialName(specialName) 
+ Temp() 
+	 : index(-1), num(count++), specialName() {}
+ Temp(const std::string &specialName) 
+	 : index(-1), num(count++), specialName(specialName)
 	{
 	}
- Temp(const Temp &other) : num(other.num), specialName(other.specialName) 
+ Temp(const Temp &other) 
+	 : index(-1), num(other.num), specialName(other.specialName) 
 		{
 		}
 	~Temp() {FUNCLOG;}
@@ -40,6 +43,7 @@ class Temp : public Object
 	}
 
 	static void printTempList(const TempList &tlist);
+	int index;//for regalloc
 private:
 	int num;
 	const std::string specialName;

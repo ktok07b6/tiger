@@ -38,7 +38,9 @@ Color::coloring()
 {
 	build();
 	makeWorkList();
+#if (LOG_MASK & VERBOSE_ON)
 	show();
+#endif
 	int i = 0;
 	do {
 		VDBG("===== coloring iteration %d =====", i);
@@ -58,7 +60,9 @@ Color::coloring()
 		else if (!spillWorkList.none()) {
 			selectSpill();
 		}
+#if (LOG_MASK & VERBOSE_ON)
 		show();
+#endif
 	} while (!simplifyWorkList.none() ||
 #ifdef ENABLE_COALESCE
 			 !workListMoves.empty() ||
@@ -71,20 +75,18 @@ Color::coloring()
 
 	if (!spilledNodes.none()) {
 		//TODO:select node by spill cost
-		/*
+		int count = 0;
 		for (unsigned int i = 0; i < spilledNodes.size(); ++i) {
-			if (spilledNodes.get(i)) {
-				graph::Node *n = igraph.nid2node(i);
-				spillTemps.push_back(igraph.node2temp(n));
-			}
+			if (spilledNodes.get(i)) ++count;
 		}
-		*/
-		for (int nid = 0; nid < tempSize; ++nid) {
+		int numNeedSpills = count;//spilledNodes.count();
+		for (int nid = 0; (nid < tempSize) && (numNeedSpills); ++nid) {
 			graph::Node *n;
 			if (!precolored.get(nid)) {
 				n = igraph.nid2node(nid);
 				spillTemps.push_back(igraph.node2temp(n));
-				break;
+				//break;
+				numNeedSpills--;
 			}
 		}
 		assert(!spillTemps.empty());
@@ -144,7 +146,9 @@ Color::build()
 		}
 		++it;
 	}
+#if (LOG_MASK & VERBOSE_ON)
 	//igraph.show();
+#endif
 }
 
 void 

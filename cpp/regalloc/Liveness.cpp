@@ -43,7 +43,8 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 #if 1	
 	int ti = 0;
 	BOOST_FOREACH(Temp *t, temps) {
-		DBG("%d:%s", ti, (const char*)*t);
+		//DBG("%d:%s", ti, (const char*)*t);
+		t->index = ti;
 		++ti;
 	}
 #endif	
@@ -56,6 +57,8 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 
 		*li->def = tempList2bitmap(flow.def(n));
 		*li->use = tempList2bitmap(flow.use(n));
+		//TODO: 
+		//n->setLivein(li->livein);
 		li->node = n;
 		info.push_back(li);
 	}
@@ -178,8 +181,9 @@ Bitmap *
 Liveness::getLivein(const Node *node)
 {
 	//TODO: imporove performance
-	LiveInfoVec::iterator it = info.begin();
-	while (it != info.end()) {
+	LiveInfoVec::const_iterator it = info.begin();
+	LiveInfoVec::const_iterator end = info.end();
+	while (it != end) {
 		LiveInfo *i = (*it);
 		if (i->node == node) {
 			return i->livein;
@@ -194,12 +198,8 @@ Bitmap
 Liveness::tempList2bitmap(const TempList &tlist)
 {
 	Bitmap bm(temps.size());
-	int idx = 0;
-	BOOST_FOREACH(Temp *t, temps) {
-		if (std::find(tlist.begin(), tlist.end(), t) != tlist.end()) {
-			bm.set(idx);
-		}
-		++idx;
+	BOOST_FOREACH(const Temp *t, tlist) {
+		bm.set(t->index);
 	}
 	return bm;
 }
