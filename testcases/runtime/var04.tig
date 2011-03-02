@@ -1,0 +1,20 @@
+let
+    var a := 1
+    function f() =
+    let
+        var a := 2
+        function ff() = 
+        let
+            var a := 3
+        in
+            test(a = 3)
+        end
+    in
+        test(a = 2);
+        ff()
+    end
+in
+    test(a = 1);
+    f();
+    print("ok\n")
+end
