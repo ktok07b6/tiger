@@ -1,0 +1,9 @@
+let
+    type rec = {a:int, b:int, c:string}
+    var r:rec := rec{a=1, b=2, c="test"}
+in
+    for i := 0 to 1000000 do (
+        r := rec{a=i, b=i, c="test"};
+        for j := 0 to 1000000 do ()
+    )
+end

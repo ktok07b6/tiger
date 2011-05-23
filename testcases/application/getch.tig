@@ -1,0 +1,6 @@
+let
+  var a := getch()
+in
+  print(a);print("\n")
+
+end
