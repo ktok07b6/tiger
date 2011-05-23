@@ -2,7 +2,7 @@ require packages:
   bison, flex
 
 
-hot to make:
+how to make:
    $ make [TARGET_CPU=x86|arm]
 
 
