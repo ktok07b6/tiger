@@ -1,0 +1,16 @@
+require packages:
+  bison, flex
+
+
+hot to make:
+   $ make [TARGET_CPU=x86|arm]
+
+
+run a test program:
+
+  example:
+  $ ./tiger.sh ../testcases/basic/func01.tig TARGET=[x86|arm]
+
+
+run the test suite:
+  $ ./suite.sh [x86|arm]
