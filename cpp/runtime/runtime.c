@@ -2,10 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__arm__)
+#define GC_MALLOC(sz) malloc(sz)
+#else
+#include "gc.h"
+#endif
+
 int *initArray(int size, int init)
 {
 	int i;
-	int *a = (int *)malloc(size * sizeof(int));
+	int *a = (int *)GC_MALLOC(size * sizeof(int));
 	for (i = 0; i < size; i++) {
 		a[i] = init;
 	}
@@ -15,7 +21,7 @@ int *initArray(int size, int init)
 int *alloc(int size)
 {
 	int *p;
-	p = (int *)malloc(size);
+	p = (int *)GC_MALLOC(size);
 	memset(p, 0, size);
 	return p;
 }
@@ -97,7 +103,7 @@ struct string *substring(struct string *s, int first, int n)
 		return consts+s->chars[first];
 	}
 	{
-		struct string *t = (struct string *)malloc(sizeof(int) + n);
+		struct string *t = (struct string *)GC_MALLOC(sizeof(int) + n);
 		int i;
 		t->length = n;
 		for (i = 0; i < n; i++) {
@@ -115,7 +121,7 @@ struct string *stringConcat(struct string *a, struct string *b)
 		return a;
 	} else {
 		int i, n = a->length+b->length;
-		struct string *t = (struct string *)malloc(sizeof(int) + n);
+		struct string *t = (struct string *)GC_MALLOC(sizeof(int) + n);
 		t->length = n;
 		for (i = 0; i < a->length; i++) {
 			t->chars[i] = a->chars[i];

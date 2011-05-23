@@ -12,5 +12,5 @@ export filename=${filename%.*}
 
 ./tiger ${fullpath} 1> obj/${filename}.S 2> /dev/null
 
-gmake -f tiger.mk $2
+make -f tiger.mk $2
 
