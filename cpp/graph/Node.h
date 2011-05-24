@@ -38,11 +38,17 @@ public:
 	virtual std::string toString() const;
 
 private:
+	void addSuccessor(Node *n);
+	void addPredecessor(Node *n);
+	void removeSuccessor(Node *n);
+	void removePredecessor(Node *n);
+
 	Graph *graph;
 	NodeList successors;
 	NodeList predecessors;
 	int tag;
 	mutable NodeList adjacencies;
+	mutable bool invalidAdj;
 	friend class Graph;
 };
 

@@ -75,14 +75,14 @@ Graph::addEdge(Node *from, Node *to)
 			//WARN(">>>>>> edge is crossover <<<<<<");
 			return;
 		}
-		from->successors.push_back(to);
+		from->addSuccessor(to);
 	}
 	if (!to->predecessors.contain(from)) {
 		if (from->predecessors.contain(to)) {
 			//WARN(">>>>>> edge is crossover <<<<<<");
 			return;
 		}
-		to->predecessors.push_back(from);
+		to->addPredecessor(from);
 	}
 }
 
@@ -92,8 +92,8 @@ Graph::rmEdge(Node *from, Node *to)
 	assert(from->graph == this);
 	assert(to->graph == this);
 	assert(from != to);
-	from->successors.remove(to);
-	to->predecessors.remove(from);
+	from->removeSuccessor(to);
+	to->removePredecessor(from);
 }
 
 size_t 

@@ -4,6 +4,8 @@
 namespace graph {
 Node::Node(Graph *g)
 	: graph(g)
+	, tag(0)
+	, invalidAdj(true)
 {
 }
 
@@ -22,12 +24,13 @@ Node::pred() const
 const NodeList & 
 Node::adj() const
 {
-	//TODO: caching adjacencies
-	adjacencies.clear();
-	adjacencies.push_all(successors);
-	adjacencies.push_all(predecessors);
-	adjacencies.unique();
-
+	if (invalidAdj) {
+		adjacencies.clear();
+		adjacencies.push_all(successors);
+		adjacencies.push_all(predecessors);
+		adjacencies.unique();
+		invalidAdj = false;
+	}
 	return adjacencies;
 }
 
@@ -83,6 +86,34 @@ std::string
 Node::toString() const
 {
 	return "";
+}
+
+void 
+Node::addSuccessor(Node *n)
+{
+	successors.push_back(n);
+	invalidAdj = true;
+}
+
+void 
+Node::addPredecessor(Node *n)
+{
+	predecessors.push_back(n);
+	invalidAdj = true;
+}
+
+void 
+Node::removeSuccessor(Node *n)
+{
+	successors.remove(n);
+	invalidAdj = true;
+}
+
+void 
+Node::removePredecessor(Node *n)
+{
+	predecessors.remove(n);
+	invalidAdj = true;
 }
 
 }//namespace graph
