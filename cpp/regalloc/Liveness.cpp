@@ -59,6 +59,9 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 		*li->use = tempList2bitmap(flow.use(n));
 		//TODO: 
 		//n->setLivein(li->livein);
+
+		//we make reference mutually to flowNode and liveInfo
+		n->setTag((int)li);
 		li->node = n;
 		info.push_back(li);
 	}
@@ -169,7 +172,8 @@ Liveness::getAllLiveinsAtSuccessors(int n)
 	const NodeList &successors = node->succ();
 		
 	BOOST_FOREACH(Node *succ, successors) {
-		Bitmap *livein = getLivein(succ);
+		//Bitmap *livein = getLivein(succ);
+		Bitmap *livein = ((LiveInfo*)succ->getTag())->livein;
 		if (livein) {
 			liveins |= *livein;
 		}
@@ -208,12 +212,28 @@ TempList
 Liveness::bitmap2tempList(const Bitmap &bm)
 {
 	TempList tlist;
+	std::vector<int> indexes;
+	bm.getIndexes(indexes);
+	std::vector<int>::iterator it = indexes.begin();
+	while (it != indexes.end()) {
+		Temp *t = temps[*it];
+		tlist.push_back(t);
+		++it;
+	}
+	/*
+	for (unsigned int i = 0; i < sz; ++i) {
+		Temp *t = temps[indexes[i]];
+		tlist.push_back(t);
+	}
+	*/
+	/*
 	for (unsigned int i = 0; i < bm.size(); ++i) {
 		if (bm.get(i)) {
 			Temp *t = temps[i];
 			tlist.push_back(t);
 		}
 	}
+	*/
 	return tlist;
 }
 

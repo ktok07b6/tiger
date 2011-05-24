@@ -4,11 +4,13 @@
 
 void test1();
 void test2();
+void test3();
 
 int main(int argc, char **argv)
 {
 	test1();
 	test2();
+	test3();
 
 	printf("\nOK\n\n");
 	return 0;
@@ -241,4 +243,46 @@ void test2()
 	Bitmap zero4;
 	zero4 &= b;
 	assert(zero4.none());
+}
+
+void test3()
+{
+	Bitmap b0;
+	std::vector<int> indexes;
+	b0.getIndexes(indexes);
+	assert(indexes.empty());
+
+	Bitmap b1(8);
+	b1.set(1);
+	b1.set(7);
+	b1.set(6);
+	b1.getIndexes(indexes);
+	assert(indexes.size() == 3);
+	assert(indexes[0] == 1);
+	assert(indexes[1] == 6);
+	assert(indexes[2] == 7);
+
+	indexes.clear();
+
+	Bitmap b2(32);
+	b2.set(2);
+	b2.set(4);
+	b2.set(6);
+	b2.set(8);
+	b2.set(10);
+	b2.set(22);
+	b2.set(24);
+	b2.set(28);
+
+	b2.getIndexes(indexes);
+	assert(indexes.size() == 8);
+	assert(indexes[0] == 2);
+	assert(indexes[1] == 4);
+	assert(indexes[2] == 6);
+	assert(indexes[3] == 8);
+	assert(indexes[4] == 10);
+	assert(indexes[5] == 22);
+	assert(indexes[6] == 24);
+	assert(indexes[7] == 28);
+
 }

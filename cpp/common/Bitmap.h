@@ -2,6 +2,7 @@
 #define BITMAP_H
 
 #include <string>
+#include <vector>
 
 class Bitmap
 {
@@ -18,6 +19,7 @@ public:
 	void reset(unsigned int index);
 	void clear();
 	bool get(unsigned int index) const;
+	void getIndexes(std::vector<int> &indexes) const;
 	bool none() const;
 	size_t size() const;
 
@@ -53,5 +55,10 @@ private:
 	unsigned int capacity;
 };
 
+inline size_t 
+Bitmap::size() const
+{
+	return maxbit;
+}
 
 #endif //BITMAP_H
