@@ -1,0 +1,4 @@
+#External Dependencies
+#Mon Aug 01 15:48:37 JST 2011
+/home/kataoka/works/github/tiger/scala/project/boot/scala-2.8.1/lib/scala-library.jar=src/main/scala/tiger/symbol/Table.scala\:src/main/scala/tiger/ast/ASTPrinter.scala\:src/main/scala/tiger/typ/NameEntry.scala\:src/main/scala/tiger/parser/Parser.scala\:src/main/scala/tiger/ast/AST.scala\:src/main/scala/tiger/symbol/Symbol.scala\:src/main/scala/tiger/typ/Type.scala\:src/main/scala/tiger/parser/Lexer.scala\:src/main/scala/main.scala\:src/main/scala/tiger/typ/TypeCheck.scala
+/usr/lib/jvm/java-6-sun-1.6.0.14/jre/lib/rt.jar=src/main/scala/tiger/symbol/Table.scala\:src/main/scala/tiger/ast/ASTPrinter.scala\:src/main/scala/tiger/typ/NameEntry.scala\:src/main/scala/tiger/parser/Parser.scala\:src/main/scala/tiger/ast/AST.scala\:src/main/scala/tiger/symbol/Symbol.scala\:src/main/scala/tiger/typ/Type.scala\:src/main/scala/tiger/parser/Lexer.scala\:src/main/scala/main.scala\:src/main/scala/tiger/typ/TypeCheck.scala
