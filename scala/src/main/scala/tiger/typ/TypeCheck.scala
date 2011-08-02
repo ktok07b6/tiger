@@ -96,7 +96,7 @@ object TypeCheck {
 			Table.beginScope
 			val vart = NameT(e.va)
 			vart.bind(Table.getType('int).get)
-			val ve = new VarEntry(vart)
+			val ve = VarEntry(vart)
 			Table.putVarEntry(e.va, ve)
 			e.varEntry = ve
 
@@ -117,7 +117,7 @@ object TypeCheck {
 				require(typeCheck(dec).actual.isInstanceOf[VoidT])
 			}
 
-			val bodyt = typeCheck(e.body)
+			val bodyt = e.body.map(typeCheck).last
 			Table.endScope
 			bodyt.actual
 		}

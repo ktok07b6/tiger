@@ -7,7 +7,7 @@ import scala.util.parsing.input.CharArrayReader.EofCh
 class Lexer extends StdLexical with ImplicitConversions {
 	override def token: Parser[Token] = 
 		( string ^^ StringLit
-		 | '-' ~ number ^^ { case num => NumericLit("-" + num) }
+		 | '-' ~> number ^^ { num => NumericLit("-" + num) }
 		 | number ^^ NumericLit
 		 | EofCh ^^^ EOF
 		 | delim
@@ -23,22 +23,25 @@ class Lexer extends StdLexical with ImplicitConversions {
 	def intList = nonzero ~ rep(digit) ^^ {case x ~ y => (x :: y) mkString ""}
 	def zero: Parser[String] = '0' ^^^ "0"
 	def nonzero = elem("nonzero digit", d => d.isDigit && d != '0')
-
-	def id = rep1(identChar) ^^ { _ mkString "" } 
+	def id = identChar~rep(identChar|digit) ^^ { case x ~ y => (x :: y) mkString "" } 
 	def operator = ((elem(':')~elem('=')) |
 					(elem('<')~elem('>')) |
 					(elem('<')~elem('=')) |
 					(elem('>')~elem('=')) |
-					elem('=') | 
-					elem('<') | 
-					elem('>') | 
-					elem('&') |
-					elem('|') |
-					elem('+') |
-					elem('-') |
-					elem('*') |
-					elem('/')
-				) ^^ { _ toString }
+					 elem('=') | 
+					 elem('<') | 
+					 elem('>') | 
+					 elem('&') |
+					 elem('|') |
+					 elem('+') |
+					 elem('-') |
+					 elem('*') |
+					 elem('/') |
+					 elem('.') |
+					 elem(':')) ^^ { 
+						 case x~y=> x.toString + y.toString 
+						 case x => x.toString 
+					 }
 
 	def checkKeyword(strRep: String) = {
 		if (reserved contains strRep) Keyword(strRep) else Identifier(strRep)

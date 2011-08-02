@@ -7,30 +7,30 @@ abstract class Type {
 }
 
 case class IntT() extends Type {
-	override def toString = "Int"
+	override def toString = "IntT"
 }
 
 case class StrT() extends Type {
-	override def toString = "Str"
+	override def toString = "StrT"
 }
 
 case class NameT(name:Symbol) extends Type {
 	var binding:Option[Type] = None
 	override def actual():Type = binding.get.actual
-	override def toString = "Name(" + name + ")->" + actual()
+	override def toString = "NameT(" + name + ")->" + actual()
 	def bind(t:Type) {binding = Some(t)}
 }
 
 case class NilT() extends Type {
-	override def toString = "Nil"
+	override def toString = "NilT"
 }
 
 case class VoidT() extends Type {
-	override def toString = "Void"
+	override def toString = "VoidT"
 }
 
 case class ArrayT(element:Type) extends Type {
-	override def toString = "Array[" + element + "]"
+	override def toString = "ArrayT[" + element + "]"
 }
 
 case class RecordT(fieldName:Symbol, fieldType:Type, tail:RecordT) extends Type {
@@ -40,13 +40,13 @@ case class RecordT(fieldName:Symbol, fieldType:Type, tail:RecordT) extends Type 
 		require(fieldType != null);
 
 		if (fieldType == head) {
-			"Record(" + fieldName +	":(this))"
+			"RecordT(" + fieldName +	":(this))"
 		} else {
 			var s0:String = fieldType match {
 				case r:RecordT => r.toStringSub(head) + ")"
 				case _         => fieldType + ")"
 			}
-			s0 = "Record(" + fieldName + ":" + s0;
+			s0 = "RecordT(" + fieldName + ":" + s0;
 			if (tail != null) {
 				s0 +=  "->" + tail.toStringSub(head);
 			}

@@ -31,11 +31,11 @@ case class StringExp(s:String) extends ASTExp
 case class CallExp(func:Symbol, exps:List[ASTExp]) extends ASTExp {
 	var funcEntry:FuncEntry = null
 }
-class Oper extends Enumeration {
+object Oper extends Enumeration {
 	val Plus, Minus, Times, Divide, Eq, Ne, Lt, Gt, Le, Ge, And, Or = Value
 }
-case class OpExp(l:ASTExp, r:ASTExp, op:Oper) extends ASTExp
-case class RecordExp(list:List[RecordField], typ:Symbol) extends ASTExp
+case class OpExp(op:Oper.Value, l:ASTExp, r:ASTExp) extends ASTExp
+case class RecordExp(typ:Symbol, list:List[RecordField]) extends ASTExp
 case class SeqExp(seq:List[ASTExp]) extends ASTExp
 case class AssignExp(va:ASTVar, exp:ASTExp) extends ASTExp
 case class IfExp(test:ASTExp, thenexp:ASTExp, elseexp:ASTExp) extends ASTExp
@@ -45,7 +45,7 @@ case class ForExp(va:Symbol, lo:ASTExp, hi:ASTExp, body:ASTExp) extends ASTExp {
 	var escape:Boolean = false
 }
 case class BreakExp() extends ASTExp
-case class LetExp(decs:List[ASTDec], body:SeqExp) extends ASTExp
+case class LetExp(decs:List[ASTDec], body:List[ASTExp]) extends ASTExp
 case class ArrayExp(typ:Symbol, size:ASTExp, init:ASTExp) extends ASTExp
 
 //Decs
@@ -63,5 +63,10 @@ case class NameTy(name:Symbol) extends ASTType
 case class RecordTy(fields:List[TypeField]) extends ASTType
 case class ArrayTy(name:Symbol) extends ASTType
 
-case class TypeField(name:Symbol, escape:Boolean, typ:Symbol, varEntry:VarEntry) extends AST
-case class RecordField(name:Symbol, varEntry:VarEntry, init:ASTExp) extends AST
+case class TypeField(name:Symbol, typ:Symbol) extends AST {
+	var varEntry:VarEntry = null
+	var escape:Boolean = false
+}
+case class RecordField(name:Symbol, init:ASTExp) extends AST {
+	var varEntry:VarEntry = null
+}
