@@ -67,8 +67,12 @@ SOURCES_LIBCORE+=$(SOURCES_TARGET)
 
 SOURCES_TIGER=main.cpp
 
-LDFLAGS=-L/usr/local/lib -L./
-LIBS=-lstdc++ -lm -lc 
+ifeq ($(PROFILER), yes)
+LDOPT=-pg
+endif
+
+LDFLAGS=-L/usr/local/lib -L./ -L/home/kataoka/lib $(LDOPT)
+LIBS=-lstdc++ -lm -lc -lprofiler
 
 OBJECTS_LIBCORE=$(call objs_from_sources, $(SOURCES_LIBCORE))
 OBJECTS_TIGER=$(call objs_from_sources, $(SOURCES_TIGER))
