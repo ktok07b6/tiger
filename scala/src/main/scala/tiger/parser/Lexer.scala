@@ -7,16 +7,18 @@ import scala.util.parsing.input.CharArrayReader.EofCh
 class Lexer extends StdLexical with ImplicitConversions {
 	override def token: Parser[Token] = 
 		( string ^^ StringLit
-		 | '-' ~> number ^^ { num => NumericLit("-" + num) }
 		 | number ^^ NumericLit
 		 | EofCh ^^^ EOF
-		 | delim
 		 | '\"' ~> failure("Unterminated string")
 		 | id ^^ checkKeyword
 		 | operator ^^ { s => Keyword(s) }
+		 | delim
+//		 | whitespace ^^ { s => success(s) }
 		 | failure("Illegal character")
 	 )
 
+//	override def whitespace: Parser[Any] =
+//		rep(whitespaceChar) | '/'~'*'~rep(chrExcept(EofCh))~'*'~'/'
 
 	def number = intPart
 	def intPart = zero | intList
@@ -37,8 +39,7 @@ class Lexer extends StdLexical with ImplicitConversions {
 					 elem('-') |
 					 elem('*') |
 					 elem('/') |
-					 elem('.') |
-					 elem(':')) ^^ { 
+					 elem('.')) ^^ { 
 						 case x~y=> x.toString + y.toString 
 						 case x => x.toString 
 					 }

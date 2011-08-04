@@ -49,7 +49,7 @@ object ASTPrinter {
 		case e:RecordExp => {
 			"RecordExp(" + 
 			e.typ.name + ", {" + 
-			e.list.map(toString).mkString(",") + "}" +
+			e.fields.map(toString).mkString(",") + "}" +
 			")"
 		}
 		case e:SeqExp => {

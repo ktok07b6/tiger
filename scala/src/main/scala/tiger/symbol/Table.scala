@@ -33,6 +33,7 @@ object Table {
 			None
 	
 	def putType(key:Symbol, t:Type) {
+		println("putType " + key + "->" + t)
 		typeTable += (key->t);
 	}
 	var typeTable:Map[Symbol, Type] = Map.empty

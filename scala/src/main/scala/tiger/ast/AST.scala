@@ -18,7 +18,7 @@ case class SimpleVar(sym:Symbol) extends ASTVar {
 	override def getSymbol() = sym
 }
 case class FieldVar(va:ASTVar, sym:Symbol) extends ASTVar {
-	override def getSymbol() = sym
+	override def getSymbol() = va.getSymbol
 }
 case class SubscriptVar(va:ASTVar, exp:ASTExp) extends ASTVar {
 	override def getSymbol() = va.getSymbol
@@ -35,7 +35,7 @@ object Oper extends Enumeration {
 	val Plus, Minus, Times, Divide, Eq, Ne, Lt, Gt, Le, Ge, And, Or = Value
 }
 case class OpExp(op:Oper.Value, l:ASTExp, r:ASTExp) extends ASTExp
-case class RecordExp(typ:Symbol, list:List[RecordField]) extends ASTExp
+case class RecordExp(typ:Symbol, fields:List[RecordField]) extends ASTExp
 case class SeqExp(seq:List[ASTExp]) extends ASTExp
 case class AssignExp(va:ASTVar, exp:ASTExp) extends ASTExp
 case class IfExp(test:ASTExp, thenexp:ASTExp, elseexp:ASTExp) extends ASTExp

@@ -13,13 +13,14 @@ class Parser extends StdTokenParsers with ImplicitConversions with PackratParser
 							  "while", "do", "for",
 							  "to", "let", "in", "end",
 							  "function", "var", "array",
-							  "of", "break", "type", "nil",
-							  ":=", ":", "+", "-", "*", "/",
-							  "=", "<>", "<", ">", "<=", ">=", "&", "|")
+							  "of", "break", "type", "nil"
+							  /*":=", "+", "-", "*", "/",
+							  "=", "<>", "<", ">", "<=", ">=", "&", "|"*/)
 
-	lexical.delimiters ++= List("[", "]", "(", ")", "{", "}", ";", ",")
+	lexical.delimiters ++= List("[", "]", "(", ")", "{", "}", ";", ":", ",")
 
-	def parse(input: String): Option[AST] = parseRaw(input)
+	def parse(input: String) = parseRaw(input)
+
 	def parseRaw(input : String) : Option[AST] = 
 		phrase(program)(new lexical.Scanner(input)) match {
 			case Success(result, _) => Some(result)
@@ -28,22 +29,22 @@ class Parser extends StdTokenParsers with ImplicitConversions with PackratParser
 
 	def program:Parser[ASTExp] = expr
 	def expr:PackratParser[ASTExp] = 
-		seq_expr |
-		function_call |
-		op_expr | 
-		assignment_expr | 
-		record_creation_expr |
-		array_creation_expr |
+		let_expr |
 		if_expr |
 		while_expr |
 		for_expr |
 		break_expr |
-		let_expr |
+		assignment_expr | 
+		op_expr | 
+		function_call |
+		record_creation_expr |
+		array_creation_expr |
 		lvalue_expr | 
-		neg_expr | 
 		string_expr | 
+		neg_expr | 
 		integer_expr | 
-		nil_expr
+		nil_expr |
+		seq_expr
 
 	def string_expr:Parser[ASTExp] = stringVal ^^ { s => StringExp(s) }
 	def integer_expr:Parser[ASTExp] = number ^^ { n => IntExp(n) }
@@ -92,8 +93,8 @@ class Parser extends StdTokenParsers with ImplicitConversions with PackratParser
 	def record_creation_expr:Parser[ASTExp] = id ~ "{" ~ repsep(record_field, ",") ~ "}" ^^ {
 		case id~"{"~recs~"}" => RecordExp(id, recs)
 	}
-	def record_field:Parser[RecordField] = id ~ ":=" ~ expr ^^ {
-		case id~":="~e => RecordField(id, e)
+	def record_field:Parser[RecordField] = id ~ "=" ~ expr ^^ {
+		case id~"="~e => RecordField(id, e)
 	}
 	def array_creation_expr:Parser[ASTExp] = id ~ "[" ~ expr ~ "]" ~ "of" ~ expr ^^ {
 		case id~"["~size~"]"~"of"~init => ArrayExp(id, size, init)
@@ -117,7 +118,7 @@ class Parser extends StdTokenParsers with ImplicitConversions with PackratParser
 
 	def break_expr:Parser[ASTExp] = "break" ^^ {n => BreakExp() }
 
-	def let_expr:Parser[ASTExp] = "let" ~ repsep(dec, "") ~ "in" ~ repsep(expr, ";") ~ "end" ^^ {
+	def let_expr:Parser[ASTExp] = "let" ~ repsep(dec, rep(" ")) ~ "in" ~ repsep(expr, ";") ~ "end" ^^ {
 		case "let"~decs~"in"~body~"end" => LetExp(decs, body)
 	}
 	
