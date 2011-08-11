@@ -4,95 +4,75 @@ import tiger.ast._
 import tiger.symbol._
 
 object TypeCheck {
-	Table.putType('int, IntT())
-	Table.putType('string, StrT())
-
-	def typeCheck(ast:AST):Boolean = {
+	def typeCheck(ast:ASTExp):Boolean = {
+		Table.init
+		Table.beginScope
+		Table.putType('int, IntT())
+		Table.putType('string, StrT())
+		var ret:Boolean = false;
 		try {
-			ast match {
-				case exp:ASTExp =>	typeCheckExp(exp) isDefined
-				case _ => error("ASTExp is expected"); false
-			}
+			typeCheckExp(ast);
+			ret = true
 		} catch {
 			case e => println(e); println(e.getStackTraceString)
-			false
+			ret = false
+		} finally {
+			Table.endScope
 		}
+		ret
 	}	
-	def typeCheckVar(ast:ASTVar):Option[Type] = ast match {
-		case v:SimpleVar => {
-			val ve_ = Table.getVarEntry(v.getSymbol)
-			if (ve_.isEmpty) {
-				error("undefined symbol:" + v.getSymbol)
-			}
-			val ve = ve_.get
-			v.varEntry = ve
-			Some(ve.typ)
+	def typeCheckVar(ast:ASTVar):Type = {
+		val ve_ = Table.getVarEntry(ast.getSymbol)
+		if (ve_.isEmpty) {
+			error("undefined symbol:" + ast.getSymbol)
 		}
+		val ve = ve_.get
+		println("typeCheckVar " + ast.getSymbol + " : " + ve)
+		ast match {
+			case v:SimpleVar => {
+				val ve = ve_.get
+				v.varEntry = ve
+				ve.typ
+			}
 
-		case v:FieldVar => {
-			//FIXME: nested too deep
-			val ve_ = Table.getVarEntry(v.getSymbol())
-			ve_ match {
-				case None => {
-					error("undefined symbol:" + v.getSymbol)
-					None
-				}
-				case Some(ve) => {
-					val ty_ = typeCheckVar(v.va)
-					ty_ match {
-						case None => None
-						case Some(ty) => {
-							ty.actual() match {
-								case r:RecordT => {
-									v.varEntry = ve
-									r.getType(v.sym)
-								}
-								case _ => error("Record type is expected"); None
-							}
+			case v:FieldVar => {
+				//FIXME: nested too deep
+				val ty = typeCheckVar(v.va)
+				ty.actual() match {
+					case r:RecordT => {
+						v.varEntry = ve
+						r.findFieldType(v.field) match {
+							case Some(t) => t
+							case None => error("undefined field name:" + v.getSymbol)
 						}
 					}
+					case _ => error("Record type is expected")
 				}
 			}
-		}
 
-		case v:SubscriptVar => {
-			val ve_ = Table.getVarEntry(v.getSymbol())
-			ve_ match {
-				case None => error("undefined symbol:" + v.getSymbol()); None
-				case Some(ve) => {
-					val expt_ = typeCheckExp(v.exp)
-					expt_ match {
-						case None => None
-						case Some(expt) => {
-							require(expt.actual().isInstanceOf[IntT])
-							val vat_ = typeCheckVar(v.va)
-							vat_ match {
-								case None => None
-								case Some(vat) => {
-									val arrayT:ArrayT = vat.actual().asInstanceOf[ArrayT]
-									v.varEntry = ve
-									Some(arrayT.element)
-								}
-							}
-						}
-					}
-				}
+			case v:SubscriptVar => {
+				val expt = typeCheckExp(v.exp)
+				require(expt.actual().isInstanceOf[IntT])
+				val vat = typeCheckVar(v.va)
+				val arrayT:ArrayT = vat.actual().asInstanceOf[ArrayT]
+				v.varEntry = ve
+				arrayT.element
 			}
 		}
 	}
 
-	def typeCheckExp(ast:ASTExp):Option[Type] = ast match {
+	def typeCheckExp(ast:ASTExp):Type = ast match {
 		case e:VarExp => {
 			typeCheckVar(e.va)
 		}
 		case e:NilExp => {
-			Some(NilT())
+			NilT()
 		}
 		case e:IntExp => {
-			Some(IntT())
+			IntT()
 		}
 		case e:StringExp => {
-			Some(StrT())
+			StrT()
 		}
 		case e:CallExp => {
 			val fe_ = Table.getFuncEntry(e.func)
@@ -100,22 +80,28 @@ object TypeCheck {
 				error("undefined function:" + e.func)
 			}
 			val fe = fe_.get
-			require(e.exps.length == fe.params.length)
+			if (e.exps.length != fe.params.length) {
+				error("number of function parameter is wrong")
+			}
 			for ((a,t) <- e.exps zip fe.params) {
-				require(Type.coerceTo(typeCheckExp(a), Some(t)))
+				if (!Type.coerceTo(typeCheckExp(a), t)) {
+					error("function parameter type is missmatch")
+				}
 			}
 			e.funcEntry = fe
- 			Some(fe.result)
+ 			fe.result
 		}
 		case e:OpExp => {
-			println("op, lt, rt = " + e.op + "," + e.l + "," + e.r)
-			val lt_ = typeCheckExp(e.l)
-			val rt_ = typeCheckExp(e.r)
-			if (Type.coerceTo(lt_, rt_)) {
-				lt_ match {
-					case Some(i:IntT) => Some(i)
-					case Some(s:StrT) => Some(s)
-					case _ => error("invalid operand type"); None
+			e.lt = typeCheckExp(e.l)
+			e.rt = typeCheckExp(e.r)
+			println("OpExp: " + e.op + "," + 
+					e.l + ":" + e.lt + "," + 
+					e.r + ":" + e.rt)
+			if (Type.coerceTo(e.lt, e.rt)) {
+				e.lt.actual match {
+					case i:IntT => i
+					case s:StrT => s
+					case _ => error("invalid operand type")
 				}
 			} else {
 				error("binary exp operand type is missmatched")
@@ -127,42 +113,64 @@ object TypeCheck {
 			}
 			val t_ = Table.getType(e.typ)
 			t_ match {
-				case None => error("unkown type:" + e.typ); None
+				case None => error("unkown type:" + e.typ)
 				case Some(t) => {
 					val rt = t.actual().asInstanceOf[RecordT]
 					e.fields.foreach(checkRecordField)
-					Some(t)
+					rt
 				}
 			}
 		}
 		case e:SeqExp => {
-			val results = for (exp <- e.seq) yield {
-				typeCheckExp(exp)
+			val results = e.seq.map(typeCheckExp)
+			//println("SeqExp:" + results)
+			//println("results.last:" + results.last)
+			if (!results.isEmpty) {
+				results.last
+			} else {
+				VoidT()
 			}
-			println("SeqExp:" + results)
-			println("results.last:" + results.last)
-			results.last
 		}
 		case e:AssignExp => {
 			val dst = typeCheckVar(e.va)
 			val src = typeCheckExp(e.exp)
-			require(Type.coerceTo(dst, src))
-			Some(VoidT())
+			if (!Type.coerceTo(dst, src)) {
+				error("assignment type is missmatch")
+			}
+			VoidT()
 		}
 		case e:IfExp => {
 			val testt = typeCheckExp(e.test)
-			require(testt.isInstanceOf[IntT])
+			if (!testt.isInstanceOf[IntT]) {
+				error("condition exp must be Integer")
+			}
 			val thent = typeCheckExp(e.thenexp)
-			//TODO
-			val elset = typeCheckExp(e.elseexp)
-			Some(VoidT())
+			e.elseexp match {
+				case Some(elsee) => {
+					val elset = typeCheckExp(elsee)
+					if (!Type.coerceTo(thent, elset)) {
+						error("then exp and else exp type is missmatch");
+					}
+					thent
+				} 
+				case None => {
+					thent match {
+						case t:VoidT => VoidT()
+						case _ => error("if-then returns non unit")
+					}
+				}
+			}
 		}
 		case e:WhileExp => {
 			val testt = typeCheckExp(e.test)
-			require(testt.isInstanceOf[IntT])
-			typeCheckExp(e.body)
-			//TODO
-			Some(VoidT())
+			if (!testt.isInstanceOf[IntT]) {
+				error("condition exp must be Integer")
+			}
+			val bodyt = typeCheckExp(e.body)
+			bodyt match {
+				case t:VoidT => VoidT()
+				case _ => error("body of while is not unit")
+			}
 		}
 		case e:ForExp => {
 			Table.beginScope
@@ -172,61 +180,85 @@ object TypeCheck {
 			Table.putVarEntry(e.va, ve)
 			e.varEntry = ve
 
-			require(typeCheckExp(e.lo).get.actual.isInstanceOf[IntT])
-			require(typeCheckExp(e.hi).get.actual.isInstanceOf[IntT])
+			if (!typeCheckExp(e.lo).actual.isInstanceOf[IntT]) {
+				error("exp must be Integer")
+			}
+			if (!typeCheckExp(e.hi).actual.isInstanceOf[IntT]) {
+				error("exp must be Integer")
+			}
 
 			typeCheckExp(e.body)
 			Table.endScope
-			Some(VoidT())
+			VoidT()
 		}
 		case e:BreakExp => {
-			Some(VoidT())
+			VoidT()
 		}
 		case e:LetExp => {
 			Table.beginScope
 
 			for(dec <- e.decs) {
-				require(typeCheckDec(dec).get.actual.isInstanceOf[VoidT])
+				typeCheckDec(dec)
 			}
-
-			if (!e.body.isEmpty) {
-				val bodyt_ = e.body.map(typeCheckExp).last
-				Table.endScope
-				bodyt_ match { 
-					case Some(bodyt) => Some(bodyt.actual)
-					case None => None
+			for(dec <- e.decs) {
+				dec match {
+					case d:FunDec => typeCheckFunDec2(d)
+					case _ => ()
 				}
-			} else {
-				Some(VoidT())
 			}
+			typeCheckExp(e.body)
 		}
 		case e:ArrayExp => {
 			Table.getType(e.typ) match {
 				case Some(t) => {
-					println(t)
 					val arrt = t.actual.asInstanceOf[ArrayT]
-					require(typeCheckExp(e.size).get.actual.isInstanceOf[IntT])
-					val initt_ = typeCheckExp(e.init)
-					require(Type.coerceTo(initt_, Some(arrt.element)))
-					Some(arrt)
+					require(typeCheckExp(e.size).actual.isInstanceOf[IntT])
+					e.init_t = typeCheckExp(e.init)
+					require(Type.coerceTo(e.init_t, arrt.element))
+					arrt
 				}
 				case _ => error("unknown type:" + e.typ)
 			}
 		}
 	}
 
-	def typeCheckDec(ast:ASTDec):Option[Type] = ast match {
+	def typeCheckFunDec2(d:FunDec) = {
+		val fe_ = Table.getFuncEntry(d.name)
+		require(fe_.isDefined)
+		val fe = fe_.get
+
+		Table.beginScope
+		//Table.dump
+		for ((f,t) <- d.params zip fe.params) {
+			f.varEntry = VarEntry(t)
+			Table.putVarEntry(f.name, f.varEntry) 
+			println("Table.putVarEntry " + f.name + " -> " + f.varEntry)
+		}
+
+		//result type check
+		val actual_result = typeCheckExp(d.body)
+		if (!Type.coerceTo(fe.result, actual_result)) {
+			error("function return type is missmatch")
+		}
+
+		d.funcEntry = fe
+		Table.endScope		
+	}
+
+	def typeCheckDec(ast:ASTDec):Type = ast match {
 		case d:FunDec => {
-			val params = d.params.map({p => typeCheckTypeField(p).get})
+			val params = d.params.map(typeCheckTypeField)
 			val result_ = Table.getType(d.result)
 			result_ match {
 				case Some(result) => {
 					Table.putFuncEntry(d.name, FuncEntry(result, params))
-					Some(VoidT())
 				}
-				case None => None
+				case None => {
+					//result type is Void
+					Table.putFuncEntry(d.name, FuncEntry(VoidT(), params))
+				}
 			}
-			//TODO: check body
+			VoidT()
 		}
 
 		case d:VarDec => {
@@ -235,45 +267,36 @@ object TypeCheck {
 				case Some(vart) => {
 					val ve = VarEntry(vart)
 					Table.putVarEntry(d.name, ve)
-					val initt_ = typeCheckExp(d.init)
-					if (!Type.coerceTo(vart_, initt_)) {
+					val initt = typeCheckExp(d.init)
+					println(vart + " :=  " + initt)
+					if (!Type.coerceTo(vart, initt)) {
 						error("var initialize exp type mismatch")
 					}
 					d.varEntry = ve
 				}
 				case None => {
-					val initt_ = typeCheckExp(d.init)
-					initt_ match {
-						case Some(initt) => {
-							val ve = VarEntry(initt.actual)
-							if (initt.actual.isInstanceOf[NilT]) {
-								error("initializing nil expressions not constrained by record type");
-							}
-							Table.putVarEntry(d.name, ve)
-							d.varEntry = ve
-						}
-						case None => None
+					val initt = typeCheckExp(d.init)
+					val ve = VarEntry(initt.actual)
+					if (initt.actual.isInstanceOf[NilT]) {
+						error("initializing nil expressions not constrained by record type");
 					}
+					Table.putVarEntry(d.name, ve)
+					d.varEntry = ve
 				}
 			}
-			Some(VoidT())
+			VoidT()
 		}
 		case d:TypeDec => {
-			val t_ = typeCheckType(d.typ)
-			t_ match {
-				case Some(t) => {
-					t match {
-						case r:RecordT => Table.putType(d.name, r)//TODO 
-						case t:Type => Table.putType(d.name, t)
-					}
-					Some(VoidT())
-				}
-				case None => None
-			} 
+			val t = typeCheckType(d.typ)
+			t match {
+				case r:RecordT => Table.putType(d.name, r)//TODO 
+				case t:Type => Table.putType(d.name, t)
+			}
+			VoidT()
 		}
 	}
 
-	def typeCheckType(ast:ASTType):Option[Type] = ast match {
+	def typeCheckType(ast:ASTType):Type = ast match {
 		case t:NameTy => {
 			val namet = NameT(t.name)
 			val t_ = Table.getType(t.name)
@@ -281,42 +304,38 @@ object TypeCheck {
 				case Some(t) => namet.bind(t)
 				case None => error("unknown type name")
 			}
-			Some(namet)
+			namet
 		}
 		case t:RecordTy => {
 			def recFieldTypeCheck(f:TypeField):RecordElem = {
-				val ty_ = typeCheckTypeField(f)
-				ty_ match {
-					case None => error("unknown type name")
-					case Some(ty) => {
-						RecordElem(f.name, ty)
-					}
-				}
+				val ty = typeCheckTypeField(f)
+				RecordElem(f.name, ty)
 			}
-			Some(RecordT(t.fields.map(recFieldTypeCheck)))
+			Type.createRecordT(t.fields.map(recFieldTypeCheck))
 		}
 
 		case t:ArrayTy => {
 			val elemt_ = Table.getType(t.name)
 			elemt_ match {
-				case Some(t) => Some(ArrayT(t))
-				case None => error("unknown type name:" + t.name); None
+				case Some(t) => Type.createArrayT(t)
+				case None => error("unknown type name:" + t.name)
 			}
 		}
 	}
 
-	def typeCheckTypeField(f:TypeField):Option[Type] = {
+	def typeCheckTypeField(f:TypeField):Type = {
 		val opt = Table.getType(f.typ)
 		opt match {
-			case Some(t) => Some(t)
-			case None    => Some(NameT(f.typ))
+			case Some(t) => t
+			case None    => NameT(f.typ)
 		}
 	}
 
-	def typeCheckRecordField(f:RecordField):Option[Type] = {
+	def typeCheckRecordField(f:RecordField):Type = {
 		val initt = typeCheckExp(f.init)
-		val namet = Table.getType(f.name)
-		require(Type.coerceTo(initt, namet))
-		Some(VoidT())
+		val namet_ = Table.getType(f.name)
+		if (namet_.isEmpty) error("undefined field name")
+		if (!Type.coerceTo(initt, namet_.get)) error("field type missmatch")
+		VoidT()
 	}
 }

@@ -2,6 +2,7 @@ package tiger.ast;
 
 import tiger.symbol._
 import tiger.typ._
+import tiger.common.Oper
 
 abstract class AST
 
@@ -17,7 +18,7 @@ abstract class ASTType extends AST
 case class SimpleVar(sym:Symbol) extends ASTVar {
 	override def getSymbol() = sym
 }
-case class FieldVar(va:ASTVar, sym:Symbol) extends ASTVar {
+case class FieldVar(va:ASTVar, field:Symbol) extends ASTVar {
 	override def getSymbol() = va.getSymbol
 }
 case class SubscriptVar(va:ASTVar, exp:ASTExp) extends ASTVar {
@@ -31,22 +32,24 @@ case class StringExp(s:String) extends ASTExp
 case class CallExp(func:Symbol, exps:List[ASTExp]) extends ASTExp {
 	var funcEntry:FuncEntry = null
 }
-object Oper extends Enumeration {
-	val Plus, Minus, Times, Divide, Eq, Ne, Lt, Gt, Le, Ge, And, Or = Value
+case class OpExp(op:Oper.Value, l:ASTExp, r:ASTExp) extends ASTExp {
+	var lt:Type = null
+	var rt:Type = null
 }
-case class OpExp(op:Oper.Value, l:ASTExp, r:ASTExp) extends ASTExp
 case class RecordExp(typ:Symbol, fields:List[RecordField]) extends ASTExp
 case class SeqExp(seq:List[ASTExp]) extends ASTExp
 case class AssignExp(va:ASTVar, exp:ASTExp) extends ASTExp
-case class IfExp(test:ASTExp, thenexp:ASTExp, elseexp:ASTExp) extends ASTExp
+case class IfExp(test:ASTExp, thenexp:ASTExp, elseexp:Option[ASTExp]) extends ASTExp
 case class WhileExp(test:ASTExp, body:ASTExp) extends ASTExp
 case class ForExp(va:Symbol, lo:ASTExp, hi:ASTExp, body:ASTExp) extends ASTExp {
 	var varEntry:VarEntry = null
 	var escape:Boolean = false
 }
 case class BreakExp() extends ASTExp
-case class LetExp(decs:List[ASTDec], body:List[ASTExp]) extends ASTExp
-case class ArrayExp(typ:Symbol, size:ASTExp, init:ASTExp) extends ASTExp
+case class LetExp(decs:List[ASTDec], body:ASTExp) extends ASTExp
+case class ArrayExp(typ:Symbol, size:ASTExp, init:ASTExp) extends ASTExp {
+	var init_t:Type = null
+}
 
 //Decs
 case class FunDec(name:Symbol, params:List[TypeField], result:Symbol, body:ASTExp) extends ASTDec {

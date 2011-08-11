@@ -1,6 +1,7 @@
 package tiger.ast
 
 import tiger.typ._
+import tiger.common.Oper
 
 object ASTPrinter {
 	def print(ast:AST) {
@@ -9,141 +10,116 @@ object ASTPrinter {
 
 	def toString(ast:AST):String = ast match {
 		case v:SimpleVar => {
-			"SimpleVar(" + v.sym.name + ")" 
+			v.sym.name + " "
 		}
 		case v:FieldVar => {
-			"FieldVar(" + toString(v.va) + "." + v.sym.name + ")"
+			toString(v.va) + "." + v.field.name + " "
 		}
 		case v:SubscriptVar => {
-			"SubscriptVar(" + 
 			toString(v.va) + 
 			"[" + 
 			toString(v.exp) + 
-			"])"
+			"] "
 		}
 		case e:VarExp => {
-			"VarExp(" + toString(e.va) + ")"
+			toString(e.va)
 		}
 		case e:NilExp => {
-			"NilExp()"
+			"nil "
 		}
 		case e:IntExp => {
-			"IntExp(" + e.n + ")"
+			e.n + ""
 		}
 		case e:StringExp => {
-			"StringExp(" + e.s + ")"
+			e.s + ""
 		}
 		case e:CallExp => {
-			"CallExp(" + 
-			e.func.name + "," + 
-			e.exps.map(toString).mkString(",") + 
-			")"
+			e.func.name + "(" + 
+			e.exps.map(toString).mkString(",") + ")"
 		}
 		case e:OpExp => {
-			"OpExp(" + 
-			e.op + "," + 
-			toString(e.l) + "," + 
-			toString(e.r) + 
-			")"
+			toString(e.l) + " " + Oper.toString(e.op) + " " + toString(e.r)
 		}
 		case e:RecordExp => {
-			"RecordExp(" + 
-			e.typ.name + ", {" + 
-			e.fields.map(toString).mkString(",") + "}" +
-			")"
+			e.typ.name + "{" + 
+			e.fields.map(toString).mkString(",") + "}"
 		}
 		case e:SeqExp => {
-			"SeqExp(" + 
-			e.seq.map(toString).mkString(",") + 
-			")"
+			e.seq.map(toString).mkString(";")
 		}
 		case e:AssignExp => {
-			"AssignExp(" + 
-			toString(e.va) + "," + 
-			toString(e.exp) + 
-			")"
+			toString(e.va) + " := " + toString(e.exp)
 		}
 		case e:IfExp => {
-			"IfExp(" +
-			toString(e.test) + "," + 
-			toString(e.thenexp) + "," + 
-			toString(e.elseexp) + 
-			")"
+			val elsestr = e.elseexp match {
+				case Some(e) => toString(e) 
+				case None => ""
+			}
+			"if (" + toString(e.test) + ") {" + 
+			toString(e.thenexp) + "} else {" + elsestr + "} "
 		}
 		case e:WhileExp => {
-			"WhileExp(" + 
-			toString(e.test) + "," + 
+			"while (" + 
+			toString(e.test) + ") {" + 
 			toString(e.body) +  
-			")"
+			"} "
 		}
 		case e:ForExp => {
-			"ForExp(" + 
-			e.va.name + "," + 
-			toString(e.lo) + "," + 
-			toString(e.hi) + "," + 
-			toString(e.body) + 
-			")"
+			"for (" + e.va.name + " := " + 
+			toString(e.lo) + " to " + 
+			toString(e.hi) + " do " + 
+			toString(e.body)
 		}
 		case e:BreakExp => {
-			"BreakExp"
+			"break "
 		}
 		case e:LetExp => {
-			"LetExp(" +
-			e.decs.map(toString).mkString(",") + "," +
-			e.body.map(toString).mkString(";") + 
-			")"
+			"let " +
+			e.decs.map(toString).mkString(" ") + " in " +
+			toString(e.body) + " end "
 		}
 		case e:ArrayExp => {
-			"ArrayExp(" + 
-			e.typ.name + "," + 
-			toString(e.size) + "," + 
-			toString(e.init) + 
-			")"
+			e.typ.name + " " + 
+			"[" + toString(e.size) + "]" + " of " + 
+			toString(e.init) + " "
 		}
 		case d:FunDec => {
-			"FunDec(" + 
-			d.name.name + "," + 
-			d.params.map(toString) + "," + 
-			d.result.name + "," + 
-			toString(d.body) + 
-			")"
+			"function " + 
+			d.name.name + "(" + 
+			d.params.map(toString).mkString(",") + "):" + 
+			d.result.name + " = " + 
+			toString(d.body)
 		}
 		case d:VarDec => {
-			"VarDec(" + 
-			d.name.name + "," + 
-			d.typ.name + "," + 
-			toString(d.init) + 
-			")"
+			"var " + 
+			d.name.name + ":" + 
+			d.typ.name + " := " + 
+			toString(d.init)
 		}
 		case d:TypeDec => {
-			"TypeDec(" + 
-			d.name.name + "," + 
-			toString(d.typ) + 
-			")"
+			"type " + 
+			d.name.name + " = " + 
+			toString(d.typ)
 		}
 		case t:NameTy => {
-			"NameTy(" + t.name.name + ")"
+			t.name.name
 		}
 		case t:RecordTy => {
-			"RecordTy(" + 
+			"{" + 
 			t.fields.map(toString).mkString(",") + 
-			")"
+			"}"
 		}
 		case t:ArrayTy => {
-			"ArrayTy(" + t.name.name + ")"
+			"array of " + t.name.name
 		}
 		case f:TypeField => {
-			"TypeField(" + 
 			f.name.name + ":" + 
-			f.typ.name + 
-			")"
+			f.typ.name
 		}
 		case f:RecordField => {
-			"RecordField(" + 
 			f.name.name + ":" +
 			//(f.varEntry ? f.varEntry.typ:NilT()) + "," + 
-			toString(f.init) + 
-			")"
+			toString(f.init)
 		}
 		case _ => {
 			"???"

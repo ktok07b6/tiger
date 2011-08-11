@@ -11,16 +11,16 @@ object Tiger {
 		typeCheck(ast)
 	}
 
-	def parse(src:String):Option[AST] = {
+	def parse(src:String):Option[ASTExp] = {
 		val parser = new Parser
-		val result:Option[AST] = parser.parse(src)
+		val result = parser.parse(src)
 		result match {
 			case Some(ast) => ASTPrinter.print(ast);
 			case _ => println("!!!!! PARSE FAILED !!!!!:"); println(src)
 		}
 		result
 	}
-	def typeCheck(ast:Option[AST]):Boolean = ast match {
+	def typeCheck(ast:Option[ASTExp]):Boolean = ast match {
 		case Some(ast) => TypeCheck.typeCheck(ast)
 		case _ => println("!!!!! INVALID AST !!!!!"); false
 	}
