@@ -5,7 +5,7 @@ class BasicTypeCheckSuite extends FunSuite {
 	val dir:String = "/home/kataoka/tiger/testcases/basic/"
 
 	def typeCheckTest(fileName:String):Boolean = {
-		println(fileName)
+		println("--- " + fileName)
 		val src = Source.fromFile(dir+fileName).mkString
 		val ast = Tiger.parse(src)
 		Tiger.typeCheck(ast)
@@ -36,7 +36,7 @@ class BasicTypeCheckSuite extends FunSuite {
 		assert(typeCheckTest("decl22.tig") == true)
 		assert(typeCheckTest("decl23.tig") == true)
 	}
-	*/
+
 	test("exp") {
 		assert(typeCheckTest("exp01.tig") == true)
 		assert(typeCheckTest("exp02.tig") == true)
@@ -94,4 +94,42 @@ class BasicTypeCheckSuite extends FunSuite {
 		assert(typeCheckTest("func10.tig") == true)
 		assert(typeCheckTest("func11.tig") == true)
 	}
+
+	test("for") {
+		assert(typeCheckTest("for01.tig") == true)
+		assert(typeCheckTest("for02.tig") == true)
+		assert(typeCheckTest("for03.tig") == true)
+		assert(typeCheckTest("for04.tig") == true)
+		assert(typeCheckTest("for05.tig") == true)
+	}
+
+	test("if") {
+		assert(typeCheckTest("if01.tig") == true)
+		assert(typeCheckTest("if02.tig") == true)
+		assert(typeCheckTest("if03.tig") == true)
+		assert(typeCheckTest("if04.tig") == true)
+		assert(typeCheckTest("if05.tig") == true)
+		assert(typeCheckTest("if06.tig") == true)
+		assert(typeCheckTest("if07.tig") == true)
+		assert(typeCheckTest("if08.tig") == true)
+	}
+
+	test("return") {
+		assert(typeCheckTest("return01.tig") == true)
+		assert(typeCheckTest("return02.tig") == true)
+		assert(typeCheckTest("return03.tig") == true)
+	}
+
+	test("scope") {
+		assert(typeCheckTest("scope01.tig") == true)
+		assert(typeCheckTest("scope02.tig") == true)
+		assert(typeCheckTest("scope03.tig") == true)
+		assert(typeCheckTest("scope04.tig") == true)
+	}
+
+	test("while") {
+		assert(typeCheckTest("while01.tig") == true)
+		assert(typeCheckTest("while02.tig") == true)
+	}
+*/
 }

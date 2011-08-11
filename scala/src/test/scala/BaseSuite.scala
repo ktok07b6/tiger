@@ -3,9 +3,18 @@ import tiger.ast._
 import tiger.symbol._
 import tiger.parser._
 import tiger.typ._
+import tiger.common.Oper
+import tiger.tree._
 
 class BaseSuite extends FunSuite {
-/*
+	test("Tree test") {
+		println(TreeBinOp(Oper.Plus, 
+				  TreeBinOp(Oper.Minus, TreeConst(1), TreeConst(2)),
+				  TreeBinOp(Oper.Times, TreeConst(3), TreeConst(4))
+			  ))
+				  
+	}
+
 	 test("AST test") {
 		ASTPrinter.print(SimpleVar('a))
 		ASTPrinter.print(FieldVar(SimpleVar('x),'y))
@@ -19,8 +28,8 @@ class BaseSuite extends FunSuite {
 
 		ASTPrinter.print(RecordField('rec, IntExp(10)))
 	}
-*/
 
+/*
 	test("Parser test") {
 		def testParser_(source:String) {
 			val parser = new Parser
@@ -30,6 +39,11 @@ class BaseSuite extends FunSuite {
 				case _ => println("!!!!! PARSE FAILED !!!!!:" + source)
 			}
 		}
+		testParser_("1+2*3")
+		testParser_("2*3+1")
+		testParser_("(1+2)*3")
+		testParser_("1=2 | 3 & 4")
+		testParser_("1+2 < 3+4")
 		testParser_("1")
 		testParser_("a")
 		testParser_("x.y")
@@ -38,6 +52,7 @@ class BaseSuite extends FunSuite {
 		testParser_("1+1")
 		testParser_("1--1")
 		testParser_("1-1")
+
 		testParser_("(1)+(1)")
 		testParser_("(1)-(1)")
 		testParser_("(1+2)*3")
@@ -65,8 +80,9 @@ class BaseSuite extends FunSuite {
 		//testParser_("let type integer = int in () end")
 		testParser_("let type any = {any:int} var any := any{any = 10} in end")
 		testParser_("let function pow2(x:int):int = (x*x) function pow4(x:int):int = (pow2(x)*pow2(x)) in end")
-	}
 
+	}
+*/
 /*
 	test("Lexer test") {
 		def testLexer_(source:String) {
@@ -120,4 +136,16 @@ class BaseSuite extends FunSuite {
 		for((x,y) <- xs zip ys) println(x+y)  
 	}
 */
+	test("Table test") {
+		Table.beginScope
+		val va = VarEntry(IntT())
+		Table.putVarEntry('a, va)
+		Table.beginScope
+		val vb = VarEntry(IntT())
+		Table.putVarEntry('b, vb)
+		Table.dump
+		Table.endScope
+		Table.dump
+		Table.endScope
+	}
 }
