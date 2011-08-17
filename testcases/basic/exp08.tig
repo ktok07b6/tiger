@@ -1,0 +1,6 @@
+let
+    var s := ""
+in
+    s := "a" + "b" + "c";
+	s = "abc" & s <> "xyz"
+end

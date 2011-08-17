@@ -1,0 +1,7 @@
+let
+    type number = int
+	var n:number := 10
+	var nn := n
+in
+    while nn do nn := nn - 1
+end

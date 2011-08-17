@@ -1,0 +1,5 @@
+let
+		var i:=10
+in
+		while i do i := i - 1
+end

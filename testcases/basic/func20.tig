@@ -1,0 +1,5 @@
+let
+    function recursive(i:int) = if i = 0 then print("ok") else recursive(i-1)
+in
+    recursive(10)
+end
