@@ -29,7 +29,7 @@ object Tiger {
 	}
 
 	def ast2tree(ast:Option[ASTExp]):Tree = ast match {
-		case Some(ast) => AST2Tree.ast2tree(ast, new ARMFrame())
+		case Some(ast) => AST2Tree.ast2tree(ast, new ARMFrame('frame, List()))
 		case _ => println("!!!!! INVALID AST !!!!!"); TreeConst(0) 
 	}
 }

@@ -162,10 +162,12 @@ object AST2Tree {
 		}
 
 		case e:SeqExp => {
-			require(e.seq.length >= 2)
-
+			if (e.seq.length < 1) {
+				return Ex(TreeConst(0))
+			}
 			val trs = e.seq.map(translateExp)
-			trs.last.unEx match {
+			val tr = trs.last
+			tr.unEx match {
 				case Some(ret) => {
 					val seqs = trs.dropRight(1).map(_.unNx.get)
 					val eseq = TreeEseq(TreeSeq.makeSeq(seqs), ret)
@@ -227,7 +229,7 @@ object AST2Tree {
 														l_t,
 														r_t,
 														jmp_to_Join,
-														l_f,
+												l_f,
 														r_f,
 														l_Join))
 				val eseq = TreeEseq(seq, TreeTemp(r))
@@ -326,11 +328,20 @@ object AST2Tree {
 			//TODO:
 			val decs = e.decs.map(translateDec).map(_.unNx.get)
 			val decs_except_func = decs.filter(!_.isInstanceOf[FunDec])
- 			val ebody = translateExp(e.body).unEx.get
-			if (!decs_except_func.isEmpty) {
-				Ex(TreeEseq(TreeSeq.makeSeq(decs_except_func), ebody))
-			} else {
-				Ex(ebody)
+
+			val tr = translateExp(e.body)
+			tr.unEx match {
+				case Some(ebody) => {
+					if (!decs_except_func.isEmpty) {
+						Ex(TreeEseq(TreeSeq.makeSeq(decs_except_func), ebody))
+					} else {
+						Ex(ebody)
+					}
+				}
+				case None => {
+					val nbody = tr.unNx.get
+					Nx(TreeSeq(nbody, TreeSeq.makeSeq(decs_except_func)))
+				}
 			}
 		}
 
@@ -391,6 +402,7 @@ object AST2Tree {
 			Level.newLevel(d.name, true :: paramEscapes)
 			
 			for ((field, acc) <- d.params zip Level.current.formals) {
+				println("acc = " + acc)
 				field.varEntry.access = acc
 			}
 
@@ -460,6 +472,7 @@ object AST2Tree {
 
 	private def convertStrOp(op:Oper.Value, el:TreeExp, er:TreeExp):TreeExp = {
 		val args = List(el, er)
+		println(op)
 		op match {
 			case Oper.Plus => frame.externalCall("stringConcat", args)
 			case Oper.Eq => frame.externalCall("stringEqual", args)

@@ -7,6 +7,7 @@ import tiger.common.Oper
 import tiger.tree._
 
 class BaseSuite extends FunSuite {
+/*
 	test("Tree test") {
 		println(TreeBinOp(Oper.Plus, 
 				  TreeBinOp(Oper.Minus, TreeConst(1), TreeConst(2)),
@@ -14,7 +15,8 @@ class BaseSuite extends FunSuite {
 			  ))
 				  
 	}
-
+*/
+/*
 	 test("AST test") {
 		ASTPrinter.print(SimpleVar('a))
 		ASTPrinter.print(FieldVar(SimpleVar('x),'y))
@@ -28,8 +30,8 @@ class BaseSuite extends FunSuite {
 
 		ASTPrinter.print(RecordField('rec, IntExp(10)))
 	}
+*/
 
-/*
 	test("Parser test") {
 		def testParser_(source:String) {
 			val parser = new Parser
@@ -42,6 +44,8 @@ class BaseSuite extends FunSuite {
 		testParser_("1+2*3")
 		testParser_("2*3+1")
 		testParser_("(1+2)*3")
+		testParser_("1+2*3+4")
+		testParser_("1+2+3+4")
 		testParser_("1=2 | 3 & 4")
 		testParser_("1+2 < 3+4")
 		testParser_("1")
@@ -82,7 +86,7 @@ class BaseSuite extends FunSuite {
 		testParser_("let function pow2(x:int):int = (x*x) function pow4(x:int):int = (pow2(x)*pow2(x)) in end")
 
 	}
-*/
+
 /*
 	test("Lexer test") {
 		def testLexer_(source:String) {
@@ -136,6 +140,7 @@ class BaseSuite extends FunSuite {
 		for((x,y) <- xs zip ys) println(x+y)  
 	}
 */
+/*
 	test("Table test") {
 		Table.beginScope
 		val va = VarEntry(IntT())
@@ -148,4 +153,5 @@ class BaseSuite extends FunSuite {
 		Table.dump
 		Table.endScope
 	}
+*/
 }

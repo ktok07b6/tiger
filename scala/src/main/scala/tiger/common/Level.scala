@@ -18,8 +18,9 @@ class Level(n:Symbol, f:Frame) {
 	val frame = f
 	var formals:List[LevelAccess] = List.empty
 
-	for (f <- frame.formals) {
-		val acc = new LevelAccess(this, f)
+	println(f.formals)
+	for (fa <- f.formals) {
+		val acc = new LevelAccess(this, fa)
 		formals = acc::formals
 	}
 

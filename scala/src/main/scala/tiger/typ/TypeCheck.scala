@@ -2,6 +2,7 @@ package tiger.typ;
 
 import tiger.ast._
 import tiger.symbol._
+import tiger.common._
 
 object TypeCheck {
 	def typeCheck(ast:ASTExp):Boolean = {
@@ -9,6 +10,19 @@ object TypeCheck {
 		Table.beginScope
 		Table.putType('int, IntT())
 		Table.putType('string, StrT())
+		
+		Table.putFuncEntry('print, FuncEntry(VoidT(), List(StrT())))
+		Table.putFuncEntry('flush, FuncEntry(VoidT(), List()))
+		Table.putFuncEntry('ord, FuncEntry(IntT(), List(StrT())))
+		Table.putFuncEntry('chr, FuncEntry(StrT(), List(IntT())))
+		Table.putFuncEntry('stringEqual, FuncEntry(IntT(), List(StrT(), StrT())))
+		Table.putFuncEntry('stringLen, FuncEntry(IntT(), List(StrT())))
+		Table.putFuncEntry('substring, FuncEntry(StrT(), List(StrT(), IntT(), IntT())))
+		Table.putFuncEntry('stringConcat, FuncEntry(StrT(), List(StrT(), StrT())))
+		Table.putFuncEntry('not, FuncEntry(IntT(), List(IntT())))
+		Table.putFuncEntry('getch, FuncEntry(StrT(), List()))
+		Table.putFuncEntry('test, FuncEntry(VoidT(), List(IntT())))
+
 		var ret:Boolean = false;
 		try {
 			typeCheckExp(ast);
@@ -98,10 +112,11 @@ object TypeCheck {
 					e.l + ":" + e.lt + "," + 
 					e.r + ":" + e.rt)
 			if (Type.coerceTo(e.lt, e.rt)) {
-				e.lt.actual match {
-					case i:IntT => i
-					case s:StrT => s
-					case _ => error("invalid operand type")
+				(e.lt.actual, e.op) match {
+					case (IntT(), _) => IntT()
+					case (StrT(), Oper.Plus) => StrT()
+					case (_, Oper.Eq) | (_, Oper.Ne) => IntT()
+					case _ => error("invalid operand type") 
 				}
 			} else {
 				error("binary exp operand type is missmatched")

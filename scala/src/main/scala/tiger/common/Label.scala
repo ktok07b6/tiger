@@ -9,5 +9,6 @@ class Label(sym:Symbol) {
 		this(Symbol("L" + Label.count))
 		Label.count += 1
 	}
+	override def toString():String = sym.name
 }
 

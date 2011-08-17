@@ -45,6 +45,7 @@ class BasicTypeCheckSuite extends FunSuite {
 		assert(typeCheckTest("exp05.tig") == true)
 		assert(typeCheckTest("exp06.tig") == true)
 		assert(typeCheckTest("exp07.tig") == true)
+		assert(typeCheckTest("exp08.tig") == true)
 	}
 	test("op") {
 		assert(typeCheckTest("op01.tig") == true)
@@ -93,6 +94,7 @@ class BasicTypeCheckSuite extends FunSuite {
 		assert(typeCheckTest("func06.tig") == true)
 		assert(typeCheckTest("func10.tig") == true)
 		assert(typeCheckTest("func11.tig") == true)
+		assert(typeCheckTest("func20.tig") == true)
 	}
 
 	test("for") {
@@ -126,10 +128,13 @@ class BasicTypeCheckSuite extends FunSuite {
 		assert(typeCheckTest("scope03.tig") == true)
 		assert(typeCheckTest("scope04.tig") == true)
 	}
-
+*/
+/*
 	test("while") {
 		assert(typeCheckTest("while01.tig") == true)
 		assert(typeCheckTest("while02.tig") == true)
+		assert(typeCheckTest("while03.tig") == true)
+		assert(typeCheckTest("while04.tig") == true)
 	}
 */
 }

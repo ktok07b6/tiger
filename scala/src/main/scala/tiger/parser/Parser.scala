@@ -76,31 +76,32 @@ class Parser extends StdTokenParsers with ImplicitConversions with PackratParser
 
 	lazy val op_expr:PackratParser[ASTExp] = or_expr
 	lazy val or_expr:PackratParser[ASTExp] = 
-		and_expr ~ "|" ~ and_expr ^^ {case l~"|"~r  => OpExp(Oper.Or, l, r)} |
+		and_expr ~ "|" ~ or_expr ^^ {case l~"|"~r  => OpExp(Oper.Or, l, r)} |
 		and_expr
 
 	lazy val and_expr:PackratParser[ASTExp] = 
-		rel_expr ~ "&" ~ rel_expr ^^ {case l~"&"~r  => OpExp(Oper.And, l, r)} |
+		rel_expr ~ "&" ~ and_expr ^^ {case l~"&"~r  => OpExp(Oper.And, l, r)} |
 		rel_expr
 
 	lazy val rel_expr:PackratParser[ASTExp] = 
-		add_expr ~ "=" ~  add_expr ^^ {case l~"="~r  => OpExp(Oper.Eq, l, r)} |
-		add_expr ~ "<>" ~ add_expr ^^ {case l~"<>"~r => OpExp(Oper.Ne, l, r)} |
-		add_expr ~ "<=" ~ add_expr ^^ {case l~"<="~r => OpExp(Oper.Le, l, r)} |
-		add_expr ~ ">=" ~ add_expr ^^ {case l~">="~r => OpExp(Oper.Ge, l, r)} |
-		add_expr ~ "<" ~  add_expr ^^ {case l~"<"~r  => OpExp(Oper.Lt, l, r)} |
-		add_expr ~ ">" ~  add_expr ^^ {case l~">"~r  => OpExp(Oper.Gt, l, r)} |
+		add_expr ~ "=" ~  rel_expr ^^ {case l~"="~r  => OpExp(Oper.Eq, l, r)} |
+		add_expr ~ "<>" ~ rel_expr ^^ {case l~"<>"~r => OpExp(Oper.Ne, l, r)} |
+		add_expr ~ "<=" ~ rel_expr ^^ {case l~"<="~r => OpExp(Oper.Le, l, r)} |
+		add_expr ~ ">=" ~ rel_expr ^^ {case l~">="~r => OpExp(Oper.Ge, l, r)} |
+		add_expr ~ "<" ~  rel_expr ^^ {case l~"<"~r  => OpExp(Oper.Lt, l, r)} |
+		add_expr ~ ">" ~  rel_expr ^^ {case l~">"~r  => OpExp(Oper.Gt, l, r)} |
 		add_expr
 
 	lazy val add_expr:PackratParser[ASTExp] = 
-		mul_expr ~ "+" ~ mul_expr ^^ {case l~"+"~r  => OpExp(Oper.Plus, l, r)} |
-		mul_expr ~ "-" ~ mul_expr ^^ {case l~"-"~r  => OpExp(Oper.Minus, l, r)} |
+		mul_expr ~ "+" ~ add_expr ^^ {case l~"+"~r  => OpExp(Oper.Plus, l, r)} |
+		mul_expr ~ "-" ~ add_expr ^^ {case l~"-"~r  => OpExp(Oper.Minus, l, r)} |
 		mul_expr 
 
 	lazy val mul_expr:PackratParser[ASTExp] = 
-		primary_expr ~ "*" ~ primary_expr ^^ {case l~"*"~r  => OpExp(Oper.Times, l, r)} |
-		primary_expr ~ "/" ~ primary_expr ^^ {case l~"/"~r  => OpExp(Oper.Divide, l, r)} |
-		primary_expr 
+		expr ~ "*" ~ mul_expr ^^ {case l~"*"~r  => OpExp(Oper.Times, l, r)} |
+		expr ~ "/" ~ mul_expr ^^ {case l~"/"~r  => OpExp(Oper.Divide, l, r)} |
+		expr 
+
 	def assignment_expr:Parser[ASTExp] = lvalue ~ ":=" ~ expr ^^ {
 		case lv~":="~e => AssignExp(lv, e)
 	}
@@ -108,10 +109,17 @@ class Parser extends StdTokenParsers with ImplicitConversions with PackratParser
 	def function_call:Parser[ASTExp] = id ~ "(" ~ repsep(expr, ",") ~ ")" ^^ {
 		case name~"("~args~")" => CallExp(name, args)
 	}
-	
-	def seq_expr:Parser[ASTExp] = "(" ~> repsep(expr, ";") <~ ")" ^^ {
-		seq => SeqExp(seq)
-	}
+
+	def seq_expr:Parser[ASTExp] = 
+		"("~")" ^^ {
+			_ => NilExp()
+		} |
+		"(" ~> expr <~ ")" ^^ {
+			e => e
+		} |
+		"(" ~> repsep(expr, ";") <~ ")" ^^ {
+			seq => SeqExp(seq)
+		}
 
 	def record_creation_expr:Parser[ASTExp] = id ~ "{" ~ repsep(record_field, ",") ~ "}" ^^ {
 		case id~"{"~recs~"}" => RecordExp(id, recs)
@@ -141,9 +149,10 @@ class Parser extends StdTokenParsers with ImplicitConversions with PackratParser
 
 	def break_expr:Parser[ASTExp] = "break" ^^ {n => BreakExp() }
 
-	def let_expr:Parser[ASTExp] = "let" ~ repsep(dec, rep(" ")) ~ "in" ~ repsep(expr, ";") ~ "end" ^^ {
-		case "let"~decs~"in"~body~"end" => LetExp(decs, SeqExp(body))
-	}
+	def let_expr:Parser[ASTExp] = 
+		"let" ~ repsep(dec, rep(" ")) ~ "in" ~ repsep(expr, ";") ~ "end" ^^ {
+			case "let"~decs~"in"~body~"end" => LetExp(decs, SeqExp(body))
+		}
 	
 	def dec:Parser[ASTDec] = typedec | vardec | fundec
 
