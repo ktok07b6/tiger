@@ -31,7 +31,7 @@ case class Cx(op:Oper.Value, l:TreeExp, r:TreeExp) extends Translate {
 		val label_t = TreeLabel(t)
 		val label_f = TreeLabel(f)
 		val cmp = unCx(t, f).get
-		val seq = TreeSeq.makeSeq(List(r_1, cmp, label_f, r_0, label_t))
+		val seq = TreeSeq.makeSeq(r_1, cmp, label_f, r_0, label_t)
 		Some(TreeEseq(seq, r))
 	}
 	override def unNx():Option[TreeStm] = {

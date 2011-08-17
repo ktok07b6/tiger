@@ -29,9 +29,8 @@ object AST2Tree {
 			}
 			val index = rect.elems.map(_.fieldName).indexOf(v.field)
 			val head = tr.unEx.get
-			val offset = TreeConst(index*wordSize)
-			val memberAddr = TreeBinOp(Oper.Plus, head, offset)
-			val member = TreeMem(memberAddr)
+			val offset = index * wordSize
+			val member = TreeMem(head + offset)
 			Ex(member)
 		}
 
@@ -39,17 +38,15 @@ object AST2Tree {
 			val head = translateVar(v.va).unEx.get
 			val index = translateExp(v.exp).unEx.get
 
-			val offset = index match {
+			val offset:TreeExp = index match {
 				case TreeConst(i) => {
-					TreeConst(i*wordSize)
+					i * wordSize
 				}
 				case _ => {
-					TreeBinOp(Oper.Times, index, TreeConst(wordSize))
+					index * wordSize
 				}
 			}
-			val addr = TreeBinOp(Oper.Plus, head, offset)
-			val mem = TreeMem(addr)
-			Ex(mem)
+			Ex(TreeMem(head + offset))
 		}
 	}
 
@@ -59,41 +56,30 @@ object AST2Tree {
 		}
 
 		case e:NilExp => {
-			Ex(TreeConst(0))
+			Ex(0)
 		}
 
 		case e:IntExp => {
-			Ex(TreeConst(e.n))
+			Ex(e.n)
 		}
 
 		case e:StringExp => {
-			val t = new Temp()
 			val alloc = callAlloc(wordSize + e.s.length)
-			val pstr = TreeTemp(t)
-			val mv = TreeMove(pstr, alloc)
-
-			val mem = TreeMem(pstr)
-			val len = TreeConst(e.s.length)
-			val copy_str_len = TreeMove(mem, len);
-
+			val pstr = TreeTemp(new Temp())
 			/*
 			 TODO: move strcpy to Frame impl
 			 strcopy(pstr->chars, [address of string], strSize);
 			 */
-			val lab = new Label()
-			val name = TreeName(lab)
-
-			val four = TreeConst(wordSize)
-			val pstr_plus_4 = TreeBinOp(Oper.Plus, pstr, four)
-			val str_copy = frame.externalCall("strcpy", List(pstr_plus_4, name))
-			val stm_str_copy = TreeExpr(str_copy)
-
+			val name = TreeName(new Label())
+			val str_copy = frame.externalCall("strcpy", 
+											  List(pstr + wordSize, name))
 			//TODO:add DataFragment
 			//val str_asm = frame.string(lab, exp.s);
 			//fragments = DataFragment(str_asm)::fragments
-			val seq = TreeSeq.makeSeq(List[TreeStm](mv, copy_str_len, stm_str_copy))
-			val eseq = TreeEseq(seq, pstr)
-			Ex(eseq)
+			val seq = TreeSeq.makeSeq(pstr := alloc, 
+									  TreeMem(pstr) := e.s.length, 
+									  TreeExpr(str_copy))
+			Ex(TreeEseq(seq, pstr))
 		}
 
 		case e:CallExp => {
@@ -144,37 +130,35 @@ object AST2Tree {
 			val t = new Temp()
 			val base = TreeTemp(t)
 			val addr = callAlloc(e.fields.length * wordSize)
-			val mv = TreeMove(base, addr)
+			val mv = base := addr
 
 			var i = 0
 			def fieldInit(e:TreeExp):TreeStm = {
-				val offset = TreeConst(i*wordSize)
+				val offset = i * wordSize
 				i += 1
-				val p = TreeBinOp(Oper.Plus, base, offset)
-				val m = TreeMem(p)
-				TreeMove(m, e)
+				TreeMem(base + offset) := e
 			}
 			val recFields = e.fields.map(translateRecordField).map(_.unEx.get)
 			val fieldInits = recFields.map(fieldInit)
 
-			val eseq = TreeEseq(TreeSeq.makeSeq(mv :: fieldInits), base);
+			val eseq = TreeEseq(TreeSeq.makeSeq((mv :: fieldInits): _*), base);
 			Ex(eseq)
 		}
 
 		case e:SeqExp => {
 			if (e.seq.length < 1) {
-				return Ex(TreeConst(0))
+				return Ex(0)
 			}
 			val trs = e.seq.map(translateExp)
 			val tr = trs.last
 			tr.unEx match {
 				case Some(ret) => {
 					val seqs = trs.dropRight(1).map(_.unNx.get)
-					val eseq = TreeEseq(TreeSeq.makeSeq(seqs), ret)
+					val eseq = TreeEseq(TreeSeq.makeSeq(seqs:_*), ret)
 					Ex(eseq)
 				}
 				case None => {
-					val seq = TreeSeq.makeSeq(List(trs.last.unNx.get))
+					val seq = TreeSeq.makeSeq(trs.last.unNx.get)
 					Nx(seq)
 				}
 			}
@@ -183,7 +167,7 @@ object AST2Tree {
 		case e:AssignExp => {
 			val va = translateVar(e.va).unEx.get
 			val exp = translateExp(e.exp).unEx.get
-			Nx(TreeMove(va, exp))
+			Nx(va := exp)
 		}
 
 		case e:IfExp => {
@@ -200,24 +184,23 @@ object AST2Tree {
 					tr.unCx(labelT, labelF).get
 				} else {
 					val boolean = tr.unEx.get
-					val const_0 = TreeConst(0)
-					TreeCjump(Oper.Ne, boolean, const_0, labelT, labelF)
+					TreeCjump(Oper.Ne, boolean, 0, labelT, labelF)
 				}
 
 			if (e.elseexp.isDefined) {
-				val r = new Temp()
+				val r = TreeTemp(new Temp())
 				//tree::Stm *r_T;
 				//tree::Stm *r_F;
 				
 				val thentr = translateExp(e.thenexp)
 				val r_t = thentr.unEx match {
-					case Some(rt) => TreeMove(TreeTemp(r), rt)
+					case Some(rt) => r := rt
 					case None => tr.unNx.get
 				}
 
 				val elsetr = translateExp(e.elseexp.get)
 				val r_f = elsetr.unEx match {
-					case Some(rt) => TreeMove(TreeTemp(r), rt)
+					case Some(rt) => r := rt
 					case None => tr.unNx.get
 				}
 				
@@ -225,21 +208,21 @@ object AST2Tree {
 				val l_Join = TreeLabel(labelJoin)
 				val jmp_to_Join = TreeJump(labelJoin)
 
-				val seq = TreeSeq.makeSeq(List[TreeStm](cjump,
-														l_t,
-														r_t,
-														jmp_to_Join,
-												l_f,
-														r_f,
-														l_Join))
-				val eseq = TreeEseq(seq, TreeTemp(r))
+				val seq = TreeSeq.makeSeq(cjump,
+										  l_t,
+										  r_t,
+										  jmp_to_Join,
+										  l_f,
+										  r_f,
+										  l_Join)
+				val eseq = TreeEseq(seq, r)
 				Ex(eseq)
 			} else {
 				val stm_t =	translateExp(e.thenexp).unNx.get
-				val seq = TreeSeq.makeSeq(List[TreeStm](cjump,
-														l_t,
-														stm_t,
-														l_f))
+				val seq = TreeSeq.makeSeq(cjump,
+										  l_t,
+										  stm_t,
+										  l_f)
 				Nx(seq)
 			}
 		}
@@ -265,8 +248,7 @@ object AST2Tree {
 					tr.unCx(labelS, labelE).get
 				} else {
 					val boolean = tr.unEx.get
-					val const_0 = TreeConst(0)
-					TreeCjump(Oper.Ne, boolean, const_0, labelS, labelE)
+					TreeCjump(Oper.Ne, boolean, 0, labelS, labelE)
 				}
 
 			val oldLoopExit = currentLoopExit
@@ -277,7 +259,7 @@ object AST2Tree {
 
 			val l_s = TreeLabel(labelS)
 			val l_e = TreeLabel(labelE)
-			val seq = TreeSeq.makeSeq(List[TreeStm](cjump, l_s, body, cjump, l_e))
+			val seq = TreeSeq.makeSeq(cjump, l_s, body, cjump, l_e)
 			Nx(seq)
 		}
 
@@ -308,15 +290,14 @@ object AST2Tree {
 			currentLoopExit = labelE
 
 			val body = translateExp(e.body).unNx.get
-
-			val l_S = TreeLabel(labelS)
-			val l_E = TreeLabel(labelE)
-			val var_init = TreeMove(va, lo)
-			val const_1 = TreeConst(1)
-			val var_inc = TreeBinOp(Oper.Plus, va, const_1)
-			val var_update = TreeMove(va, var_inc)
 			val cmp = TreeCjump(Oper.Lt, va, hi, labelS, labelE)
-			val seq = TreeSeq.makeSeq(List[TreeStm](var_init, cmp, l_S, body, var_update, cmp, l_E))
+			val seq = TreeSeq.makeSeq(va := lo, 
+									  cmp, 
+									  TreeLabel(labelS), 
+									  body, 
+									  va := va + 1, 
+									  cmp, 
+									  TreeLabel(labelE))
 			Nx(seq)
 		}
 
@@ -333,14 +314,14 @@ object AST2Tree {
 			tr.unEx match {
 				case Some(ebody) => {
 					if (!decs_except_func.isEmpty) {
-						Ex(TreeEseq(TreeSeq.makeSeq(decs_except_func), ebody))
+						Ex(TreeEseq(TreeSeq.makeSeq(decs_except_func:_*), ebody))
 					} else {
 						Ex(ebody)
 					}
 				}
 				case None => {
 					val nbody = tr.unNx.get
-					Nx(TreeSeq(nbody, TreeSeq.makeSeq(decs_except_func)))
+					Nx(TreeSeq(nbody, TreeSeq.makeSeq(decs_except_func:_*)))
 				}
 			}
 		}
@@ -356,39 +337,31 @@ object AST2Tree {
 				}
 				case StrT() | ArrayT(_,_) | RecordT(_,_) => {
 					val init = translateExp(e.init).unEx.get						   
-					val memsz = TreeBinOp(Oper.Times, size, TreeConst(wordSize))
+					val memsz = size * wordSize
 					val addr = frame.externalCall("alloc", List(memsz))
 					
 					val ptr = TreeTemp(new Temp())
-					val ptr_init = TreeMove(ptr, addr)
 					val va = TreeTemp(new Temp())
 					val labelS = new Label()
 					val labelE = new Label()
-					val l_S = TreeLabel(labelS)
-					val l_E = TreeLabel(labelE)
-					val var_init = TreeMove(va, TreeConst(0))
-					val offset = TreeBinOp(Oper.Times, va, TreeConst(wordSize))
-					val mem = TreeMem(TreeBinOp(Oper.Plus, ptr ,offset))
-					val store = TreeMove(mem, init)
-					val var_inc = TreeBinOp(Oper.Plus, va, TreeConst(1))
-					val var_update = TreeMove(va, var_inc)
+					val offset = va * wordSize
+					val mem = TreeMem(ptr + offset)
 					val cmp = TreeCjump(Oper.Lt, va, size, labelS, labelE)
-
-					val seq = TreeSeq.makeSeq(List[TreeStm](ptr_init,
-															var_init,
-															cmp,
-															l_S,
-															store,
-															var_update,
-															cmp,
-															l_E))
+					val seq = TreeSeq.makeSeq(ptr := addr,
+											  va := 0,
+											  cmp,
+											  TreeLabel(labelS),
+											  mem := init,
+											  va := va + 1,
+											  cmp,
+											  TreeLabel(labelE))
 					
 					val eseq = TreeEseq(seq, ptr)
 					Ex(eseq)
 				} 
 				case _ => {
 					require(false)
-					Ex(TreeConst(0))
+					Ex(0)
 				}
 			}
 		}
@@ -413,9 +386,8 @@ object AST2Tree {
 
 			currentFuncName = parentFuncName;
 
-			val rv = frame.rv
-
-			val stms = 	tr.unEx match {
+			val rv = TreeTemp(frame.rv)
+			val seq = tr.unEx match {
 				case Some(eseq:TreeEseq) => {
 					//TODO: To find more simple way!
 /*
@@ -423,19 +395,18 @@ object AST2Tree {
 						eseq = (tree::ESEQ*)eseq->exp;
 					}
 */
-					val mv_return_value = TreeMove(TreeTemp(rv), eseq.exp)
-					List(eseq.stm, mv_return_value)
+					val mv_return_value = rv := eseq.exp
+					TreeSeq.makeSeq(eseq.stm, mv_return_value)
 				}
 				case Some(e) => {
-					val mv_return_value = TreeMove(TreeTemp(rv), e) 
-					List(mv_return_value)
+					val mv_return_value = rv := e
+					TreeSeq.makeSeq(mv_return_value)
 				}
 				case None => {
 					//procedure
-					List(tr.unNx.get)
+					TreeSeq.makeSeq(tr.unNx.get)
 				}
 			}
-			val seq = TreeSeq.makeSeq(stms)
 			val body = frame.procEntryExit1(seq)
 			val nx = Nx(body)
 			procEntryExit(nx)
@@ -447,11 +418,11 @@ object AST2Tree {
 			d.varEntry.access = acc
 			val va = acc.simpleVar(Level.current)
 			val init = translateExp(d.init).unEx.get
-			Nx(TreeMove(va, init))
+			Nx(va := init)
 		}
 		case d:TypeDec => {
 			//TODO:
-			Ex(TreeConst(0))
+			Ex(0)
 		}
 	}
 
@@ -460,8 +431,7 @@ object AST2Tree {
 	}
 
 	private def callAlloc(size:Int):TreeExp = {
-		val csize = TreeConst(size)
-		frame.externalCall("alloc", List(csize))
+		frame.externalCall("alloc", List(TreeConst(size)))
 	}
 
 	private def isBuiltinFunc(f:Symbol):Boolean = List('print, 'flush, 'ord, 'chr, 
@@ -494,30 +464,19 @@ object AST2Tree {
 		 done:
 		 return r
 		 */			
-		val tmp = new Temp()
-		val ret = TreeTemp(tmp)
-		val const0 = TreeConst(0)
-		val const1 = TreeConst(1)
-		val ret_init = TreeMove(ret, const0)
-		
+		val ret = TreeTemp(new Temp())
 		val l1 = new Label()
 		val l2 = new Label()
 		val done = new Label()
-		val L1 = TreeLabel(l1)
-		val L2 = TreeLabel(l2)
-		val DONE = TreeLabel(done)
-
-		val cj1 = TreeCjump(Oper.Ne, el, const0, l1, done)
-		val cj2 = TreeCjump(Oper.Ne, er, const0, l2, done)
-		val ret_update = TreeMove(ret, const1)
-		
-		val seq = TreeSeq.makeSeq(List[TreeStm](ret_init,
-												cj1,
-												L1,
-												cj2,
-												L2,
-												ret_update,
-												DONE))
+		val cj1 = TreeCjump(Oper.Ne, el, 0, l1, done)
+		val cj2 = TreeCjump(Oper.Ne, er, 0, l2, done)
+		val seq = TreeSeq.makeSeq(ret := 0,
+								  cj1,
+								  TreeLabel(l1),
+								  cj2,
+								  TreeLabel(l2),
+								  ret := 1,
+								  TreeLabel(done))
 		TreeEseq(seq, ret)
 	}
 
@@ -533,30 +492,19 @@ object AST2Tree {
 		 done:
 		 return t1
 		 */			
-		val tmp = new Temp()
-		val ret = TreeTemp(tmp)
-		val const0 = TreeConst(0)
-		val const1 = TreeConst(1)
-		val ret_init = TreeMove(ret, const1)
-		
+		val ret = TreeTemp(new Temp())
 		val l1 = new Label()
 		val l2 = new Label()
 		val done = new Label()
-		val L1 = TreeLabel(l1)
-		val L2 = TreeLabel(l2)
-		val DONE = TreeLabel(done)
-
-		val cj1 = TreeCjump(Oper.Eq, el, const0, l1, done)
-		val cj2 = TreeCjump(Oper.Eq, er, const0, l2, done)
-		val ret_update = TreeMove(ret, const0)
-		
-		val seq = TreeSeq.makeSeq(List[TreeStm](ret_init,
-												cj1,
-												L1,
-												cj2,
-												L2,
-												ret_update,
-												DONE))
+		val cj1 = TreeCjump(Oper.Eq, el, 0, l1, done)
+		val cj2 = TreeCjump(Oper.Eq, er, 0, l2, done)
+		val seq = TreeSeq.makeSeq(ret := 1,
+								  cj1,
+								  TreeLabel(l1),
+								  cj2,
+								  TreeLabel(l2),
+								  ret := 0,
+								  TreeLabel(done))
 		TreeEseq(seq, ret)
 	}
 

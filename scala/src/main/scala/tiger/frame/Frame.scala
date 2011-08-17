@@ -108,7 +108,7 @@ class ARMFrame(name:Symbol, escapes:List[Boolean]) extends Frame {
 			i += 1
 		}
 		newBody += body
-		TreeSeq.makeSeq(newBody.result)
+		TreeSeq.makeSeq(newBody.result:_*)
 	}
 
 	def string(label:Label, value:String):String = {
