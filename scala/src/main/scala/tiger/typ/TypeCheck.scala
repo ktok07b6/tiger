@@ -38,7 +38,7 @@ object TypeCheck {
 			case v:FieldVar => {
 				//FIXME: nested too deep
 				val ty = typeCheckVar(v.va)
-				ty.actual() match {
+				ty.actual match {
 					case r:RecordT => {
 						v.varEntry = ve
 						r.findFieldType(v.field) match {
@@ -52,9 +52,9 @@ object TypeCheck {
 
 			case v:SubscriptVar => {
 				val expt = typeCheckExp(v.exp)
-				require(expt.actual().isInstanceOf[IntT])
+				require(expt.actual.isInstanceOf[IntT])
 				val vat = typeCheckVar(v.va)
-				val arrayT:ArrayT = vat.actual().asInstanceOf[ArrayT]
+				val arrayT:ArrayT = vat.actual.asInstanceOf[ArrayT]
 				v.varEntry = ve
 				arrayT.element
 			}
@@ -115,7 +115,7 @@ object TypeCheck {
 			t_ match {
 				case None => error("unkown type:" + e.typ)
 				case Some(t) => {
-					val rt = t.actual().asInstanceOf[RecordT]
+					val rt = t.actual.asInstanceOf[RecordT]
 					e.fields.foreach(checkRecordField)
 					rt
 				}
@@ -141,7 +141,7 @@ object TypeCheck {
 		}
 		case e:IfExp => {
 			val testt = typeCheckExp(e.test)
-			if (!testt.isInstanceOf[IntT]) {
+			if (!testt.actual.isInstanceOf[IntT]) {
 				error("condition exp must be Integer")
 			}
 			val thent = typeCheckExp(e.thenexp)
@@ -163,7 +163,7 @@ object TypeCheck {
 		}
 		case e:WhileExp => {
 			val testt = typeCheckExp(e.test)
-			if (!testt.isInstanceOf[IntT]) {
+			if (!testt.actual.isInstanceOf[IntT]) {
 				error("condition exp must be Integer")
 			}
 			val bodyt = typeCheckExp(e.body)
@@ -276,7 +276,7 @@ object TypeCheck {
 				}
 				case None => {
 					val initt = typeCheckExp(d.init)
-					val ve = VarEntry(initt.actual)
+					val ve = VarEntry(initt)
 					if (initt.actual.isInstanceOf[NilT]) {
 						error("initializing nil expressions not constrained by record type");
 					}

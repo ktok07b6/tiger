@@ -2,6 +2,8 @@ import tiger.ast._
 import tiger.symbol._
 import tiger.parser._
 import tiger.typ._
+import tiger.frame._
+import tiger.tree._
 import scala.io.Source
 
 object Tiger {
@@ -20,8 +22,14 @@ object Tiger {
 		}
 		result
 	}
+
 	def typeCheck(ast:Option[ASTExp]):Boolean = ast match {
 		case Some(ast) => TypeCheck.typeCheck(ast)
 		case _ => println("!!!!! INVALID AST !!!!!"); false
+	}
+
+	def ast2tree(ast:Option[ASTExp]):Tree = ast match {
+		case Some(ast) => AST2Tree.ast2tree(ast, new ARMFrame())
+		case _ => println("!!!!! INVALID AST !!!!!"); TreeConst(0) 
 	}
 }
