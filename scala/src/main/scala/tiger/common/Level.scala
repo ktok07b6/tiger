@@ -13,8 +13,7 @@ class LevelAccess (home:Level, acc:FrameAccess) {
 	}
 }
 
-class Level(n:Symbol, f:Frame) {
-	val name = n
+class Level(f:Frame) {
 	val frame = f
 	var formals:List[LevelAccess] = List.empty
 
@@ -29,16 +28,14 @@ class Level(n:Symbol, f:Frame) {
 
 object Level {
 	def newLevel(name:Symbol, escapes:List[Boolean]) = {
-		val l = new Level(name, Frame.newFrame(name, escapes))
+		val l = new Level(Frame.newFrame(name, escapes))
 		levels = l::levels
 	}
 	def newTopLevel(f:Frame) = {
-		val l = new Level('nil, f)
-		levels = l::Nil
+		levels = List(new Level(f))
 	}
-
 	def deleteLevel() = {
-		levels = levels.drop(1)
+		levels = levels.tail
 	}
 	def current() = levels.head
 	var levels:List[Level] = List.empty

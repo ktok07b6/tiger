@@ -51,24 +51,29 @@ object TypeCheck {
 
 			case v:FieldVar => {
 				//FIXME: nested too deep
-				val ty = typeCheckVar(v.va)
-				ty.actual match {
-					case r:RecordT => {
-						v.varEntry = ve
-						r.findFieldType(v.field) match {
-							case Some(t) => t
-							case None => error("undefined field name:" + v.getSymbol)
-						}
-					}
-					case _ => error("Record type is expected")
+				val ty = typeCheckVar(v.va).actual
+				if (!ty.isInstanceOf[RecordT]) {
+					error("Record type is expected")
+				}
+
+				val r = ty.asInstanceOf[RecordT]
+				v.varEntry = ve
+				r.findFieldType(v.field) match {
+					case Some(t) => t
+					case None => error("undefined field name:" + v.getSymbol)
 				}
 			}
 
 			case v:SubscriptVar => {
-				val expt = typeCheckExp(v.exp)
-				require(expt.actual.isInstanceOf[IntT])
-				val vat = typeCheckVar(v.va)
-				val arrayT:ArrayT = vat.actual.asInstanceOf[ArrayT]
+				val expt = typeCheckExp(v.exp).actual
+				if (!expt.isInstanceOf[IntT]) {
+					error("Integer type is expected")
+				}
+				val vat = typeCheckVar(v.va).actual
+				if (!vat.isInstanceOf[ArrayT]) {
+					error("Array type is expected")
+				}
+				val arrayT = vat.asInstanceOf[ArrayT]
 				v.varEntry = ve
 				arrayT.element
 			}

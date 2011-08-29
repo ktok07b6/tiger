@@ -17,8 +17,8 @@ class AS2TreeSuite extends FunSuite {
 		val ast = Tiger.parse(src)
 		val ret = Tiger.typeCheck(ast)
 		if (ret) {
-			val tree = Tiger.ast2tree(ast)
-			println(tree)
+			val fragments = Tiger.ast2tree(ast)
+			println(fragments)
 		}
 		ret
 	}

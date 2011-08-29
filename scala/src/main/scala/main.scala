@@ -4,6 +4,7 @@ import tiger.parser._
 import tiger.typ._
 import tiger.frame._
 import tiger.tree._
+import tiger.canon._
 import scala.io.Source
 
 object Tiger {
@@ -28,8 +29,27 @@ object Tiger {
 		case _ => println("!!!!! INVALID AST !!!!!"); false
 	}
 
-	def ast2tree(ast:Option[ASTExp]):Tree = ast match {
-		case Some(ast) => AST2Tree.ast2tree(ast, new ARMFrame('frame, List()))
-		case _ => println("!!!!! INVALID AST !!!!!"); TreeConst(0) 
+	def ast2tree(ast:Option[ASTExp]):List[Fragment] = ast match {
+		case Some(ast) => AST2Tree.ast2tree(ast, new ARMFrame('__global, List()))
+		case _ => println("!!!!! INVALID AST !!!!!"); List.empty 
+	}
+
+	def codegen(fragments:List[Fragment]):String = {
+		val codes = for (frag <- fragments) yield frag match {
+			case proc:ProcFragment => {
+				linearize(proc)
+				""
+			}
+			case data:DataFragment => {
+				data.str
+			}
+		}
+		codes.mkString
+	}
+
+
+	def linearize(proc:ProcFragment):List[TreeStm] = {
+		val stms = Canon.linearize(proc.stm)
+		stms
 	}
 }

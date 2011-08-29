@@ -1,7 +1,14 @@
 package tiger.common
 
+import tiger.tree._
+
 object Label {
 	var count:Int = 0
+/*
+	def ::(rhs:Label):Pair[Label] = {
+		(this, rhs)
+	}
+*/
 }
 
 class Label(sym:Symbol) {
