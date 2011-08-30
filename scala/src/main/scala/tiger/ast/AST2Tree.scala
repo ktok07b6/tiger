@@ -207,7 +207,7 @@ object AST2Tree {
 				}
 				
 				val l_j = new Label()
-				val jmp_to_Join = TreeJump(l_j)
+				val jmp_to_Join = TreeJump(0, List(l_j))
 
 				val seq = TreeSeq.makeSeq(cjump,
 										  L(l_t),
@@ -305,7 +305,7 @@ object AST2Tree {
 		}
 
 		case e:BreakExp => {
-			Nx(TreeJump(currentLoopExit))
+			Nx(TreeJump(0, List(currentLoopExit)))
 		}
 
 		case e:LetExp => {

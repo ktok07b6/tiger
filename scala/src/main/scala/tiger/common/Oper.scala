@@ -16,4 +16,15 @@ object Oper extends Enumeration {
 		case And => "&"
 		case Or => "|"
 	}
+
+	def not(v:Value):Value = v match {
+		case Eq => Ne
+		case Ne => Eq
+		case Lt => Ge
+		case Gt => Le
+		case Le => Gt
+		case Ge => Lt
+		case _ => error("???")
+	}
+
 }

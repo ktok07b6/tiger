@@ -23,12 +23,13 @@ abstract class Frame {
 	//def registers():Registers
 	//def spillTemp(body:List[Instruction], spill:Temp):body:List[Instruction]
 	//def setUsedRegs(regs:List[Temp])
-	//def getEndFuncLabel():Label;
+	def getEndFuncLabel():Label
 	var formals:List[FrameAccess] = List.empty
 }
 
 class ARMFrame(name:Symbol, escapes:List[Boolean]) extends Frame {
 	var frameOffset:Int = 0
+	val endFuncLabel = new Label(Symbol("end_of_" + name.name))
 	formals = escapes.map(allocLocal)
 	val regs = Array(new Temp('r0),
 					 new Temp('r1), 
@@ -127,6 +128,7 @@ class ARMFrame(name:Symbol, escapes:List[Boolean]) extends Frame {
 		TreeMem(fp)
 	}
 
+	def getEndFuncLabel = endFuncLabel
 }
 
 object Frame {

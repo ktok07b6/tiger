@@ -58,6 +58,7 @@ object Tree {
 
 		case _ => error("do not reach here")
 	}
+
 }
 
 abstract class Tree

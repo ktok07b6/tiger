@@ -9,6 +9,7 @@ object Canon {
 		//tree::TreePrinter::printTree(stm);
 		def linear(s:TreeStm, stms:List[TreeStm]):List[TreeStm] = s match {
 			case TreeSeq(l, r) => linear(l, linear(r, stms))
+			case TreeNil() => stms
 			case _ => s :: stms
 		}
 		linear(stm, List())
@@ -68,7 +69,7 @@ object Canon {
 	}
 
 	private def reorder_stm(stm:TreeStm):TreeStm = {
-		println("reorder_stm: " + stm)
+		//println("reorder_stm: " + stm)
 		val (stm2, exps) = reorder(Tree.kids(stm))
 		seq(stm2, Tree.buildStm(stm, exps))
 	}

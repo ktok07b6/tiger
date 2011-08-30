@@ -30,7 +30,7 @@ object Tiger {
 	}
 
 	def ast2tree(ast:Option[ASTExp]):List[Fragment] = ast match {
-		case Some(ast) => AST2Tree.ast2tree(ast, new ARMFrame('__global, List()))
+		case Some(ast) => AST2Tree.ast2tree(ast, new ARMFrame('__tiger_main, List()))
 		case _ => println("!!!!! INVALID AST !!!!!"); List.empty 
 	}
 
@@ -50,6 +50,10 @@ object Tiger {
 
 	def linearize(proc:ProcFragment):List[TreeStm] = {
 		val stms = Canon.linearize(proc.stm)
-		stms
+		val bb = new BasicBlock(proc.frame.getEndFuncLabel)
+		val blocks = bb.makeBlocks(stms)
+		//blocks.flatten
+		val trace = new Trace(blocks)
+		trace.traced
 	}
 }
