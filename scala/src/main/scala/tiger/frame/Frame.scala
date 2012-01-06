@@ -4,8 +4,16 @@ import tiger.common._
 import tiger.tree._
 import scala.collection.mutable.ListBuffer
 
+
 abstract class FrameAccess {
 	def exp(e:TreeExp):TreeExp
+}
+
+abstract class Registers {
+	def regs():List[Temp]
+	def args():List[Temp]
+	def callerSaves():List[Temp]
+	def calleeSaves():List[Temp]
 }
 
 abstract class Frame {
@@ -20,33 +28,56 @@ abstract class Frame {
 	//def procEntryExit2(body:List[Instruction]):List[Instruction]
 	//def procEntryExit3(body:List[Instruction]):List[Instruction]
 	//def codegen(stm:TreeStm):List[Instruction]
-	//def registers():Registers
+	def registers():Registers
 	//def spillTemp(body:List[Instruction], spill:Temp):body:List[Instruction]
 	//def setUsedRegs(regs:List[Temp])
 	def getEndFuncLabel():Label
 	var formals:List[FrameAccess] = List.empty
 }
 
+class ARMRegisters extends Registers {
+	override def regs():List[Temp] = r
+	override def args():List[Temp] = regargs
+	override def callerSaves():List[Temp] = regcaller
+	override def calleeSaves():List[Temp] = regcallee
+
+	val r = List(new Temp('r0),
+				 new Temp('r1), 
+				 new Temp('r2), 
+				 new Temp('r3), 
+				 new Temp('r4), 
+				 new Temp('r5), 
+				 new Temp('r6), 
+				 new Temp('r7), 
+				 new Temp('r8),
+				 new Temp('r9),
+				 new Temp('r10),
+				 new Temp('fp),
+				 new Temp('r12),
+				 new Temp('sp),
+				 new Temp('lr),
+				 new Temp('pc))
+	val regargs = List(r(0),
+					   r(1),
+					   r(2),
+					   r(3))
+	val regcaller = List(r(0),
+						 r(1),
+						 r(2),
+						 r(3))
+	val regcallee = List(r(4),
+						 r(5),
+						 r(6),
+						 r(7),
+						 r(8),
+						 r(9),
+						 r(10))
+}
+
 class ARMFrame(name:Symbol, escapes:List[Boolean]) extends Frame {
 	var frameOffset:Int = 0
 	val endFuncLabel = new Label(Symbol("end_of_" + name.name))
 	formals = escapes.map(allocLocal)
-	val regs = Array(new Temp('r0),
-					 new Temp('r1), 
-					 new Temp('r2), 
-					 new Temp('r3), 
-					 new Temp('r4), 
-					 new Temp('r5), 
-					 new Temp('r6), 
-					 new Temp('r7), 
-					 new Temp('r8),
-					 new Temp('r9),
-					 new Temp('r10),
-					 new Temp('fp),
-					 new Temp('r12),
-					 new Temp('sp),
-					 new Temp('lr),
-					 new Temp('pc))
 
 	class InFrame(offset:Int) extends FrameAccess {
 		override def exp(fp:TreeExp):TreeExp = {
@@ -73,7 +104,7 @@ class ARMFrame(name:Symbol, escapes:List[Boolean]) extends Frame {
 	}
 
 	def fp():Temp = {
-		regs(11)
+		armregs.r(11)
 	}
 
 	val wordSize:Int = 4
@@ -83,7 +114,7 @@ class ARMFrame(name:Symbol, escapes:List[Boolean]) extends Frame {
 	}
 
 	def rv():Temp = {
-		regs(0)
+		armregs.r(0)
 	}
 
 	def procEntryExit1(body:TreeStm):TreeStm = {
@@ -95,7 +126,7 @@ class ARMFrame(name:Symbol, escapes:List[Boolean]) extends Frame {
 		var i:Int = 0
 		for (formal <- formals) {
 			if (i < 4) {
-				val r = TreeTemp(regs(i))
+				val r = TreeTemp(armregs.r(i))
 				val tmp = formal.exp(TreeTemp(fp))
 				newBody += TreeMove(tmp, r)
 			} else {
@@ -127,6 +158,9 @@ class ARMFrame(name:Symbol, escapes:List[Boolean]) extends Frame {
 	def staticChain(fp:TreeExp):TreeExp = {
 		TreeMem(fp)
 	}
+
+	val armregs = new ARMRegisters()
+	def registers():Registers = armregs
 
 	def getEndFuncLabel = endFuncLabel
 }

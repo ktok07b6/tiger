@@ -15,8 +15,8 @@ class BasicBlock(done:Label) {
 
 	private def doStms(stms:List[TreeStm]):Unit = { 
 		if (stms.isEmpty) {
-			//BasicBlockの最後はdoneラベルへのジャンプ
-			//doneは関数のepilogの開始を表す
+			//The last instruction of BasicBlock is jump to done label
+			//done label is beginnig of epilog of a function
 			block = block :+ TreeJump(0, List(done))
 			blocks = blocks :+ block
 			block = List.empty
@@ -25,15 +25,21 @@ class BasicBlock(done:Label) {
 		val s = stms.head
 		s match {
 			case TreeJump(_,_) | TreeCjump(_,_,_,_,_) => {
-				//ジャンプがくればBasicBlockを区切る
+				//In case of Jump, begin new block
 				block = block :+ s
 				blocks = blocks :+ block
 				block = List.empty
 				mkBlocks(stms.tail)
 			}
 			case TreeLabel(label) => {
-				//ラベルがくればそのラベルへのジャンプを挿入し再帰処理
+				//In case of Label, insert Jump to the label and begin new block
 				doStms(TreeJump(0, List(label)) :: stms)
+				/*
+				block = block :+ TreeJump(0, List(label))
+				blocks = blocks :+ block
+				block = List.empty
+				mkBlocks(stms)
+				*/
 			}
 			case _ => {
 				block = block :+ s

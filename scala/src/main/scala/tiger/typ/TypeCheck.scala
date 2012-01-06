@@ -130,6 +130,7 @@ object TypeCheck {
 
 		case e:RecordExp => {
 			def checkRecordField(r:RecordField) = {
+				//TODO:
 			}
 			val t_ = Table.getType(e.typ)
 			t_ match {

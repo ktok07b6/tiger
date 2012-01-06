@@ -15,6 +15,7 @@ class AS2TreeSuite extends FunSuite {
 		println("--- " + fileName)
 		val src = Source.fromFile(dir+fileName).mkString
 		val ast = Tiger.parse(src)
+		println(ast)
 		val ret = Tiger.typeCheck(ast)
 		if (ret) {
 			val fragments = Tiger.ast2tree(ast)
@@ -22,7 +23,7 @@ class AS2TreeSuite extends FunSuite {
 		}
 		ret
 	}
-
+/*
 	test("decl") {
 		assert(ast2treeTest("decl01.tig") == true)
 		assert(ast2treeTest("decl02.tig") == true)
@@ -96,8 +97,10 @@ class AS2TreeSuite extends FunSuite {
 		assert(ast2treeTest("op41.tig") == true)
 		assert(ast2treeTest("op42.tig") == true)
 	}
+*/
 
 	test("func") {
+/*
 		assert(ast2treeTest("func01.tig") == true)
 		assert(ast2treeTest("func02.tig") == true)
 		assert(ast2treeTest("func03.tig") == true)
@@ -106,9 +109,10 @@ class AS2TreeSuite extends FunSuite {
 		assert(ast2treeTest("func06.tig") == true)
 		assert(ast2treeTest("func10.tig") == true)
 		assert(ast2treeTest("func11.tig") == true)
+		* */
 		assert(ast2treeTest("func20.tig") == true)
 	}
-
+/*
 	test("for") {
 		assert(ast2treeTest("for01.tig") == true)
 		assert(ast2treeTest("for02.tig") == true)
@@ -148,5 +152,5 @@ class AS2TreeSuite extends FunSuite {
 		assert(ast2treeTest("while03.tig") == true)
 		assert(ast2treeTest("while04.tig") == true)
 	}
-
+*/
 }

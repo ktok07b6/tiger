@@ -72,7 +72,8 @@ LDOPT=-pg
 endif
 
 LDFLAGS=-L/usr/local/lib -L./ -L/home/kataoka/lib $(LDOPT)
-LIBS=-lstdc++ -lm -lc -lprofiler
+LIBS=-lstdc++ -lm -lc 
+#LIBS+=-lprofiler
 
 OBJECTS_LIBCORE=$(call objs_from_sources, $(SOURCES_LIBCORE))
 OBJECTS_TIGER=$(call objs_from_sources, $(SOURCES_TIGER))

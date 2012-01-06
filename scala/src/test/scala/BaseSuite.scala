@@ -31,7 +31,7 @@ class BaseSuite extends FunSuite {
 		ASTPrinter.print(RecordField('rec, IntExp(10)))
 	}
 */
-
+/*
 	test("Parser test") {
 		def testParser_(source:String) {
 			val parser = new Parser
@@ -86,7 +86,7 @@ class BaseSuite extends FunSuite {
 		testParser_("let function pow2(x:int):int = (x*x) function pow4(x:int):int = (pow2(x)*pow2(x)) in end")
 
 	}
-
+*/
 /*
 	test("Lexer test") {
 		def testLexer_(source:String) {

@@ -197,13 +197,12 @@ object AST2Tree {
 				val thentr = translateExp(e.thenexp)
 				val r_t = thentr.unEx match {
 					case Some(rt) => r := rt
-					case None => tr.unNx.get
+					case None => thentr.unNx.get
 				}
-
 				val elsetr = translateExp(e.elseexp.get)
 				val r_f = elsetr.unEx match {
 					case Some(rt) => r := rt
-					case None => tr.unNx.get
+					case None => elsetr.unNx.get
 				}
 				
 				val l_j = new Label()
