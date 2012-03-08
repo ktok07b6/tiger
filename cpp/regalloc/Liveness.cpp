@@ -61,7 +61,7 @@ Liveness::Liveness(const graph::FlowGraph &flow)
 		//n->setLivein(li->livein);
 
 		//we make reference mutually to flowNode and liveInfo
-		n->setTag((int)li);
+		n->setTag((uintptr_t)li);
 		li->node = n;
 		info.push_back(li);
 	}

@@ -71,7 +71,7 @@ Node::adj(Node *n) const
 }
 
 void
-Node::setTag(int t)
+Node::setTag(uintptr_t t)
 {
 	tag = t;
 }

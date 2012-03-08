@@ -27,7 +27,7 @@ template<class T>
 struct BindsInScope : public Object
 {
 	typedef std::list< BindInScope<T> > List;
-	unsigned int id;
+	intptr_t id;
 	List li;
 };
 
@@ -154,7 +154,7 @@ class Table
 	{
 		VDBG("%s", __PRETTY_FUNCTION__);
 		BindsInScope<T> *scope = gcnew(BindsInScope<T>, ());
-		scope->id = (unsigned int)exp;
+		scope->id = (intptr_t)exp;
 		bindsInScopeList.push_back(scope);
 		scopeLevel++;
 	}

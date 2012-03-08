@@ -3,6 +3,7 @@
 
 #include "Object.h"
 #include <string>
+#include <stdint.h>
 #include "Vector.h"
 #include "debug.h"
 
@@ -29,7 +30,7 @@ public:
 	bool comesFrom(Node *n) const;
 	bool adj(Node *n) const;
 
-	void setTag(int tag);
+	void setTag(uintptr_t tag);
 	int getTag() const;
 
 	operator const char*() {
@@ -46,7 +47,7 @@ private:
 	Graph *graph;
 	NodeList successors;
 	NodeList predecessors;
-	int tag;
+	uintptr_t tag;
 	mutable NodeList adjacencies;
 	mutable bool invalidAdj;
 	friend class Graph;
