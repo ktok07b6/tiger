@@ -1,10 +1,11 @@
 #ifndef TABLE_H
 #define TABLE_H
 
-#include "Object.h"
 #include <map>
 #include <list>
 #include <cassert>
+#include <stdint.h>
+#include "Object.h"
 #include "debug.h"
 #include "HeapManager.h"
 #include "tiger.h"
