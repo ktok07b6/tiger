@@ -129,7 +129,7 @@ int getNextChar(char *b, int maxBuffer)
 	}
 }
 
-void beginToken(char *t) 
+void beginToken(const char *t) 
 {
 	assert(lineBuffer);
 	tokenStartPos = tokenNextStartPos;
@@ -144,7 +144,7 @@ void beginToken(char *t)
 }
 
 
-void printError(char *errorstring, ...) 
+void printError(const char *errorstring, ...) 
 {
 	static char errmsg[10000];
 	va_list args;

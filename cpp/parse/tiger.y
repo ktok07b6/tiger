@@ -16,7 +16,7 @@ using namespace std;
 //#define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 
-extern "C" void yyerror(char *s) {
+extern "C" void yyerror(const char *s) {
 	//fprintf(stderr, "%s\n",s);
 	printError(s);
 }
