@@ -60,7 +60,7 @@ void printSource();
 bool parsePhase()
 {
 #ifdef YYDEBUG
-	yydebug = 1;
+	//yydebug = 1;
 #endif
 	yyparse();
 	absyn = result_syntax_tree;
