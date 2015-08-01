@@ -4,7 +4,7 @@ tiger
 This program is a compiler for the Tiger programming language. This language is the source language of Andrew Appel's "Modern Compiler Implementation". 
 https://www.cs.princeton.edu/~appel/modern/ml/
 
-#Supporting target architectures
+#Supported target architectures
 * arm
 * x86
 
@@ -72,15 +72,17 @@ L0_body:    .asciz  "hello world\n"
 ```
 
 
-#require packages:
-  bison, flex
+#Required packages:
+* bison
+* flex
 
 
-#how to make:
-   $ make [TARGET_CPU=x86|arm]
+#How to make:
+```
+$ make [TARGET_CPU=x86|arm]
+```
 
-
-#run a test program:
+#How to run:
 ###example:
 ```
 $ ./tiger.sh hello.tig
@@ -92,7 +94,7 @@ hello world
 $
 ```
 
-#run the test suite:
+#Test suite:
 ```
 $ ./suite.sh [x86|arm]
 ```
