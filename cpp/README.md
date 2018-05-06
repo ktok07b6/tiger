@@ -1,16 +1,15 @@
-tiger
-=====
+# tiger
 
 This program is a compiler for the Tiger programming language. This language is the source language of Andrew Appel's "Modern Compiler Implementation". 
 https://www.cs.princeton.edu/~appel/modern/ml/
 
-#Supported target architectures
+## Supported target architectures
 * arm
 * x86
 
-#Example
+## Example
 
-###source
+### source
 ```
 let
     function hello():string = "hello world\n"
@@ -19,7 +18,7 @@ in
 end
 ```
 
-###asm
+### asm
 
 ```
 .text
@@ -72,18 +71,18 @@ L0_body:    .asciz  "hello world\n"
 ```
 
 
-#Required packages:
+## Required packages:
 * bison
 * flex
 
 
-#How to make:
+## How to make:
 ```
 $ make [TARGET_CPU=x86|arm]
 ```
 
-#How to run:
-###example:
+## How to run:
+### example:
 ```
 $ ./tiger.sh hello.tig
 gcc -m32 -g -I../gc/boehmgc/include -c runtime/runtime.c -o obj/runtime.o
@@ -94,7 +93,7 @@ hello world
 $
 ```
 
-#Test suite:
+## Test suite:
 ```
 $ ./suite.sh [x86|arm]
 ```
